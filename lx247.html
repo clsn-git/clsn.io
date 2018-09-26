@@ -1,0 +1,1178 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>MongoDB的备份与恢复 | 惨绿少年</title><meta name="description" content="　　&nbsp; &nbsp;有以上两组命令在备份与恢复中进行使用。" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx247.html" tppabs="http://clsn.io/clsn/lx247.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-247 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><i class="be be-arrowright"></i><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/" rel="category tag">NoSQL</a><i class="be be-arrowright"></i><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/" rel="category tag">数据库</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>MongoDB的备份与恢复 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-247" class="post-247 post type-post status-publish format-standard hentry category-linux category-nosql category-databases category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">MongoDB的备份与恢复</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2018年1月20日<i class="i-time">07:34:00</i></span><span class="comment"><a href="lx247.html#respond" tppabs="http://clsn.io/clsn/lx247.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="javascript:if(confirm('http://clsn.io/clsn/lx247.html?wpzmaction=add&postid=247  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx247.html?wpzmaction=add&postid=247'" tppabs="http://clsn.io/clsn/lx247.html?wpzmaction=add&postid=247" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h2>1.1 MongoDB的常用命令</h2>
+<div>
+<div class="cnblogs_code">
+<pre>mongoexport /<span style="color: #000000;"> mongoimport
+mongodump  </span>/ mongorestore</pre>
+</div>
+<p>　　&nbsp; &nbsp;有以上两组命令在备份与恢复中进行使用。</p>
+</div>
+<h3>1.1.1 导出工具mongoexport</h3>
+<p>Mongodb中的mongoexport工具可以把一个collection导出成JSON格式或CSV格式的文件。可以通过参数指定导出的数据项，也可以根据指定的条件导出数据。</p>
+<p>&nbsp;&nbsp; 该命令的参数如下：</p>
+<table class="MsoTable15Grid2" style="width: 100%; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 40.64%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 5;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">参数</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">参数说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-h</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库宿主机的</span><span lang="EN-US">IP</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-u</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库的用户名</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-p</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库的密码</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-d</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库的名字</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-c</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明</span><span lang="EN-US">collection</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">的名字</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-f</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明要导出那些列</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-o</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明到要导出的文件名</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-q</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明导出数据的过滤条件</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">--type</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指定文件类型</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">--authenticationDatabase</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">验证数据的名称</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span style="background-color: #ffff00;"><strong>mongoexport</strong><strong>备份实践</strong></span></p>
+<p>备份app库下的vast集合</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongoexport -h <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.152</span>:<span style="color: #800080;">27017</span> -uroot -proot --authenticationDatabase admin -d app -c vast -o /home/mongod/backup/vasts.dat</pre>
+</div>
+</div>
+<p align="right">注：备份文件的名字可以自定义，默认导出了JSON格式的数据。</p>
+<p>导出CSV格式的数据</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongoexport -h <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.152</span>:<span style="color: #800080;">27017</span> -uroot -proot --authenticationDatabase admin  -d app -c vast --type=csv -f id,name -o /home/mongod/backup/vast_csv.dat</pre>
+</div>
+</div>
+<h3>1.1.2 导入工具mongoimport</h3>
+<p>　　Mongodb中的mongoimport工具可以把一个特定格式文件中的内容导入到指定的collection中。该工具可以导入JSON格式数据，也可以导入CSV格式数据。</p>
+<p>该命令的参数如下：&nbsp;&nbsp;&nbsp;</p>
+<table class="MsoTable15Grid2" style="width: 100%; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 40.64%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 5;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">参数</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">参数说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-h</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库宿主机的</span><span lang="EN-US">IP</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-u</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库的用户名</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-p</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库的密码</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-d</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库的名字</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-c</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明</span><span lang="EN-US">collection</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">的名字</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-f</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明要导出那些列</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-o</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明到要导出的文件名</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-q</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明导出数据的过滤条件</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">--drop</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">插入之前先删除原有的</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">--headerline</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明第一行是列名，不需要导入。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-j</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">同时运行的插入操作数（默认为</span><span lang="EN-US">1</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">），并行</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">--authenticationDatabase</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">验证数据的名称</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>mongoimport</strong><strong>恢复实践</strong></p>
+<div>
+<p class="a1">将之前恢复的数据导入</p>
+<div class="cnblogs_code">
+<pre>mongoimport -h <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.152</span>:<span style="color: #800080;">27017</span> -uroot -proot --authenticationDatabase admin  -d app -c vast  --drop /home/mongod/backup/vasts.dat</pre>
+</div>
+</div>
+<p>将之前恢复的CSV格式数据导入</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongoimport -h <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.152</span>:<span style="color: #800080;">27017</span> -uroot -proot --authenticationDatabase admin -d app -c vast --type=csv --headerline --file vast_csv.dat</pre>
+</div>
+</div>
+<h3>1.1.3 【实验】mysql数据迁移至mongodb数据库</h3>
+<p>　　　　mysql相关的参考文档：<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/category/1131345.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/category/1131345.html'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/category/1131345.html" >http://www.cnblogs.com/clsn/category/1131345.html</a></p>
+<p>将mysql数据库中的mysql下的user表导出。</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">select</span> <span style="color: #ff00ff;">user</span>,host,password <span style="color: #0000ff;">from</span> mysql.<span style="color: #ff00ff;">user</span>
+<span style="color: #0000ff;">into</span> outfile <span style="color: #ff0000;">'</span><span style="color: #ff0000;">/tmp/user.csv</span><span style="color: #ff0000;">'</span><span style="color: #000000;">
+fields terminated </span><span style="color: #0000ff;">by</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">,</span><span style="color: #ff0000;">'</span><span style="color: #000000;">
+optionally enclosed </span><span style="color: #0000ff;">by</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">"</span><span style="color: #ff0000;">'</span><span style="color: #000000;">
+escaped </span><span style="color: #0000ff;">by</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">"</span><span style="color: #ff0000;">'</span><span style="color: #000000;"> 
+lines terminated </span><span style="color: #0000ff;">by</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">\r\n</span><span style="color: #ff0000;">'</span>;</pre>
+</div>
+</div>
+<p>命令说明：</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">into</span> outfile <span style="color: #ff0000;">'</span><span style="color: #ff0000;">/tmp/user.csv</span><span style="color: #ff0000;">' </span> <span style="color: #008080;">--</span><span style="color: #008080;">----导出文件位置  </span>
+fields terminated <span style="color: #0000ff;">by</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">,</span><span style="color: #ff0000;">'</span>　　   <span style="color: #008080;">--</span><span style="color: #008080;">----字段间以,号分隔</span>
+optionally enclosed <span style="color: #0000ff;">by</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">"</span><span style="color: #ff0000;">'</span>　  <span style="color: #008080;">--</span><span style="color: #008080;">----字段用"号括起</span>
+escaped <span style="color: #0000ff;">by</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">"</span><span style="color: #ff0000;">'</span>   　　　　　   　<span style="color: #008080;">--</span><span style="color: #008080;">----字段中使用的转义符为"</span>
+lines terminated <span style="color: #0000ff;">by</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">\r\n</span><span style="color: #ff0000;">'</span>; 　<span style="color: #008080;">--</span><span style="color: #008080;">----行以\r\n结束</span></pre>
+</div>
+</div>
+<p>查看导出内容</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e38e8c8d848c87a3ae8c8d848ca7a1">[email&#160;protected]</a> tmp</span><span style="color: #ff0000;">]</span>$ cat <span style="color: #ff00ff;">user</span><span style="color: #000000;">.csv 
+"root","localhost",""
+"root","db02",""
+"root","</span><span style="color: #800000; font-weight: bold;">127.0</span>.<span style="color: #800000; font-weight: bold;">0.1</span><span style="color: #000000;">",""
+"root","::</span><span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;">",""
+"","localhost",""
+"","db02",""
+"repl","</span><span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0</span>.<span style="color: #808080;">%</span>","<span style="color: #808080;">*</span><span style="color: #000000;">23AE809DDACAF96AF0FD78ED04B6A265E05AA257"
+"mha","</span><span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0</span>.<span style="color: #808080;">%</span>","<span style="color: #808080;">*</span>F4C9AC49A736981AE2739FC2F4A1FD92B4F07929"</pre>
+</div>
+</div>
+<p>在mongodb中导入数据</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongoimport <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">27017</span> <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>proot <span style="color: #008080;">--</span><span style="color: #008080;">authenticationDatabase admin -d app -c user -f user,host,password  --type=csv --file /tmp/user.csv</span></pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 查看导入的内容</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dcaeb3b3a89c91b3b2bbb3989e">[email&#160;protected]</a> tmp</span><span style="color: #ff0000;">]</span># mongo <span style="color: #008080;">--</span><span style="color: #008080;">port 27017 </span>
+MongoDB shell version: <span style="color: #800000; font-weight: bold;">3.2</span>.<span style="color: #800000; font-weight: bold;">8</span><span style="color: #000000;">
+connecting </span><span style="color: #0000ff;">to</span>: <span style="color: #800000; font-weight: bold;">127.0</span>.<span style="color: #800000; font-weight: bold;">0.1</span>:<span style="color: #800000; font-weight: bold;">27017</span><span style="color: #808080;">/</span><span style="color: #000000;">test
+</span><span style="color: #808080;">></span> <span style="color: #0000ff;">use</span><span style="color: #000000;"> app 
+switched </span><span style="color: #0000ff;">to</span><span style="color: #000000;"> db app
+</span><span style="color: #808080;">></span> db.<span style="color: #ff00ff;">user</span><span style="color: #000000;">.find()
+{ "_id" : ObjectId("5a53206b3b42ae4683180009"), "</span><span style="color: #ff00ff;">user</span><span style="color: #000000;">" : "root\tlocalhost" }
+{ "_id" : ObjectId("5a53206b3b42ae468318000a"), "</span><span style="color: #ff00ff;">user</span><span style="color: #000000;">" : "root\tdb02" }
+{ "_id" : ObjectId("5a53206b3b42ae468318000b"), "</span><span style="color: #ff00ff;">user</span>" : "root\t127.<span style="color: #800000; font-weight: bold;">0.0</span>.<span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;">" }
+{ "_id" : ObjectId("5a53206b3b42ae468318000c"), "</span><span style="color: #ff00ff;">user</span>" : "root\t::<span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;">" }
+{ "_id" : ObjectId("5a53206b3b42ae468318000d"), "</span><span style="color: #ff00ff;">user</span><span style="color: #000000;">" : "localhost" }
+{ "_id" : ObjectId("5a53206b3b42ae468318000e"), "</span><span style="color: #ff00ff;">user</span><span style="color: #000000;">" : "db02" }
+{ "_id" : ObjectId("5a53206b3b42ae468318000f"), "</span><span style="color: #ff00ff;">user</span>" : "repl\t10.<span style="color: #800000; font-weight: bold;">0.0</span>.<span style="color: #808080;">%</span>\t<span style="color: #808080;">*</span><span style="color: #000000;">23AE809DDACAF96AF0FD78ED04B6A265E05AA257" }
+{ "_id" : ObjectId("5a53206b3b42ae4683180010"), "</span><span style="color: #ff00ff;">user</span>" : "mha\t10.<span style="color: #800000; font-weight: bold;">0.0</span>.<span style="color: #808080;">%</span>\t<span style="color: #808080;">*</span>F4C9AC49A736981AE2739FC2F4A1FD92B4F07929" }</pre>
+</div>
+<p>　　&nbsp; &nbsp;到此数据迁移完成。</p>
+</div>
+<h2>1.2 mongodump/mongorestore实践</h2>
+<h3>1.2.1 mongodump备份工具</h3>
+<p>　　mongodump的参数与mongoexport的参数基本一致&nbsp;</p>
+<table class="MsoTable15Grid2" style="width: 100%; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 40.64%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 5;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">参数</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">参数说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-h</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库宿主机的</span><span lang="EN-US">IP</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-u</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库的用户名</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-p</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库的密码</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-d</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库的名字</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-c</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明</span><span lang="EN-US">collection</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">的名字</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-o</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明到要导出的文件名</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-q</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明导出数据的过滤条件</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">--authenticationDatabase</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">验证数据的名称</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">--gzip</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">备份时压缩</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">--oplog</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">use oplog for taking a point-in-time snapshot</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>mongodump</strong><strong>参数实践</strong></p>
+<div>
+<p class="a1">全库备份</p>
+<div class="cnblogs_code">
+<pre>mongodump <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">27017</span> <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>proot <span style="color: #008080;">--</span><span style="color: #008080;">authenticationDatabase admin  -o /home/mongod/backup/full</span></pre>
+</div>
+</div>
+<p>备份test库</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongodump <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">27017</span> <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>proot <span style="color: #008080;">--</span><span style="color: #008080;">authenticationDatabase admin  -d test -o /home/mongod/backup/</span></pre>
+</div>
+</div>
+<p>备份test库下的vast集合</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongodump <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">27017</span> <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>proot <span style="color: #008080;">--</span><span style="color: #008080;">authenticationDatabase admin  -d test -c vast -o /home/mongod/backup/</span></pre>
+</div>
+</div>
+<p>压缩备份库</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongodump <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">27017</span> <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>proot <span style="color: #008080;">--</span><span style="color: #008080;">authenticationDatabase admin  -d test -o /home/mongod/backup/ --gzip</span></pre>
+</div>
+</div>
+<p>压缩备份单表</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongodump <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">27017</span> <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>proot <span style="color: #008080;">--</span><span style="color: #008080;">authenticationDatabase admin  -d test -c vast -o /home/mongod/backup/ --gzip</span></pre>
+</div>
+</div>
+<h3>1.2.2 mongorestore恢复实践</h3>
+<p>　　mongorestore与mongoimport参数类似&nbsp;</p>
+<table class="MsoTable15Grid2" style="width: 100%; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 40.64%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 5;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">参数</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">参数说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-h</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库宿主机的</span><span lang="EN-US">IP</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-u</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库的用户名</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-p</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库的密码</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-d</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明数据库的名字</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-c</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明</span><span lang="EN-US">collection</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">的名字</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-o</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明到要导出的文件名</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-q</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指明导出数据的过滤条件</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">--authenticationDatabase</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">验证数据的名称</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">--gzip</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">备份时压缩</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">--oplog</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">use oplog for taking a point-in-time snapshot</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.64%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="40%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">--drop</span></strong></p>
+</td>
+<td style="width: 59.36%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="59%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">恢复的时候把之前的集合</span><span lang="EN-US">drop</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">掉</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>全库备份中恢复单库（基于之前的全库备份）</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongorestore <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">27017</span> <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>proot <span style="color: #008080;">--</span><span style="color: #008080;">authenticationDatabase admin -d test --drop  /home/mongod/backup/full/test/</span></pre>
+</div>
+</div>
+<p>恢复test库</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongorestore <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">27017</span> <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>proot <span style="color: #008080;">--</span><span style="color: #008080;">authenticationDatabase admin -d test /home/mongod/backup/test/</span></pre>
+</div>
+</div>
+<p>恢复test库下的vast集合</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongorestore <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">27017</span> <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>proot <span style="color: #008080;">--</span><span style="color: #008080;">authenticationDatabase admin -d test -c vast /home/mongod/backup/test/vast.bson</span></pre>
+</div>
+</div>
+<p>--drop参数实践恢复</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 恢复单库</span>
+mongorestore -h 10.0.0.152:27017 -uroot -proot --authenticationDatabase admin -d test --drop /home/mongod/backup/test/
+<span style="color: #008000;">#</span><span style="color: #008000;"> 恢复单表</span>
+mongorestore -h 10.0.0.152:27017 -uroot -proot --authenticationDatabase admin -d test -c vast --drop /home/mongod/backup/test/vast.bson</pre>
+</div>
+</div>
+<h3>1.2.3 mongoexport/mongoimport与mongodump/mongorestore的对比</h3>
+<blockquote>
+<p>&nbsp;</p>
+<ol style="color: #000000;">
+<li>mongoexport/mongoimport导入/导出的是JSON格式，而mongodump/mongorestore导入/导出的是BSON格式。</li>
+<li>JSON可读性强但体积较大，BSON则是二进制文件，体积小但对人类几乎没有可读性。</li>
+<li>在一些mongodb版本之间，BSON格式可能会随版本不同而有所不同，所以不同版本之间用mongodump/mongorestore可能不会成功，具体要看版本之间的兼容性。当无法使用BSON进行跨版本的数据迁移的时候，使用JSON格式即mongoexport/mongoimport是一个可选项。跨版本的mongodump/mongorestore并不推荐，实在要做请先检查文档看两个版本是否兼容（大部分时候是的）。</li>
+<li>JSON虽然具有较好的跨版本通用性，但其只保留了数据部分，不保留索引，账户等其他基础信息。使用时应该注意。</li>
+</ol>
+</blockquote>
+<h2>1.3 MongoDB中的oplog</h2>
+<h3>1.3.1 什么是oplog</h3>
+<p>　　MongoDB 的Replication是通过一个日志来存储写操作的，这个日志就叫做oplog。</p>
+<p>　　在默认情况下,oplog分配的是5%的空闲磁盘空间。通常而言,这是一种合理的设置。可以通过mongod --oplogSize来改变oplog的日志大小。</p>
+<p><strong>　　oplog</strong>是capped collection，因为oplog的特点（不能太多把磁盘填满了，固定大小）需要，MongoDB才发明了capped collection（the oplog is actually the reason capped collections were invented）. 定值大小的集合，oplogSizeMB: 2048，oplog是具有幂等性，执行过后的不会反复执行。</p>
+<p><strong>　　<span style="background-color: #ffff00;">值得注意的是，oplog</span></strong><span style="background-color: #ffff00;"><strong>为replica set</strong><strong>或者master/slave</strong><strong>模式专用（standalone</strong><strong>模式运行mongodb</strong><strong>并不推荐）。</strong></span></p>
+<p>oplog的位置：</p>
+<div>
+<blockquote>
+<p class="a1" style="color: #000000;">oplog在local库： local。oplog</p>
+<p class="a1" style="color: #000000;">master/slave 架构下：local.oplog.$main;</p>
+<p class="a1">&nbsp;</p>
+<p class="a1" style="color: #000000;">replica sets 架构下：local.oplog.rs</p>
+</blockquote>
+</div>
+<p>参数说明</p>
+<div>
+<div class="cnblogs_code">
+<pre>$ mongodump --<span style="color: #000000;">help
+ </span>--oplog use oplog <span style="color: #0000ff;">for</span> taking a point-<span style="color: #0000ff;">in</span>-time snapshot</pre>
+</div>
+<p>　　该参数的主要作用是在导出的同时生成一个oplog.bson文件，存放在你开始进行dump到dump结束之间所有的oplog。</p>
+</div>
+<p>　　oplog 官方说明<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://docs.mongodb.com/manual/core/replica-set-oplog/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://docs.mongodb.com/manual/core/replica-set-oplog/'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://docs.mongodb.com/manual/core/replica-set-oplog/" >https://docs.mongodb.com/manual/core/replica-set-oplog/</a></p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180108182310613-2083013963.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB的备份与恢复" alt="" /></p>
+
+<p>　　简单地说，在replica set中oplog是一个定容集合（capped collection），它的默认大小是磁盘空间的5%（可以通过--oplogSizeMB参数修改），位于local库的db.oplog.rs，有兴趣可以看看里面到底有些什么内容。</p>
+<p>　　其中记录的是整个mongod实例一段时间内数据库的所有变更（插入/更新/删除）操作。当空间用完时新记录自动覆盖最老的记录。</p>
+<p>　　所以从时间轴上看，oplog的覆盖范围大概是这样的：</p>
+<p style="text-align: center;">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180108182407426-484765998.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB的备份与恢复" alt="" />&nbsp;</p>
+
+<p>　　其覆盖范围被称作oplog时间窗口。需要注意的是，因为oplog是一个定容集合，所以时间窗口能覆盖的范围会因为你单位时间内的更新次数不同而变化。想要查看当前的oplog时间窗口预计值.</p>
+<div>
+<div class="cnblogs_code">
+<pre>sh1:<span style="color: #0000ff;">PRIMARY</span><span style="color: #808080;">></span><span style="color: #000000;"> rs.printReplicationInfo()
+configured oplog size:   2048MB   </span><span style="color: #808080;"><</span><span style="color: #008080;">--</span><span style="color: #008080;">集合大小</span>
+<span style="color: #ff00ff;">log</span> length start <span style="color: #0000ff;">to</span> <span style="color: #0000ff;">end</span>: 305451secs (<span style="color: #800000; font-weight: bold;">84</span>.85hrs)  <span style="color: #808080;"><</span><span style="color: #008080;">--</span><span style="color: #008080;">预计窗口覆盖时间</span>
+oplog first event time:  Thu Jan <span style="color: #800000; font-weight: bold;">04</span> <span style="color: #800000; font-weight: bold;">2018</span> <span style="color: #800000; font-weight: bold;">19</span>:<span style="color: #800000; font-weight: bold;">39</span>:<span style="color: #800000; font-weight: bold;">05</span> GMT<span style="color: #808080;">+</span><span style="color: #800000; font-weight: bold;">0800</span><span style="color: #000000;"> (CST)
+oplog last event time:   Mon Jan </span><span style="color: #800000; font-weight: bold;">08</span> <span style="color: #800000; font-weight: bold;">2018</span> <span style="color: #800000; font-weight: bold;">08</span>:<span style="color: #800000; font-weight: bold;">29</span>:<span style="color: #800000; font-weight: bold;">56</span> GMT<span style="color: #808080;">+</span><span style="color: #800000; font-weight: bold;">0800</span><span style="color: #000000;"> (CST)
+now:                     Mon Jan </span><span style="color: #800000; font-weight: bold;">08</span> <span style="color: #800000; font-weight: bold;">2018</span> <span style="color: #800000; font-weight: bold;">16</span>:<span style="color: #800000; font-weight: bold;">33</span>:<span style="color: #800000; font-weight: bold;">25</span> GMT<span style="color: #808080;">+</span><span style="color: #800000; font-weight: bold;">0800</span> (CST)</pre>
+</div>
+</div>
+<p>　　oplog有一个非常重要的特性&mdash;&mdash;<span style="background-color: #ffff00;"><strong>幂等性（</strong><strong>idempotent</strong><strong>）</strong></span>。即对一个数据集合，使用oplog中记录的操作重放时，无论被重放多少次，其结果会是一样的。</p>
+<p>　　举例来说，如果oplog中记录的是一个插入操作，并<span style="background-color: #ffff00;"><strong>不会因为你重放了两次，数据库中就得到两条相同的记录</strong>。</span>这是一个很重要的特性.</p>
+<h3>1.3.2 oplog.bson作用</h3>
+<p>与oplog相关的参数</p>
+<table class="MsoTable15Grid2" style="width: 100%; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 29.8%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="29%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 5;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">参数</span></strong></p>
+</td>
+<td style="width: 70.2%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="70%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">参数说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 29.8%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="29%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">--oplogReplay</span></strong></p>
+</td>
+<td style="width: 70.2%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="70%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">重放</span><span lang="EN-US">oplog.bson</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">中的操作内容</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 29.8%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" valign="top" width="29%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">--oplogLimit</span></strong></p>
+</td>
+<td style="width: 70.2%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" valign="top" width="70%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">与</span><span lang="EN-US">--oplogReplay</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">一起使用时，可以限制重放到的时间点</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>　　首先要明白的一个问题是数据之间互相有依赖性，比如集合A中存放了订单，集合B中存放了订单的所有明细，那么只有一个订单有完整的明细时才是正确的状态。</p>
+<p>　　假设在任意一个时间点，A和B集合的数据都是完整对应并且有意义的（对非关系型数据库要做到这点并不容易，且对于MongoDB来说这样的数据结构并非合理。但此处我们假设这个条件成立），那么如果A处于时间点x，而B处于x之后的一个时间点y时，可以想象A和B中的数据极有可能不对应而失去意义。</p>
+<p>　　mongodump的进行过程中并不会把数据库锁死以保证整个库冻结在一个固定的时间点，这在业务上常常是不允许的。所以就有了dump的最终结果中A集合是10点整的状态，而B集合则是10点零1分的状态这种情况。</p>
+<p>　　这样的备份即使恢复回去，可以想象得到的结果恐怕意义有限。</p>
+<p>　　那么上面这个oplog.bson的意义就在这里体现出来了。如果在dump数据的基础上，再重做一遍oplog中记录的所有操作，这时的数据就可以代表dump结束时那个时间点（point-in-time）的数据库状态。</p>
+<h3>1.3.3 【模拟】mongodump使用</h3>
+<p>首先我们模拟一个不断有插入操作的集合foo，</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">use</span><span style="color: #000000;"> clsn
+</span><span style="color: #0000ff;">for</span>(<span style="color: #ff00ff;">var</span> i <span style="color: #808080;">=</span> <span style="color: #800000; font-weight: bold;">0</span>; i <span style="color: #808080;"><</span> <span style="color: #800000; font-weight: bold;">10000</span>; i<span style="color: #808080;">++</span><span style="color: #000000;">) {
+    db.clsn.</span><span style="color: #0000ff;">insert</span><span style="color: #000000;">({a: i});
+}</span></pre>
+</div>
+<p>　　然后在插入过程中模拟一次mongodump并指定--oplog。</p>
+</div>
+<div>
+<div class="cnblogs_code">
+<pre>mongodump <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span> <span style="color: #008080;">--</span><span style="color: #008080;">port 28021  --oplog  -o /home/mongod/backup/oplog</span></pre>
+</div>
+<p>　　<span style="color: #ff0000;"><strong>注意：</strong></span>--oplog选项只对全库导出有效，所以不能指定-d选项。</p>
+</div>
+<p>　　　　&nbsp; &nbsp;因为整个实例的变更操作都会集中在local库中的oplog.rs集合中。</p>
+<p>根据上面所说，从dump开始的时间系统将记录所有的oplog到oplog.bson中，所以我们得到这些文件：</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="04696b6a636b6044496b6a636b4046">[email&#160;protected]</a> ~</span><span style="color: #ff0000;">]</span>$ ll <span style="color: #808080;">/</span>home<span style="color: #808080;">/</span>mongod<span style="color: #808080;">/</span><span style="color: #0000ff;">backup</span><span style="color: #808080;">/</span><span style="color: #000000;">oplog 
+total </span><span style="color: #800000; font-weight: bold;">8</span><span style="color: #000000;">
+drwxrwxr</span><span style="color: #808080;">-</span>x <span style="color: #800000; font-weight: bold;">2</span> mongod mongod   <span style="color: #800000; font-weight: bold;">4096</span> Jan  <span style="color: #800000; font-weight: bold;">8</span> <span style="color: #800000; font-weight: bold;">16</span>:<span style="color: #800000; font-weight: bold;">49</span><span style="color: #000000;"> admin
+drwxrwxr</span><span style="color: #808080;">-</span>x <span style="color: #800000; font-weight: bold;">2</span> mongod mongod   <span style="color: #800000; font-weight: bold;">4096</span> Jan  <span style="color: #800000; font-weight: bold;">8</span> <span style="color: #800000; font-weight: bold;">16</span>:<span style="color: #800000; font-weight: bold;">49</span><span style="color: #000000;"> clsn
+</span><span style="color: #808080;">-</span>rw<span style="color: #808080;">-</span>rw<span style="color: #808080;">-</span>r<span style="color: #008080;">--</span><span style="color: #008080;"> 1 mongod mongod  77256 Jan  8 16:49 oplog.bson</span></pre>
+</div>
+</div>
+<p>查看oplog.bson中第一条和最后一条内容</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b0dddfded7dfd4f0fddfded7dff4f2">[email&#160;protected]</a> oplog</span><span style="color: #ff0000;">]</span>$ bsondump oplog.bson  <span style="color: #808080;">>/</span>tmp<span style="color: #808080;">/</span><span style="color: #000000;">oplog.bson.tmp
+</span><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b9d4d6d7ded6ddf9f4d6d7ded6fdfb">[email&#160;protected]</a> oplog</span><span style="color: #ff0000;">]</span>$ head <span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">1</span> <span style="color: #808080;">/</span>tmp<span style="color: #808080;">/</span><span style="color: #000000;">oplog.bson.tmp 
+{"ts":{"$</span><span style="color: #0000ff;">timestamp</span>":{"t":<span style="color: #800000; font-weight: bold;">1515401553</span>,"i":<span style="color: #800000; font-weight: bold;">666</span>}},"t":{"$numberLong":"<span style="color: #800000; font-weight: bold;">5</span>"},"h":{"$numberLong":"<span style="color: #800000; font-weight: bold;">5737315465472464503</span>"},"v":<span style="color: #800000; font-weight: bold;">2</span>,"op":"i","ns":"clsn.clsn1","o":{"_id":{"$oid":"5a533151cc075bd0aa461327"},"a":<span style="color: #800000; font-weight: bold;">3153.0</span><span style="color: #000000;">}}
+</span><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b5d8dadbd2dad1f5f8dadbd2daf1f7">[email&#160;protected]</a> oplog</span><span style="color: #ff0000;">]</span>$ tail <span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">1</span> <span style="color: #808080;">/</span>tmp<span style="color: #808080;">/</span><span style="color: #000000;">oplog.bson.tmp 
+{"ts":{"$</span><span style="color: #0000ff;">timestamp</span>":{"t":<span style="color: #800000; font-weight: bold;">1515401556</span>,"i":<span style="color: #800000; font-weight: bold;">34</span>}},"t":{"$numberLong":"<span style="color: #800000; font-weight: bold;">5</span>"},"h":{"$numberLong":"<span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">7438621314956315593</span>"},"v":<span style="color: #800000; font-weight: bold;">2</span>,"op":"i","ns":"clsn.clsn1","o":{"_id":{"$oid":"5a533154cc075bd0aa4615de"},"a":<span style="color: #800000; font-weight: bold;">3848.0</span>}}</pre>
+</div>
+<p>　　最终dump出的数据既不是最开始的状态，也不是最后的状态，而是中间某个随机状态。这正是因为集合不断变化造成的。</p>
+</div>
+<p>　　使用mongorestore来恢复</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="305d5f5e575f54707d5f5e575f7472">[email&#160;protected]</a> oplog</span><span style="color: #ff0000;">]</span>$ mongorestore <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span> <span style="color: #008080;">--</span><span style="color: #008080;">port 28021  --oplogReplay  --drop   /home/mongod/backup/oplog</span>
+<span style="color: #800000; font-weight: bold;">2018</span><span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">01</span><span style="color: #808080;">-</span>08T16:<span style="color: #800000; font-weight: bold;">59</span>:<span style="color: #800000; font-weight: bold;">18.053</span><span style="color: #808080;">+</span><span style="color: #800000; font-weight: bold;">0800</span>    building a list <span style="color: #0000ff;">of</span> dbs <span style="color: #808080;">and</span> collections <span style="color: #0000ff;">to</span> <span style="color: #0000ff;">restore</span> <span style="color: #0000ff;">from</span> <span style="color: #808080;">/</span>home<span style="color: #808080;">/</span>mongod<span style="color: #808080;">/</span><span style="color: #0000ff;">backup</span><span style="color: #808080;">/</span><span style="color: #000000;">oplog dir
+</span><span style="color: #800000; font-weight: bold;">2018</span><span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">01</span><span style="color: #808080;">-</span>08T16:<span style="color: #800000; font-weight: bold;">59</span>:<span style="color: #800000; font-weight: bold;">18.066</span><span style="color: #808080;">+</span><span style="color: #800000; font-weight: bold;">0800</span>    reading metadata <span style="color: #0000ff;">for</span> clsn.clsn <span style="color: #0000ff;">from</span> <span style="color: #808080;">/</span>home<span style="color: #808080;">/</span>mongod<span style="color: #808080;">/</span><span style="color: #0000ff;">backup</span><span style="color: #808080;">/</span>oplog<span style="color: #808080;">/</span>clsn<span style="color: #808080;">/</span><span style="color: #000000;">clsn.metadata.json
+</span><span style="color: #800000; font-weight: bold;">2018</span><span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">01</span><span style="color: #808080;">-</span>08T16:<span style="color: #800000; font-weight: bold;">59</span>:<span style="color: #800000; font-weight: bold;">18.157</span><span style="color: #808080;">+</span><span style="color: #800000; font-weight: bold;">0800</span>    restoring clsn.clsn <span style="color: #0000ff;">from</span> <span style="color: #808080;">/</span>home<span style="color: #808080;">/</span>mongod<span style="color: #808080;">/</span><span style="color: #0000ff;">backup</span><span style="color: #808080;">/</span>oplog<span style="color: #808080;">/</span>clsn<span style="color: #808080;">/</span><span style="color: #000000;">clsn.bson
+</span><span style="color: #800000; font-weight: bold;">2018</span><span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">01</span><span style="color: #808080;">-</span>08T16:<span style="color: #800000; font-weight: bold;">59</span>:<span style="color: #800000; font-weight: bold;">18.178</span><span style="color: #808080;">+</span><span style="color: #800000; font-weight: bold;">0800</span>    reading metadata <span style="color: #0000ff;">for</span> clsn.clsn1 <span style="color: #0000ff;">from</span> <span style="color: #808080;">/</span>home<span style="color: #808080;">/</span>mongod<span style="color: #808080;">/</span><span style="color: #0000ff;">backup</span><span style="color: #808080;">/</span>oplog<span style="color: #808080;">/</span>clsn<span style="color: #808080;">/</span><span style="color: #000000;">clsn1.metadata.json
+</span><span style="color: #800000; font-weight: bold;">2018</span><span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">01</span><span style="color: #808080;">-</span>08T16:<span style="color: #800000; font-weight: bold;">59</span>:<span style="color: #800000; font-weight: bold;">18.216</span><span style="color: #808080;">+</span><span style="color: #800000; font-weight: bold;">0800</span>    restoring clsn.clsn1 <span style="color: #0000ff;">from</span> <span style="color: #808080;">/</span>home<span style="color: #808080;">/</span>mongod<span style="color: #808080;">/</span><span style="color: #0000ff;">backup</span><span style="color: #808080;">/</span>oplog<span style="color: #808080;">/</span>clsn<span style="color: #808080;">/</span><span style="color: #000000;">clsn1.bson
+</span><span style="color: #800000; font-weight: bold;">2018</span><span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">01</span><span style="color: #808080;">-</span>08T16:<span style="color: #800000; font-weight: bold;">59</span>:<span style="color: #800000; font-weight: bold;">18.669</span><span style="color: #808080;">+</span><span style="color: #800000; font-weight: bold;">0800</span>    restoring indexes <span style="color: #0000ff;">for</span> collection clsn.clsn1 <span style="color: #0000ff;">from</span><span style="color: #000000;"> metadata
+</span><span style="color: #ffcc00;"><span style="font-weight: bold;">2018</span>-<span style="font-weight: bold;">01</span>-08T16:<span style="font-weight: bold;">59</span>:<span style="font-weight: bold;">18.679</span>+<span style="font-weight: bold;">0800</span>    finished restoring clsn.clsn1 (<span style="font-weight: bold;">3165</span> documents)
+<span style="font-weight: bold;">2018</span>-<span style="font-weight: bold;">01</span>-08T16:<span style="font-weight: bold;">59</span>:<span style="font-weight: bold;">19.850</span>+<span style="font-weight: bold;">0800</span>    restoring indexes for collection clsn.clsn from metadata
+<span style="font-weight: bold;">2018</span>-<span style="font-weight: bold;">01</span>-08T16:<span style="font-weight: bold;">59</span>:<span style="font-weight: bold;">19.851</span>+<span style="font-weight: bold;">0800</span>    finished restoring clsn.clsn (<span style="font-weight: bold;">10000</span> documents)
+<span style="font-weight: bold;">2018</span>-<span style="font-weight: bold;">01</span>-08T16:<span style="font-weight: bold;">59</span>:<span style="font-weight: bold;">19.851</span>+<span style="font-weight: bold;">0800</span>    replaying oplog
+</span><span style="color: #800000; font-weight: bold;">2018</span><span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">01</span><span style="color: #808080;">-</span>08T16:<span style="color: #800000; font-weight: bold;">59</span>:<span style="color: #800000; font-weight: bold;">19.919</span><span style="color: #808080;">+</span><span style="color: #800000; font-weight: bold;">0800</span>    done</pre>
+</div>
+</div>
+<p>　　注意黄字体，第一句表示clsn.clsn1集合中恢复了3165个文档；第二句表示重放了oplog中的所有操作。所以理论上clsn1应该有16857个文档（3165个来自clsn.bson，剩下的来自oplog.bson）。验证一下：</p>
+<div>
+<div class="cnblogs_code">
+<pre>sh1:<span style="color: #0000ff;">PRIMARY</span><span style="color: #808080;">></span> db.clsn1.<span style="color: #ff00ff;">count</span><span style="color: #000000;">()
+</span><span style="color: #800000; font-weight: bold;">3849</span></pre>
+</div>
+<p>　　这就是带oplog的mongodump的真正作用。</p>
+</div>
+<h3>1.3.4 从别处而来的oplog</h3>
+<p>oplog有两种来源：</p>
+<div>
+<blockquote>
+<p class="a" style="color: #000000;">1、mongodump时加上--oplog选项，自动生成的oplog，这种方式的oplog直接 --oplogReplay 就可以恢复</p>
+<p class="a">&nbsp;</p>
+<p class="a" style="color: #000000;">2、从别处而来，除了--oplog之外，人为获取的oplog</p>
+</blockquote>
+</div>
+<p>例如：</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongodump  <span style="color: #008080;">--</span><span style="color: #008080;">port 28021 -d local -c oplog.rs</span></pre>
+</div>
+<p>　　既然dump出的数据配合oplog就可以把数据库恢复到某个状态，那是不是拥有一份从某个时间点开始备份的dump数据，再加上从dump开始之后的oplog，如果oplog足够长，是不是就可以把数据库恢复到其后的任意状态了？<strong>是的！</strong></p>
+</div>
+<p>　　事实上replica set正是依赖oplog的重放机制在工作。当secondary第一次加入replica set时做的initial sync就相当于是在做mongodump，此后只需要不断地同步和重放oplog.rs中的数据，就达到了secondary与primary同步的目的。</p>
+<p>　　既然oplog一直都在oplog.rs中存在，我们为什么还需要在mongodump时指定--oplog呢？需要的时候从oplog.rs中拿不就完了吗？答案是肯定的，你确实可以只dump数据，不需要oplog。</p>
+<p>在需要的时候可以再从oplog.rs中取。但前提是oplog时间窗口必须能够覆盖dump的开始时间。</p>
+<p><span style="background-color: #ffff00;"><strong>及时点恢复场景模拟</strong></span></p>
+<p>模拟生产环境</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span>(i<span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">0</span>;i<span style="color: #808080;"><</span><span style="color: #800000; font-weight: bold;">300000</span>;i<span style="color: #808080;">++</span>){ db.oplog.<span style="color: #0000ff;">insert</span>({"id":i,"name":"shenzheng","age":<span style="color: #800000; font-weight: bold;">70</span>,"date":new Date()}); }</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 插入数据的同时备份</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongodump <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span> <span style="color: #008080;">--</span><span style="color: #008080;">port 28021  --oplog  -o /home/mongod/backup/config</span></pre>
+</div>
+</div>
+<div>
+<p class="a">&nbsp;&nbsp;&nbsp; 备份完成后进行次错误的操作</p>
+<div class="cnblogs_code">
+<pre>    db.oplog.remove({});</pre>
+</div>
+</div>
+<p>备份oplog.rs文件</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongodump <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span> <span style="color: #008080;">--</span><span style="color: #008080;">port 28021 -d local -c oplog.rs -o  /home/mongod/backup/config/oplog</span></pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 恢复之前备份的数据</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongorestore <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span> <span style="color: #008080;">--</span><span style="color: #008080;">port 28021--oplogReplay /home/mongod/backup/config</span></pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 截取oplog，找到发生误删除的时间点</p>
+<div>
+<div class="cnblogs_code">
+<pre>bsondump oplog.rs.bson <span style="color: #808080;">|</span>egrep "\"op\":\"d\"\,\"ns\":\"test\.oplog\"" <span style="color: #808080;">|</span>head <span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;"> 
+"t":</span><span style="color: #800000; font-weight: bold;">1515379110</span>,"i":<span style="color: #800000; font-weight: bold;">1</span></pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 复制oplog到备份目录</p>
+<div>
+<div class="cnblogs_code">
+<pre>cp  <span style="color: #808080;">/</span>home<span style="color: #808080;">/</span>mongod<span style="color: #808080;">/</span><span style="color: #0000ff;">backup</span><span style="color: #808080;">/</span>config<span style="color: #808080;">/</span>oplog<span style="color: #808080;">/</span>oplog.rs.bson   <span style="color: #808080;">/</span>home<span style="color: #808080;">/</span>mongod<span style="color: #808080;">/</span><span style="color: #0000ff;">backup</span><span style="color: #808080;">/</span>config<span style="color: #808080;">/</span>oplog.bson</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 进行恢复，添加之前找到的误删除的点（limt）</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongorestore <span style="color: #808080;">-</span>h <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span> <span style="color: #008080;">--</span><span style="color: #008080;">port 28021 --oplogReplay --oplogLimit "1515379110:1"  /home/mongod/backup/config</span></pre>
+</div>
+<p>　　<span style="color: #ff0000; background-color: #ffff00;"><strong>&nbsp; &nbsp;</strong><strong>至此一次恢复就完成了</strong></span></p>
+</div>
+<h3>1.3.5 mongodb的备份准则</h3>
+<p>只针对replica或master/slave，满足这些准则MongoDB就可以进行point-in-time恢复操作：</p>
+<div>
+<blockquote>
+<p>&nbsp;</p>
+<ol style="color: #000000;">
+<li>任意两次数据备份的时间间隔（第一次备份开始到第二次备份结束）不能超过oplog时间窗口覆盖范围。</li>
+<li>在上次数据备份的基础上，在oplog时间窗口没有滑出上次备份结束的时间点前进行完整的oplog备份。请充分考虑oplog备份需要的时间，权衡服务器空间情况确定oplog备份间隔。</li>
+</ol>
+</blockquote>
+</div>
+<p>实际应用中的注意事项：</p>
+<blockquote>
+<p>&nbsp;</p>
+<ol style="color: #000000;">
+<li>考虑到oplog时间窗口是个变化值，请关注oplog时间窗口的具体时间。</li>
+<li>在靠近oplog时间窗口滑动出有效时间之前必须要有足够的时间dump出需要的oplog.rs，请预留足够的时间，不要顶满时间窗口再备份。</li>
+<li>当灾难发生时，第一件事情就是要停止数据库的写入操作，以往oplog滑出时间窗口。特别是像上述这样的remove({})操作，瞬间就会插入大量d记录从而导致oplog迅速滑出时间窗口。</li>
+</ol>
+</blockquote>
+<p>分片集群的备份注意事项</p>
+<div>
+<blockquote>
+<p class="a" style="color: #000000;">1、备份什么？</p>
+<p class="a" style="color: #000000;">　　（1）configserver</p>
+<p class="a" style="color: #000000;">　　（2）每一个shard节点</p>
+<p class="a" style="color: #000000;">2、备份需要注意什么？</p>
+<p class="a" style="color: #000000;">　　（1）元数据和真实数据要有对等性（blancer迁移的问题，会造成config和shard备份不一致）</p>
+<p class="a">&nbsp;</p>
+<p class="a" style="color: #000000;">　　（2）不同部分备份结束时间点不一样，恢复出来的数据就是有问题的。</p>
+</blockquote>
+</div>
+<h2>1.4 MongoDB监控</h2>
+<p>为什么要监控？</p>
+<div>
+<blockquote>
+<p class="a"><span style="color: #000000;">监控及时获得应用的运行状态信息，在问题出现时及时发现。</span></p>
+</blockquote>
+</div>
+<p>监控什么？</p>
+<div>
+<blockquote>
+<p class="a"><span style="color: #000000;">CPU、内存、磁盘I/O、应用程序（MongoDB）、进程监控（ps -aux）、错误日志监控</span></p>
+</blockquote>
+</div>
+<h3>1.4.1 MongoDB集群监控方式</h3>
+<div>
+<div class="cnblogs_code">
+<pre>db.serverStatus()</pre>
+</div>
+<p>　　查看实例运行状态（内存使用、锁、用户连接等信息）</p>
+</div>
+<p>　　通过比对前后快照进行性能分析</p>
+<div class="cnblogs_code">
+<pre><span style="color: #800000;">"</span><span style="color: #800000;">connections</span><span style="color: #800000;">"</span>     <span style="color: #008000;"># </span><span style="color: #008000;">当前连接到本机处于活动状态的连接数</span>
+<span style="color: #800000;">"</span><span style="color: #800000;">activeClients</span><span style="color: #800000;">"</span>   <span style="color: #008000;">#</span><span style="color: #008000;"> 连接到当前实例处于活动状态的客户端数量</span>
+<span style="color: #800000;">"</span><span style="color: #800000;">locks</span><span style="color: #800000;">"</span>           <span style="color: #008000;">#</span><span style="color: #008000;"> 锁相关参数</span>
+<span style="color: #800000;">"</span><span style="color: #800000;">opcounters</span><span style="color: #800000;">"</span>      <span style="color: #008000;"># </span><span style="color: #008000;">启动之后的参数</span>
+<span style="color: #800000;">"</span><span style="color: #800000;">opcountersRepl</span><span style="color: #800000;">"</span>  <span style="color: #008000;"># </span><span style="color: #008000;">复制想关</span>
+<span style="color: #800000;">"</span><span style="color: #800000;">storageEngine</span><span style="color: #800000;">"  </span> <span style="color: #008000;"># </span><span style="color: #008000;">查看数据库的存储引擎</span>
+<span style="color: #800000;">"</span><span style="color: #800000;">mem</span><span style="color: #800000;">"</span>             <span style="color: #008000;"># </span><span style="color: #008000;">内存相关</span></pre>
+</div>
+<div>
+<p class="a1">状态:</p>
+<div class="cnblogs_code">
+<pre>db.stats()</pre>
+</div>
+</div>
+<p>显示信息说明：</p>
+<div class="cnblogs_code">
+<pre>  <span style="color: #800000;">"</span><span style="color: #800000;">db</span><span style="color: #800000;">"</span> : <span style="color: #800000;">"</span><span style="color: #800000;">test</span><span style="color: #800000;">"</span> ,表示当前是针对<span style="color: #800000;">"</span><span style="color: #800000;">test</span><span style="color: #800000;">"</span><span style="color: #000000;">这个数据库的描述。想要查看其他数据库，可以先运行$ use databasename(e.g  $use admiin).
+　</span><span style="color: #800000;">"</span><span style="color: #800000;">collections</span><span style="color: #800000;">"</span> : 3<span style="color: #000000;">,表示当前数据库有多少个collections.可以通过运行show collections查看当前数据库具体有哪些collection.
+　</span><span style="color: #800000;">"</span><span style="color: #800000;">objects</span><span style="color: #800000;">"</span> : 13<span style="color: #000000;">，表示当前数据库所有collection总共有多少行数据。显示的数据是一个估计值，并不是非常精确。
+　</span><span style="color: #800000;">"</span><span style="color: #800000;">avgObjSize</span><span style="color: #800000;">"</span> : 36<span style="color: #000000;">,表示每行数据是大小，也是估计值，单位是bytes
+　</span><span style="color: #800000;">"</span><span style="color: #800000;">dataSize</span><span style="color: #800000;">"</span> : 468<span style="color: #000000;">,表示当前数据库所有数据的总大小，不是指占有磁盘大小。单位是bytes
+　</span><span style="color: #800000;">"</span><span style="color: #800000;">storageSize</span><span style="color: #800000;">"</span> : 13312<span style="color: #000000;">,表示当前数据库占有磁盘大小，单位是bytes,因为mongodb有预分配空间机制，为了防止当有大量数据插入时对磁盘的压力,因此会事先多分配磁盘空间。
+　</span><span style="color: #800000;">"</span><span style="color: #800000;">numExtents</span><span style="color: #800000;">"</span> : 3<span style="color: #000000;">,似乎没有什么真实意义。我弄明白之后再详细补充说明。
+　</span><span style="color: #800000;">"</span><span style="color: #800000;">indexes</span><span style="color: #800000;">"</span> : 1<span style="color: #000000;"> ,表示system.indexes表数据行数。
+　</span><span style="color: #800000;">"</span><span style="color: #800000;">indexSize</span><span style="color: #800000;">"</span> : 8192<span style="color: #000000;">,表示索引占有磁盘大小。单位是bytes
+   </span><span style="color: #800000;">"</span><span style="color: #800000;">fileSize</span><span style="color: #800000;">"</span> : 201326592，表示当前数据库预分配的文件大小，例如test.0,test.1，不包括test.ns。</pre>
+</div>
+<h3>1.4.2 mongostat</h3>
+<p>　　实时数据库状态，读写、加锁、索引命中、缺页中断、读写等待队列等情况。</p>
+<p>　　每秒刷新一次状态值，并能提供良好的可读性，通过这些参数可以观察到MongoDB系统整体性能情况。</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="630e0c0d040c07232e0c0d040c2721">[email&#160;protected]</a> oplog]$ mongostat -h 10.0.0.152 --port 28017<span style="color: #000000;"> 
+insert query update delete getmore command flushes mapped  vsize   res faults qr</span>|qw ar|<span style="color: #000000;">aw netIn netOut conn set repl                      time
+    </span>*0    *0     *0     *0       0     1|0       0        303.0M 13.0M      0   0|0   0|0  143b     8k    1      RTR 2018-01-08T17:28:42+08:00</pre>
+</div>
+</div>
+<p>参数说明：&nbsp;</p>
+<table class="MsoTable15Grid2" style="width: 100%; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 14.88%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" width="14%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 5;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">参数</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" width="85%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 1;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">参数说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 14.88%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="14%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span lang="EN-US">insert</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="85%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">每秒插入量</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 14.88%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" width="14%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span lang="EN-US">query</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" width="85%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">每秒查询量</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 14.88%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="14%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span lang="EN-US">update</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="85%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">每秒更新量</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 14.88%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" width="14%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span lang="EN-US">delete</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" width="85%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">每秒删除量</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 14.88%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="14%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span lang="EN-US">conn</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="85%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">当前连接数</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 14.88%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" width="14%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span lang="EN-US">qr|qw </span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" width="85%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">客户端查询排队长度（读</span><span lang="EN-US">|</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">写）最好为</span><span lang="EN-US">0</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">，如果有堆积，数据库处理慢。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 14.88%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="14%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span lang="EN-US">ar|aw</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt;" width="85%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">活跃客户端数量（读</span><span lang="EN-US">|</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">写）</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 14.88%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt;" width="14%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span lang="EN-US">time</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt;" width="85%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">当前时间</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span style="background-color: #ffff00;"><strong>mongotop</strong><strong>命令说明：</strong></span></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4c2123222b23280c0123222b23080e">[email&#160;protected]</a> oplog]$ mongotop  -h 127.0.0.1:27017
+2018-01-08T17:32:56.623+0800    connected to: 127.0.0.1:27017<span style="color: #000000;">
+
+                                               ns    total    read    write    </span>2018-01-08T17:32:57+08:00<span style="color: #000000;">
+                               admin.system.roles      0ms     0ms      0ms                             
+                               admin.system.users      0ms     0ms      0ms                             
+                             admin.system.version      0ms     0ms      0ms                             
+                                         app.user      0ms     0ms      0ms                             
+             automationcore.automation.job.status      0ms     0ms      0ms                             
+                 automationcore.config.automation      0ms     0ms      0ms                             
+        automationcore.config.automationTemplates      0ms     0ms      0ms                             
+automationcore.config.automationTemplates_archive      0ms     0ms      0ms                             
+         automationcore.config.automation_archive      0ms     0ms      0ms                             
+                 automationstatus.lastAgentStatus      0ms     0ms      0ms      </span></pre>
+</div>
+</div>
+<p>mongotop重要指标</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">ns：数据库命名空间，后者结合了数据库名称和集合。
+total：mongod在这个命令空间上花费的总时间。
+</span><span style="color: #0000ff;">read</span><span style="color: #000000;">：在这个命令空间上mongod执行读操作花费的时间。
+write：在这个命名空间上mongod进行写操作花费的时间。</span></pre>
+</div>
+</div>
+<h3>1.4.3 db级别命令</h3>
+<div>
+<div class="cnblogs_code">
+<pre>db.currentOp()</pre>
+</div>
+<p>　　查看数据库当前执行什么操作。</p>
+</div>
+<p>　　用于查看长时间运行进程。</p>
+<p>　　通过（执行时长、操作、锁、等待锁时长)等条件过滤。</p>
+<p>　　如果发现一个操作太长，把数据库卡死的话，可以用这个命令杀死他：> db.killOp(608605)</p>
+<div>
+<div class="cnblogs_code">
+<pre>db.setProfilingLevel()</pre>
+</div>
+<p>　　设置server级别慢日志</p>
+</div>
+<p>　　打开profiling：</p>
+<div>
+<blockquote>
+<p class="a" style="color: #000000;">0:不保存</p>
+<p class="a" style="color: #000000;">1:保存慢查询日志</p>
+<p class="a">&nbsp;</p>
+<p class="a" style="color: #000000;">2:保存所有查询日志</p>
+</blockquote>
+</div>
+<p>　　注意:级别是对应当前的数据库，而阈值是全局的。</p>
+<blockquote>
+<p style="color: #000000;">查看profiling状态</p>
+<p style="color: #000000;">查看慢查询：system.profile</p>
+<p>&nbsp;</p>
+<p style="color: #000000;">关闭profiling</p>
+</blockquote>
+<div>
+<p class="a1" style="text-align: center;">企业工具ops manager官方文档： <a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=%20https://docs.opsmanager.mongodb.com/v3.6/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=%20https://docs.opsmanager.mongodb.com/v3.6/'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=%20https://docs.opsmanager.mongodb.com/v3.6/"  target="_blank">https://docs.opsmanager.mongodb.com/v3.6/</a></p>
+</div>
+<h2>1.5 MongoDB集群性能优化方案</h2>
+<h3>1.5.1 优化方向</h3>
+<div>
+<blockquote>
+<p class="a" style="color: #000000;">硬件（内存、SSD）</p>
+<p class="a" style="color: #000000;">收缩数据</p>
+<p class="a" style="color: #000000;">增加新的机器、新的副本集</p>
+<p class="a" style="color: #000000;">集群分片键选择</p>
+<p class="a" style="color: #000000;">chunk大小设置</p>
+<p class="a">&nbsp;</p>
+<p class="a" style="color: #000000;">预分片（预先分配存储空间）</p>
+</blockquote>
+</div>
+<h3>1.5.2 存储引擎方面</h3>
+<p>　　WiredTiger是3.0以后的默认存储引擎，细粒度的并发控制和数据压缩提供了更高的性能和存储效率。3.0以前默认的MMAPv1也提高了性能。</p>
+<p>　　在MongoDB复制集中可以组合多钟存储引擎，各个实例实现不同的应用需求。</p>
+<h3>1.5.3 其他优化建议</h3>
+<div>
+<blockquote>
+<p class="a" style="color: #000000;">收缩数据</p>
+<p class="a" style="color: #000000;">预分片</p>
+<p class="a" style="color: #000000;">增加新的机器、新的副本集</p>
+<p class="a" style="color: #000000;">集群分片键选择</p>
+<p class="a">&nbsp;</p>
+<p class="a" style="color: #000000;">chunk大小设置</p>
+</blockquote>
+</div>
+<h2>1.6 附录：Aliyun 备份策略</h2>
+<h3>1.6.1 MongoDB云数据库备份/恢复</h3>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180108183457535-611170065.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB的备份与恢复" alt="" />&nbsp;</p>
+
+<p>备份策略：</p>
+<div>
+<blockquote>
+<ol>
+<li>从hidden节点备份</li>
+<li>每天一次全量备份</li>
+<li>持续拉取oplog增量备份</li>
+<li>定期巡检备份有效性</li>
+<li>恢复时克隆到新实例</li>
+</ol>
+</blockquote>
+</div>
+<h3>1.6.2 全量备份方法</h3>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180108183559394-794158819.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB的备份与恢复" alt="" /></p>
+
+<h3>1.6.3 逻辑备份流程 - mongodump</h3>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180108183607176-300071779.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB的备份与恢复" alt="" /></p>
+
+<p>特点：</p>
+<div>
+<blockquote>
+<ol>
+<li>全量遍历所有数据、</li>
+<li>备份、恢复慢</li>
+<li>对业务影响较大</li>
+<li>无需备份索引、恢复时重建</li>
+<li>通用性强</li>
+</ol>
+</blockquote>
+</div>
+<h3>1.6.4 物理备份流程</h3>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180108183621379-438094970.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB的备份与恢复" alt="" />&nbsp;</p>
+
+<p>备份特点</p>
+<div>
+<blockquote>
+<ol>
+<li>拷贝数据目录所有文件，效率高</li>
+<li>备份、恢复快</li>
+<li>对业务影响较小</li>
+<li>跟数据库版本、配置强关联</li>
+</ol>
+</blockquote>
+</div>
+<h3>1.6.5 逻辑备份 vs 物理备份</h3>
+<table class="MsoNormalTable" style="width: 100%;" border="0" cellspacing="0" cellpadding="0">
+<tbody>
+<tr style="mso-yfti-irow: 0; mso-yfti-firstrow: yes; height: 7.85pt;">
+<td style="width: 18.9%; border-width: 1pt 1pt 3pt; border-color: white; background: #81b859; padding: 0.75pt 0.75pt 0cm; height: 7.85pt;" valign="top" width="18%">&nbsp;</td>
+<td style="width: 42.06%; border-top-width: 1pt; border-top-color: white; border-left: none; border-bottom-width: 3pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #81b859; padding: 3.05pt 0.75pt 0cm; height: 7.85pt;" valign="top" width="42%">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">逻辑备份</span></strong></p>
+</td>
+<td style="width: 39.02%; border-top-width: 1pt; border-top-color: white; border-left: none; border-bottom-width: 3pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #81b859; padding: 3.05pt 0.75pt 0cm; height: 7.85pt;" valign="top" width="39%">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">物理备份</span></strong></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 1; height: 12.55pt;">
+<td style="width: 18.9%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #dde8d8; padding: 2.05pt 0.75pt 0cm; height: 12.55pt;" valign="top" width="18%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">备份效率</span></p>
+</td>
+<td style="width: 42.06%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #dde8d8; padding: 2.05pt 0.75pt 0cm; height: 12.55pt;" valign="top" width="42%">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">低</span></strong></p>
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">数据库接口读取数据</span></p>
+</td>
+<td style="width: 39.02%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #dde8d8; padding: 2.05pt 0.75pt 0cm; height: 12.55pt;" valign="top" width="39%">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">高</span></strong></p>
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">拷贝物理文件</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 2; height: 31.55pt;">
+<td style="width: 18.9%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #eff4ed; padding: 3.05pt 0.75pt 0cm; height: 31.55pt;" valign="top" width="18%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">恢复效率</span></p>
+</td>
+<td style="width: 42.06%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eff4ed; padding: 3.05pt 0.75pt 0cm; height: 31.55pt;" valign="top" width="42%">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">低</span></strong></p>
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">下载备份集</span> <span lang="EN-US">+&nbsp; </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">导入数据</span> <span lang="EN-US">+&nbsp; </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">建立索引</span></p>
+</td>
+<td style="width: 39.02%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eff4ed; padding: 3.05pt 0.75pt 0cm; height: 31.55pt;" valign="top" width="39%">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">高</span></strong></p>
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">下载备份集</span> <span lang="EN-US">+&nbsp; </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">启动进程</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 3; height: 1.15pt;">
+<td style="width: 18.9%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #dde8d8; padding: 3.05pt 0.75pt 0cm; height: 1.15pt;" valign="top" width="18%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">备份影响</span></p>
+</td>
+<td style="width: 42.06%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #dde8d8; padding: 3.05pt 0.75pt 0cm; height: 1.15pt;" valign="top" width="42%">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">大</span></strong></p>
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">直接与业务争抢资源</span></p>
+</td>
+<td style="width: 39.02%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #dde8d8; padding: 3.05pt 0.75pt 0cm; height: 1.15pt;" valign="top" width="39%">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">小</span></strong></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 4; height: 1.15pt;">
+<td style="width: 18.9%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #eff4ed; padding: 3.05pt 0.75pt 0cm; height: 1.15pt;" valign="top" width="18%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">备份集大小</span></p>
+</td>
+<td style="width: 42.06%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eff4ed; padding: 3.05pt 0.75pt 0cm; height: 1.15pt;" valign="top" width="42%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">比原库小</span></p>
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">无需备份索引数据</span></p>
+</td>
+<td style="width: 39.02%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eff4ed; padding: 3.05pt 0.75pt 0cm; height: 1.15pt;" valign="top" width="39%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">与原库相同</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 5; mso-yfti-lastrow: yes; height: 1.15pt;">
+<td style="width: 18.9%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #dde8d8; padding: 3.05pt 0.75pt 0cm; height: 1.15pt;" valign="top" width="18%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">兼容性</span></p>
+</td>
+<td style="width: 42.06%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #dde8d8; padding: 3.05pt 0.75pt 0cm; height: 1.15pt;" valign="top" width="42%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">兼容绝大部分版本</span></p>
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">可跨存储引擎</span></p>
+</td>
+<td style="width: 39.02%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #dde8d8; padding: 3.05pt 0.75pt 0cm; height: 1.15pt;" valign="top" width="39%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">依赖存储布局</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p style="text-align: right;">&nbsp; &nbsp;更多内容参考<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.mongoing.com/archives/3962  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.mongoing.com/archives/3962'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.mongoing.com/archives/3962" >http://www.mongoing.com/archives/3962</a></p>
+<h2>1.7 参考文献</h2>
+<div>
+<blockquote>
+<p class="a">[1]&nbsp;&nbsp;<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/yaoxing/p/mongodb-backup-rules.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/yaoxing/p/mongodb-backup-rules.html'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/yaoxing/p/mongodb-backup-rules.html" >http://www.cnblogs.com/yaoxing/p/mongodb-backup-rules.html</a></p>
+<p class="a">[2]&nbsp;&nbsp;<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://blog.itpub.net/15498/viewspace-2073272/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://blog.itpub.net/15498/viewspace-2073272/'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://blog.itpub.net/15498/viewspace-2073272/" >http://blog.itpub.net/15498/viewspace-2073272/</a></p>
+<p class="a">[3]&nbsp;&nbsp;<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.mongoing.com/archives/3962  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.mongoing.com/archives/3962'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.mongoing.com/archives/3962" >http://www.mongoing.com/archives/3962</a></p>
+<p class="a">[4]&nbsp;&nbsp;<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://chenzhou123520.iteye.com/blog/1641319  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://chenzhou123520.iteye.com/blog/1641319'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://chenzhou123520.iteye.com/blog/1641319" >http://chenzhou123520.iteye.com/blog/1641319</a></p>
+<p class="a">[5]&nbsp;&nbsp;<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.mongoing.com/oplog  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.mongoing.com/oplog'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.mongoing.com/oplog" >http://www.mongoing.com/oplog</a></p>
+<p class="a">[6]&nbsp;&nbsp;<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.cnblogs.com/datazhang/p/5917861.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.cnblogs.com/datazhang/p/5917861.html'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.cnblogs.com/datazhang/p/5917861.html" >https://www.cnblogs.com/datazhang/p/5917861.html</a></p>
+</blockquote>
+</div>
+<p>&nbsp;</p>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="247" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/" rel="category tag">NoSQL</a> <a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/" rel="category tag">数据库</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2018年1月20日<i class="i-time">07:34:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 7912 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx247.html" tppabs="http://clsn.io/clsn/lx247.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx247.html">MongoDB的备份与恢复 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/17.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx254.html" tppabs="http://clsn.io/clsn/lx254.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>MongoDB 分片集群技术</span></a><a href="lx245.html" tppabs="http://clsn.io/clsn/lx245.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>官方源、镜像源汇总</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx254.html" tppabs="http://clsn.io/clsn/lx254.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx245.html" tppabs="http://clsn.io/clsn/lx245.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx247.html#respond" tppabs="http://clsn.io/clsn/lx247.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='247' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx998.html" tppabs="http://clsn.io/clsn/lx998.html" rel="bookmark">Linux企业运维人员最常用150个命令汇总</a></li> <li><a href="lx946.html" tppabs="http://clsn.io/clsn/lx946.html" rel="bookmark">DNS DHCP 路由 FTP</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx754.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx754.html'" tppabs="http://clsn.io/clsn/lx754.html" rel="bookmark">inotify+rsync实现实时同步</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx965.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx965.html'" tppabs="http://clsn.io/clsn/lx965.html" rel="bookmark">定时任务的使用-crond</a></li> <li><a href="lx194.html" tppabs="http://clsn.io/clsn/lx194.html" rel="bookmark">KVM 虚拟化技术</a></li> <li><a href="lx28.html" tppabs="http://clsn.io/clsn/lx28.html" rel="bookmark">分布式文件系统&#8212;GlusterFS</a></li> <li><a href="lx775.html" tppabs="http://clsn.io/clsn/lx775.html" rel="bookmark">使用cobbler批量安装操作系统(基于Centos7.x )</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx399.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx399.html'" tppabs="http://clsn.io/clsn/lx399.html" rel="bookmark">MySQL 索引管理与执行计划</a></li> <li><a href="lx766.html" tppabs="http://clsn.io/clsn/lx766.html" rel="bookmark">用户管理下</a></li> <li><a href="lx987.html" tppabs="http://clsn.io/clsn/lx987.html" rel="bookmark">软硬链接、文件删除原理、linux中的三种时间、chkconfig优化</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx247.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx247.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx247.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

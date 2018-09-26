@@ -1,0 +1,1202 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>MongoDB 分片集群技术 | 惨绿少年</title><meta name="description" content="　　在了解分片集群之前，务必要先了解复制集技术！" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx254.html" tppabs="http://clsn.io/clsn/lx254.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-254 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><i class="be be-arrowright"></i><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/" rel="category tag">NoSQL</a><i class="be be-arrowright"></i><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/" rel="category tag">数据库</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>MongoDB 分片集群技术 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-254" class="post-254 post type-post status-publish format-standard hentry category-linux category-nosql category-databases category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">MongoDB 分片集群技术</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2018年1月16日<i class="i-time">01:19:00</i></span><span class="comment"><a href="lx254.html#respond" tppabs="http://clsn.io/clsn/lx254.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="javascript:if(confirm('http://clsn.io/clsn/lx254.html?wpzmaction=add&postid=254  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx254.html?wpzmaction=add&postid=254'" tppabs="http://clsn.io/clsn/lx254.html?wpzmaction=add&postid=254" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <hr />
+<p>　　<span style="background-color: #ffff00;">在了解分片集群之前，务必要先了解复制集技术！</span></p>
+<hr />
+<h2>&nbsp;1.1 MongoDB复制集简介</h2>
+<p>　　一组Mongodb复制集，就是一组mongod进程，这些进程维护同一个数据集合。复制集提供了数据冗余和高等级的可靠性，这是生产部署的基础。</p>
+<h3>1.1.1 复制集的目的</h3>
+<p>　　保证数据在生产部署时的冗余和可靠性，通过在不同的机器上保存副本来保证数据的不会因为单点损坏而丢失。能够随时应对数据丢失、机器损坏带来的风险。</p>
+<p>　　换一句话来说，还能提高读取能力，用户的读取服务器和写入服务器在不同的地方，而且，由不同的服务器为不同的用户提供服务，提高整个系统的负载。</p>
+<h3>1.1.2 简单介绍</h3>
+<p>　　一组复制集就是一组mongod实例掌管同一个数据集，实例可以在不同的机器上面。实例中包含一个主导，接受客户端所有的写入操作，其他都是副本实例，从主服务器上获得数据并保持同步。</p>
+<p>　　主服务器很重要，包含了所有的改变操作（写）的日志。但是副本服务器集群包含有所有的主服务器数据，因此当主服务器挂掉了，就会在副本服务器上重新选取一个成为主服务器。</p>
+<p>　　每个复制集还有一个仲裁者，仲裁者不存储数据，只是负责通过心跳包来确认集群中集合的数量，并在主服务器选举的时候作为仲裁决定结果。</p>
+<h2>1.2 复制的基本架构</h2>
+<p>　　基本的架构由3台服务器组成，一个三成员的复制集，由三个有数据，或者两个有数据，一个作为仲裁者。</p>
+<h3>1.2.1 三个存储数据的复制集</h3>
+<p>具有三个存储数据的成员的复制集有：</p>
+<div>
+<blockquote>
+<p class="ac">一个主库；</p>
+<p class="ac">两个从库组成，主库宕机时，这两个从库都可以被选为主库。</p>
+</blockquote>
+</div>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180106145148128-1854811460.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB 分片集群技术" alt="" /></p>
+
+<p>&nbsp;&nbsp; &nbsp;&nbsp; 当主库宕机后,两个从库都会进行竞选，其中一个变为主库，当原主库恢复后，作为从库加入当前的复制集群即可。</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180106145154284-397901575.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB 分片集群技术" alt="" />&nbsp;</p>
+
+<h3>1.2.2 当存在arbiter节点</h3>
+<p>在三个成员的复制集中，有两个正常的主从，及一台arbiter节点：</p>
+<div>
+<blockquote>
+<p class="a3">&nbsp; &nbsp; 一个主库</p>
+<p class="a3">&nbsp;&nbsp;&nbsp; 一个从库，可以在选举中成为主库</p>
+<p class="a3">&nbsp;&nbsp;&nbsp; 一个aribiter节点，在选举中，只进行投票，不能成为主库</p>
+</blockquote>
+</div>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180106145207237-1647029849.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB 分片集群技术" alt="" />&nbsp;</p>
+
+<p>说明：</p>
+<div>
+<blockquote>
+<p class="a3">　　由于arbiter节点没有复制数据，因此这个架构中仅提供一个完整的数据副本。arbiter节点只需要更少的资源，代价是更有限的冗余和容错。</p>
+</blockquote>
+</div>
+<p>&nbsp;&nbsp; 当主库宕机时，将会选择从库成为主，主库修复后，将其加入到现有的复制集群中即可。</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180106145221393-1674631191.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB 分片集群技术" alt="" />&nbsp;</p>
+
+<h3>1.2.3 Primary选举</h3>
+<p>　　复制集通过replSetInitiate命令（或mongo shell的rs.initiate()）进行初始化，初始化后各个成员间开始发送心跳消息，并发起Priamry选举操作，获得『大多数』成员投票支持的节点，会成为Primary，其余节点成为Secondary。</p>
+<p><span style="background-color: #ffff00;"><strong>『大多数』的定义</strong></span></p>
+<p>　　假设复制集内投票成员（后续介绍）数量为N，则大多数为 N/2 + 1，当复制集内存活成员数量不足大多数时，整个复制集将无法选举出Primary，复制集将无法提供写服务，处于只读状态。</p>
+<table class="MsoTable15Grid2" style="width: 100%; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr style="mso-yfti-irow: -1; mso-yfti-firstrow: yes; mso-yfti-lastfirstrow: yes; height: 22.6pt;">
+<td style="width: 33.34%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 5;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">投票成员数</span></strong></p>
+</td>
+<td style="width: 33.34%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">大多数</span></strong></p>
+</td>
+<td style="width: 33.32%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1.5pt; border-bottom-color: #666666; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">容忍失效数</span></strong></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 0; height: 22.6pt;">
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">1</span></strong></p>
+</td>
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span lang="EN-US">1</span></p>
+</td>
+<td style="width: 33.32%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span lang="EN-US">0</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 1; height: 22.6pt;">
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">2</span></strong></p>
+</td>
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">2</span></p>
+</td>
+<td style="width: 33.32%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">0</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 2; height: 22.6pt;">
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">3</span></strong></p>
+</td>
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span lang="EN-US">2</span></p>
+</td>
+<td style="width: 33.32%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span lang="EN-US">1</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 3; height: 22.6pt;">
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">4</span></strong></p>
+</td>
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">3</span></p>
+</td>
+<td style="width: 33.32%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">1</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 4; height: 22.6pt;">
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">5</span></strong></p>
+</td>
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span lang="EN-US">3</span></p>
+</td>
+<td style="width: 33.32%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span lang="EN-US">2</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 5; height: 22.6pt;">
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">6</span></strong></p>
+</td>
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">4</span></p>
+</td>
+<td style="width: 33.32%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">2</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 6; mso-yfti-lastrow: yes; height: 22.6pt;">
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">7</span></strong></p>
+</td>
+<td style="width: 33.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; border-right-width: 1pt; border-right-color: #666666; background: #cccccc; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span lang="EN-US">4</span></p>
+</td>
+<td style="width: 33.32%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #666666; background: #cccccc; padding: 0cm 5.4pt; height: 22.6pt;" valign="top" width="33%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span lang="EN-US">3</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>　　通常建议将复制集成员数量设置为奇数，从上表可以看出3个节点和4个节点的复制集都只能容忍1个节点失效，从『服务可用性』的角度看，其效果是一样的。（但无疑4个节点能提供更可靠的数据存储）</p>
+<h2><span style="font-size: 1.5em;">1.3 复制集中成员说明</span></h2>
+<h3>1.3.1 所有成员说明&nbsp;</h3>
+<table class="MsoTable15List6Colorful" style="width: 100%; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 24.36%; border-top-width: 1pt; border-top-color: black; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 5;" align="center"><strong><span style="font-family: 微软雅黑, sans-serif;">成员</span></strong></p>
+</td>
+<td style="width: 75.64%; border-top-width: 1pt; border-top-color: black; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right: none; padding: 0cm 5.4pt;" valign="top" width="75%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: 微软雅黑, sans-serif;">说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.36%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; background: #cccccc; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">Secondary</span></strong></p>
+</td>
+<td style="width: 75.64%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="75%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; text-indent: 24.0pt; mso-char-indent-count: 2.0; mso-yfti-cnfc: 64;"><span style="font-family: 微软雅黑, sans-serif;">正常情况下，复制集的</span><span lang="EN-US">Seconary</span><span style="font-family: 微软雅黑, sans-serif;">会参与</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">选举（自身也可能会被选为</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">），并从</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">同步最新写入的数据，以保证与</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">存储相同的数据。</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; text-indent: 24.0pt; mso-char-indent-count: 2.0; mso-yfti-cnfc: 64;"><span lang="EN-US">Secondary</span><span style="font-family: 微软雅黑, sans-serif;">可以提供读服务，增加</span><span lang="EN-US">Secondary</span><span style="font-family: 微软雅黑, sans-serif;">节点可以提供复制集的读服务能力，同时提升复制集的可用性。另外，</span><span lang="EN-US">Mongodb</span><span style="font-family: 微软雅黑, sans-serif;">支持对复制集的</span><span lang="EN-US">Secondary</span><span style="font-family: 微软雅黑, sans-serif;">节点进行灵活的配置，以适应多种场景的需求。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.36%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">Arbiter</span></strong></p>
+</td>
+<td style="width: 75.64%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; padding: 0cm 5.4pt;" valign="top" width="75%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; text-indent: 24.0pt; mso-char-indent-count: 2.0;"><span lang="EN-US">Arbiter</span><span style="font-family: 微软雅黑, sans-serif;">节点只参与投票，不能被选为</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">，并且不从</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">同步数据。</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; text-indent: 24.0pt; mso-char-indent-count: 2.0;"><span style="font-family: 微软雅黑, sans-serif;">比如你部署了一个</span><span lang="EN-US">2</span><span style="font-family: 微软雅黑, sans-serif;">个节点的复制集，</span><span lang="EN-US">1</span><span style="font-family: 微软雅黑, sans-serif;">个</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">，</span><span lang="EN-US">1</span><span style="font-family: 微软雅黑, sans-serif;">个</span><span lang="EN-US">Secondary</span><span style="font-family: 微软雅黑, sans-serif;">，任意节点宕机，复制集将不能提供服务了（无法选出</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">），这时可以给复制集添加一个</span><span lang="EN-US">Arbiter</span><span style="font-family: 微软雅黑, sans-serif;">节点，即使有节点宕机，仍能选出</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">。</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; text-indent: 24.0pt; mso-char-indent-count: 2.0;"><span lang="EN-US">Arbiter</span><span style="font-family: 微软雅黑, sans-serif;">本身不存储数据，是非常轻量级的服务，当复制集成员为偶数时，最好加入一个</span><span lang="EN-US">Arbiter</span><span style="font-family: 微软雅黑, sans-serif;">节点，以提升复制集可用性。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.36%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; background: #cccccc; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">Priority0</span></strong></p>
+</td>
+<td style="width: 75.64%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="75%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; text-indent: 24.0pt; mso-char-indent-count: 2.0; mso-yfti-cnfc: 64;"><span lang="EN-US">Priority0</span><span style="font-family: 微软雅黑, sans-serif;">节点的选举优先级为</span><span lang="EN-US">0</span><span style="font-family: 微软雅黑, sans-serif;">，不会被选举为</span><span lang="EN-US">Primary</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; text-indent: 24.0pt; mso-char-indent-count: 2.0; mso-yfti-cnfc: 64;"><span style="font-family: 微软雅黑, sans-serif;">比如你跨机房</span><span lang="EN-US">A</span><span style="font-family: 微软雅黑, sans-serif;">、</span><span lang="EN-US">B</span><span style="font-family: 微软雅黑, sans-serif;">部署了一个复制集，并且想指定</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">必须在</span><span lang="EN-US">A</span><span style="font-family: 微软雅黑, sans-serif;">机房，这时可以将</span><span lang="EN-US">B</span><span style="font-family: 微软雅黑, sans-serif;">机房的复制集成员</span><span lang="EN-US">Priority</span><span style="font-family: 微软雅黑, sans-serif;">设置为</span><span lang="EN-US">0</span><span style="font-family: 微软雅黑, sans-serif;">，这样</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">就一定会是</span><span lang="EN-US">A</span><span style="font-family: 微软雅黑, sans-serif;">机房的成员。</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: 微软雅黑, sans-serif;">（注意：如果这样部署，最好将『大多数』节点部署在</span><span lang="EN-US">A</span><span style="font-family: 微软雅黑, sans-serif;">机房，否则网络分区时可能无法选出</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">）</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.36%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">Vote0</span></strong></p>
+</td>
+<td style="width: 75.64%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; padding: 0cm 5.4pt;" valign="top" width="75%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; text-indent: 24.0pt; mso-char-indent-count: 2.0;"><span lang="EN-US">Mongodb 3.0</span><span style="font-family: 微软雅黑, sans-serif;">里，复制集成员最多</span><span lang="EN-US">50</span><span style="font-family: 微软雅黑, sans-serif;">个，参与</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">选举投票的成员最多</span><span lang="EN-US">7</span><span style="font-family: 微软雅黑, sans-serif;">个，其他成员（</span><span lang="EN-US">Vote0</span><span style="font-family: 微软雅黑, sans-serif;">）的</span><span lang="EN-US">vote</span><span style="font-family: 微软雅黑, sans-serif;">属性必须设置为</span><span lang="EN-US">0</span><span style="font-family: 微软雅黑, sans-serif;">，即不参与投票。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.36%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; background: #cccccc; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">Hidden</span></strong></p>
+</td>
+<td style="width: 75.64%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; background: #cccccc; padding: 0cm 5.4pt;" valign="top" width="75%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; text-indent: 24.0pt; mso-char-indent-count: 2.0; mso-yfti-cnfc: 64;"><span lang="EN-US">Hidden</span><span style="font-family: 微软雅黑, sans-serif;">节点不能被选为主（</span><span lang="EN-US">Priority</span><span style="font-family: 微软雅黑, sans-serif;">为</span><span lang="EN-US">0</span><span style="font-family: 微软雅黑, sans-serif;">），并且对</span><span lang="EN-US">Driver</span><span style="font-family: 微软雅黑, sans-serif;">不可见。因</span><span lang="EN-US">Hidden</span><span style="font-family: 微软雅黑, sans-serif;">节点不会接受</span><span lang="EN-US">Driver</span><span style="font-family: 微软雅黑, sans-serif;">的请求，可使用</span><span lang="EN-US">Hidden</span><span style="font-family: 微软雅黑, sans-serif;">节点做一些数据备份、离线计算的任务，不会影响复制集的服务。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.36%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: black; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">Delayed</span></strong></p>
+</td>
+<td style="width: 75.64%; border-top: none; border-right: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: black; padding: 0cm 5.4pt;" valign="top" width="75%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; text-indent: 24.0pt; mso-char-indent-count: 2.0;"><span lang="EN-US">Delayed</span><span style="font-family: 微软雅黑, sans-serif;">节点必须是</span><span lang="EN-US">Hidden</span><span style="font-family: 微软雅黑, sans-serif;">节点，并且其数据落后与</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">一段时间（可配置，比如</span><span lang="EN-US">1</span><span style="font-family: 微软雅黑, sans-serif;">个小时）。</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; text-indent: 24.0pt; mso-char-indent-count: 2.0;"><span style="font-family: 微软雅黑, sans-serif;">因</span><span lang="EN-US">Delayed</span><span style="font-family: 微软雅黑, sans-serif;">节点的数据比</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">落后一段时间，当错误或者无效的数据写入</span><span lang="EN-US">Primary</span><span style="font-family: 微软雅黑, sans-serif;">时，可通过</span><span lang="EN-US">Delayed</span><span style="font-family: 微软雅黑, sans-serif;">节点的数据来恢复到之前的时间点。</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>1.3.2 Priority 0节点</h3>
+<p><span style="font-size: 14px;">　　作为一个辅助可以作为一个备用。在一些复制集中，可能无法在合理的时间内添加新成员的时候。备用成员保持数据的当前最新数据能够替换不可用的成员。</span></p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180106145417862-997356969.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB 分片集群技术" alt="" /></p>
+
+<h3>1.3.3 Hidden 节点（隐藏节点）</h3>
+<p>　　客户端将不会把读请求分发到隐藏节点上，即使我们设定了 复制集读选项 。</p>
+<p>　　这些隐藏节点将不会收到来自应用程序的请求。我们可以将隐藏节点专用于报表节点或是备份节点。 延时节点也应该是一个隐藏节点。</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180106145428909-502320189.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB 分片集群技术" alt="" /></p>
+
+<h3>1.3.4 Delayed 节点（延时节点）</h3>
+<p>　　延时节点的数据集是延时的，因此它可以帮助我们在人为误操作或是其他意外情况下恢复数据。</p>
+<p>　　举个例子，当应用升级失败，或是误操作删除了表和数据库时，我们可以通过延时节点进行数据恢复。</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180106145445471-876081667.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB 分片集群技术" alt="" /></p>
+
+<h2>1.4 配置MongoDB复制集</h2>
+<h3>1.4.1 环境说明</h3>
+<p><em><span style="text-decoration: underline;">系统环境说明：</span></em></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="abd9c4c4dfebe6c4c5ccc4efe9">[email&#160;protected]</a> ~]# <span style="color: #0000ff;">cat</span> /etc/redhat-<span style="color: #000000;">release 
+CentOS release </span><span style="color: #800080;">6.9</span><span style="color: #000000;"> (Final)
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="22504d4d56626f4d4c454d6660">[email&#160;protected]</a> </span>~]# <span style="color: #0000ff;">uname</span> -<span style="color: #000000;">r
+</span><span style="color: #800080;">2.6</span>.<span style="color: #800080;">32</span>-<span style="color: #800080;">696</span><span style="color: #000000;">.el6.x86_64
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="780a17170c383517161f173c3a">[email&#160;protected]</a> </span>~]# /etc/init.d/<span style="color: #000000;">iptables status
+iptables: Firewall is not running.
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="52203d3d26121f3d3c353d1610">[email&#160;protected]</a> </span>~<span style="color: #000000;">]# getenforce 
+Disabled
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="582a37372c181537363f371c1a">[email&#160;protected]</a> </span>~]# <span style="color: #0000ff;">hostname</span> -<span style="color: #000000;">I
+</span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.152</span> <span style="color: #800080;">172.16</span>.<span style="color: #800080;">1.152</span></pre>
+</div>
+</div>
+<p><strong><em><span style="text-decoration: underline;">软件版本说明</span></em></strong></p>
+<div>
+<div class="cnblogs_code">
+<pre>　　本次使用的mongodb版本为：mongodb-linux-x86_64-<span style="color: #800080;">3.2</span>.<span style="color: #800080;">8</span>.tgz</pre>
+</div>
+</div>
+<h3>1.4.2 前期准备，在root用户下操作</h3>
+<p>　　本次复制集复制采用Mongodb多实例进行</p>
+<p>　　所有的操作都基于安装完成的mongodb服务，详情参照：<a href="go.php-url=http---www.cnblogs.com-clsn-p-8214194.html#_label3" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/8214194.html#_label3"  target="_blank">http://www.cnblogs.com/clsn/p/8214194.html#_label3</a><a href="go.php-url=http---blog.nmtui.com-.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://blog.nmtui.com/" ><br /></a></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;">创建mongod用户</span>
+    useradd -<span style="color: #000000;">u800 mongod
+    echo </span>123456|passwd --<span style="color: #000000;">stdin mongod 
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 安装mongodb</span>
+    mkdir -p /mongodb/<span style="color: #000000;">bin
+ 　　cd  </span>/<span style="color: #000000;">mongodb
+　　 wget http:</span>//downloads.mongodb.org/linux/mongodb-linux-x86_64-rhel62-3.2.8<span style="color: #000000;">.tgz
+    tar xf  mongodb</span>-linux-x86_64-3.2.8<span style="color: #000000;">.tgz
+    cd mongodb</span>-linux-x86_64-3.2.8/bin/ &&<span style="color: #000000;">\
+    cp </span>* /mongodb/<span style="color: #000000;">bin
+    chown </span>-R mongod.mongod /<span style="color: #000000;">mongodb
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 切换到mongod用户进行后续操作</span>
+    su - mongod</pre>
+</div>
+</div>
+<h3>1.4.3 创建所需目录</h3>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span>  i <span style="color: #0000ff;">in</span> <span style="color: #800080;">28017</span> <span style="color: #800080;">28018</span> <span style="color: #800080;">28019</span> <span style="color: #800080;">28020</span>
+    <span style="color: #0000ff;">do</span> 
+      <span style="color: #0000ff;">mkdir</span> -p /mongodb/$i/<span style="color: #000000;">conf  
+      </span><span style="color: #0000ff;">mkdir</span> -p /mongodb/$i/<span style="color: #000000;">data  
+      </span><span style="color: #0000ff;">mkdir</span> -p /mongodb/$i/<span style="color: #000000;">log
+</span><span style="color: #0000ff;">done</span> </pre>
+</div>
+</div>
+<h3>1.4.4 配置多实例环境</h3>
+<p>编辑第一个实例配置文件</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">cat</span> >>/mongodb/<span style="color: #800080;">28017</span>/conf/mongod.conf<<<span style="color: #800000;">'</span><span style="color: #800000;">EOF</span><span style="color: #800000;">'</span><span style="color: #000000;">
+systemLog:
+  destination: </span><span style="color: #0000ff;">file</span><span style="color: #000000;">
+  path: </span>/mongodb/<span style="color: #800080;">28017</span>/log/<span style="color: #000000;">mongodb.log
+  logAppend: </span><span style="color: #0000ff;">true</span><span style="color: #000000;">
+storage:
+  journal:
+    enabled: </span><span style="color: #0000ff;">true</span><span style="color: #000000;">
+  dbPath: </span>/mongodb/<span style="color: #800080;">28017</span>/<span style="color: #000000;">data
+  directoryPerDB: </span><span style="color: #0000ff;">true</span><span style="color: #000000;">
+  #engine: wiredTiger
+  wiredTiger:
+    engineConfig:
+      # cacheSizeGB: </span><span style="color: #800080;">1</span><span style="color: #000000;">
+      directoryForIndexes: </span><span style="color: #0000ff;">true</span><span style="color: #000000;">
+    collectionConfig:
+      blockCompressor: zlib
+    indexConfig:
+      prefixCompression: </span><span style="color: #0000ff;">true</span><span style="color: #000000;">
+processManagement:
+  fork: </span><span style="color: #0000ff;">true</span><span style="color: #000000;">
+net:
+  port: </span><span style="color: #800080;">28017</span><span style="color: #000000;">
+replication:
+  oplogSizeMB: </span><span style="color: #800080;">2048</span><span style="color: #000000;">
+  replSetName: my_repl
+EOF</span></pre>
+</div>
+</div>
+<p>复制配置文件</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> <span style="color: #800080;">28018</span> <span style="color: #800080;">28019</span> <span style="color: #800080;">28020</span>
+  <span style="color: #0000ff;">do</span><span style="color: #000000;">  
+   \</span><span style="color: #0000ff;">cp</span>  /mongodb/<span style="color: #800080;">28017</span>/conf/mongod.conf  /mongodb/$i/conf/
+<span style="color: #0000ff;">done</span></pre>
+</div>
+</div>
+<p>修改配置文件</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> <span style="color: #800080;">28018</span> <span style="color: #800080;">28019</span> <span style="color: #800080;">28020</span>
+  <span style="color: #0000ff;">do</span> 
+    <span style="color: #0000ff;">sed</span>  -i  <span style="color: #800000;">"</span><span style="color: #800000;">s#28017#$i#g</span><span style="color: #800000;">"</span> /mongodb/$i/conf/<span style="color: #000000;">mongod.conf
+</span><span style="color: #0000ff;">done</span></pre>
+</div>
+</div>
+<p>启动服务</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> <span style="color: #800080;">28017</span> <span style="color: #800080;">28018</span> <span style="color: #800080;">28019</span> <span style="color: #800080;">28020</span>
+  <span style="color: #0000ff;">do</span><span style="color: #000000;">  
+    mongod </span>-f /mongodb/$i/conf/<span style="color: #000000;">mongod.conf 
+</span><span style="color: #0000ff;">done</span></pre>
+</div>
+</div>
+<p># 关闭服务的方法</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span> i <span style="color: #0000ff;">in</span> <span style="color: #800080;">28017</span> <span style="color: #800080;">28018</span> <span style="color: #800080;">28019</span> <span style="color: #800080;">28020</span>
+   <span style="color: #0000ff;">do</span><span style="color: #000000;">  
+     mongod </span>--shutdown  -f /mongodb/$i/conf/<span style="color: #000000;">mongod.conf 
+</span><span style="color: #0000ff;">done</span></pre>
+</div>
+</div>
+<h3>1.4.5 配置复制集</h3>
+<p>登陆数据库，配置mongodb复制</p>
+<div>
+<div class="cnblogs_code">
+<pre>shell> mongo --port 28017<span style="color: #000000;">
+
+config </span>= {_id: <span style="color: #800000;">'</span><span style="color: #800000;">my_repl</span><span style="color: #800000;">'</span><span style="color: #000000;">, members: [
+                          {_id: 0, host: </span><span style="color: #800000;">'</span><span style="color: #800000;">10.0.0.152:28017</span><span style="color: #800000;">'</span><span style="color: #000000;">},
+                          {_id: </span>1, host: <span style="color: #800000;">'</span><span style="color: #800000;">10.0.0.152:28018</span><span style="color: #800000;">'</span><span style="color: #000000;">},
+                          {_id: </span>2, host: <span style="color: #800000;">'</span><span style="color: #800000;">10.0.0.152:28019</span><span style="color: #800000;">'</span><span style="color: #000000;">}]
+          }</span></pre>
+</div>
+</div>
+<p>初始化这个配置</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #808080;">></span> rs.initiate(config)</pre>
+</div>
+<p>　　<span style="background-color: #ffff00; color: #ff0000;"><strong>&nbsp; &nbsp;</strong><strong>到此复制集配置完成</strong></span></p>
+</div>
+<h3>1.4.6 测试主从复制</h3>
+<p>在主节点插入数据</p>
+<div>
+<div class="cnblogs_code">
+<pre>my_repl:<span style="color: #0000ff;">PRIMARY</span><span style="color: #808080;">></span> db.movies.<span style="color: #0000ff;">insert</span>(<span style="color: #ff0000;">[</span><span style="color: #ff0000;"> { "title" : "Jaws", "year" : 1975, "imdb_rating" : 8.1 },
+   { "title" : "Batman", "year" : 1989, "imdb_rating" : 7.6 },
+  </span><span style="color: #ff0000;">]</span> );</pre>
+</div>
+</div>
+<p>在主节点查看数据</p>
+<div>
+<div class="cnblogs_code">
+<pre>my_repl:<span style="color: #0000ff;">PRIMARY</span><span style="color: #808080;">></span><span style="color: #000000;"> db.movies.find().pretty()
+{
+    "_id" : ObjectId("5a4d9ec184b9b2076686b0ac"),
+    "title" : "Jaws",
+    "</span><span style="color: #ff00ff;">year</span>" : <span style="color: #800000; font-weight: bold;">1975</span><span style="color: #000000;">,
+    "imdb_rating" : </span><span style="color: #800000; font-weight: bold;">8.1</span><span style="color: #000000;">
+}
+{
+    "_id" : ObjectId("5a4d9ec184b9b2076686b0ad"),
+    "title" : "Batman",
+    "</span><span style="color: #ff00ff;">year</span>" : <span style="color: #800000; font-weight: bold;">1989</span><span style="color: #000000;">,
+    "imdb_rating" : </span><span style="color: #800000; font-weight: bold;">7.6</span><span style="color: #000000;">
+}</span></pre>
+</div>
+<p>　　注：在mongodb复制集当中，默认从库不允许读写。</p>
+</div>
+<p>在从库打开配置（危险）</p>
+<p>&nbsp;&nbsp; 　<span style="color: #ff0000;">　　<strong>注意：严禁在从库做任何修改操作</strong></span></p>
+<div>
+<div class="cnblogs_code">
+<pre>my_repl:SECONDARY<span style="color: #808080;">></span><span style="color: #000000;"> rs.slaveOk()
+my_repl:SECONDARY</span><span style="color: #808080;">></span><span style="color: #000000;"> show tables;
+movies
+my_repl:SECONDARY</span><span style="color: #808080;">></span><span style="color: #000000;"> db.movies.find().pretty()
+{
+    "_id" : ObjectId("5a4d9ec184b9b2076686b0ac"),
+    "title" : "Jaws",
+    "</span><span style="color: #ff00ff;">year</span>" : <span style="color: #800000; font-weight: bold;">1975</span><span style="color: #000000;">,
+    "imdb_rating" : </span><span style="color: #800000; font-weight: bold;">8.1</span><span style="color: #000000;">
+}
+{
+    "_id" : ObjectId("5a4d9ec184b9b2076686b0ad"),
+    "title" : "Batman",
+    "</span><span style="color: #ff00ff;">year</span>" : <span style="color: #800000; font-weight: bold;">1989</span><span style="color: #000000;">,
+    "imdb_rating" : </span><span style="color: #800000; font-weight: bold;">7.6</span><span style="color: #000000;">
+}</span></pre>
+</div>
+<p>　　在从库查看完成在登陆到主库</p>
+</div>
+<h3>1.4.7 复制集管理操作</h3>
+<p>（1）查看复制集状态：</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">rs.status();     # 查看整体复制集状态
+rs.isMaster();   #  查看当前是否是主节点</span></pre>
+</div>
+</div>
+<p>（2）添加删除节点</p>
+<div>
+<div class="cnblogs_code">
+<pre>rs.<span style="color: #0000ff;">add</span><span style="color: #000000;">("ip:port");     #  新增从节点
+rs.addArb("ip:port"); #  新增仲裁节点
+rs.remove("ip:port"); #  删除一个节点</span></pre>
+</div>
+</div>
+<p>注：</p>
+<blockquote>
+<p>添加特殊节点时，</p>
+<p>　　1>可以在搭建过程中设置特殊节点</p>
+<p>　　2>可以通过修改配置的方式将普通从节点设置为特殊节点</p>
+<p>　　/*找到需要改为延迟性同步的数组号*/;</p>
+</blockquote>
+<p><span style="background-color: #ffff00;"><strong>（3</strong><strong>）配置延时节点（一般延时节点也配置成hidden</strong><strong>）</strong></span></p>
+<div>
+<div class="cnblogs_code">
+<pre>cfg<span style="color: #808080;">=</span><span style="color: #000000;">rs.conf() 
+cfg.members</span><span style="color: #ff0000;">[</span><span style="color: #ff0000;">2</span><span style="color: #ff0000;">]</span>.priority<span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">0</span><span style="color: #000000;">
+cfg.members</span><span style="color: #ff0000;">[</span><span style="color: #ff0000;">2</span><span style="color: #ff0000;">]</span>.slaveDelay<span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">120</span><span style="color: #000000;">
+cfg.members</span><span style="color: #ff0000;">[</span><span style="color: #ff0000;">2</span><span style="color: #ff0000;">]</span>.hidden<span style="color: #808080;">=</span>true</pre>
+</div>
+<p>　　&nbsp; &nbsp;注：这里的2是rs.conf()显示的顺序（<em>除主库之外</em>），非ID</p>
+</div>
+<p>重写复制集配置</p>
+<div>
+<div class="cnblogs_code">
+<pre>rs.reconfig(cfg)   </pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 也可将延时节点配置为arbiter节点</p>
+<div>
+<div class="cnblogs_code">
+<pre>cfg.members<span style="color: #ff0000;">[</span><span style="color: #ff0000;">2</span><span style="color: #ff0000;">]</span>.arbiterOnly<span style="color: #808080;">=</span>true</pre>
+</div>
+</div>
+<p>配置成功后，通过以下命令查询配置后的属性</p>
+<div>
+<div class="cnblogs_code">
+<pre>rs.conf();</pre>
+</div>
+</div>
+<h3>1.4.8 副本集其他操作命令</h3>
+<p>查看副本集的配置信息</p>
+<div>
+<div class="cnblogs_code">
+<pre>my_repl:<span style="color: #0000ff;">PRIMARY</span><span style="color: #808080;">></span> rs.config()</pre>
+</div>
+</div>
+<p>查看副本集各成员的状态</p>
+<div>
+<div class="cnblogs_code">
+<pre>my_repl:<span style="color: #0000ff;">PRIMARY</span><span style="color: #808080;">></span> rs.status()</pre>
+</div>
+</div>
+<h4><strong>1.4.8.1&nbsp; </strong><strong>副本集角色切换（不要人为随便操作）</strong></h4>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">rs.stepDown()
+rs.freeze(</span><span style="color: #800000; font-weight: bold;">300</span><span style="color: #000000;">)  # 锁定从，使其不会转变成主库，freeze()和stepDown单位都是秒。
+rs.slaveOk()    # 设置副本节点可读：在副本节点执行</span></pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 插入数据</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #808080;">></span> <span style="color: #0000ff;">use</span><span style="color: #000000;"> app
+switched </span><span style="color: #0000ff;">to</span><span style="color: #000000;"> db app
+app</span><span style="color: #808080;">></span> db.createCollection(<span style="color: #ff0000;">'</span><span style="color: #ff0000;">a</span><span style="color: #ff0000;">'</span><span style="color: #000000;">)
+{ "ok" : </span><span style="color: #800000; font-weight: bold;">0</span>, "errmsg" : "<span style="color: #808080;">not</span> master", "code" : <span style="color: #800000; font-weight: bold;">10107</span> }</pre>
+</div>
+</div>
+<p>查看副本节点</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #808080;">></span><span style="color: #000000;"> rs.printSlaveReplicationInfo()
+source: </span><span style="color: #800000; font-weight: bold;">192.168</span>.<span style="color: #800000; font-weight: bold;">1.22</span>:<span style="color: #800000; font-weight: bold;">27017</span><span style="color: #000000;">
+    syncedTo: Thu May </span><span style="color: #800000; font-weight: bold;">26</span> <span style="color: #800000; font-weight: bold;">2016</span> <span style="color: #800000; font-weight: bold;">10</span>:<span style="color: #800000; font-weight: bold;">28</span>:<span style="color: #800000; font-weight: bold;">56</span> GMT<span style="color: #808080;">+</span><span style="color: #800000; font-weight: bold;">0800</span><span style="color: #000000;"> (CST)
+    </span><span style="color: #800000; font-weight: bold;">0</span> secs (<span style="color: #800000; font-weight: bold;">0</span> hrs) behind the <span style="color: #0000ff;">primary</span></pre>
+</div>
+</div>
+<h1>MongoDB分片（Sharding）技术</h1>
+<p>　　分片（sharding）是MongoDB用来将大型集合分割到不同服务器（或者说一个集群）上所采用的方法。尽管分片起源于关系型数据库分区，但MongoDB分片完全又是另一回事。</p>
+<p>　　和MySQL分区方案相比，MongoDB的最大区别在于它几乎能自动完成所有事情，只要告诉MongoDB要分配数据，它就能自动维护数据在不同服务器之间的均衡。</p>
+<h2>2.1 MongoDB分片介绍</h2>
+<h3>2.1.1 分片的目的</h3>
+<p>　　高数据量和吞吐量的数据库应用会对单机的性能造成较大压力,大的查询量会将单机的CPU耗尽,大的数据量对单机的存储压力较大,最终会耗尽系统的内存而将压力转移到磁盘IO上。</p>
+<p>　　为了解决这些问题,有两个基本的方法: 垂直扩展和水平扩展。</p>
+<p>　　　　<span style="background-color: #ffff00;">垂直扩展：</span>增加更多的CPU和存储资源来扩展容量。</p>
+<p>　　　　<span style="background-color: #ffff00;">水平扩展：</span>将数据集分布在多个服务器上。水平扩展即分片。</p>
+<h3>2.1.2 分片设计思想</h3>
+<p>　　分片为应对高吞吐量与大数据量提供了方法。使用分片减少了每个分片需要处理的请求数，因此，通过水平扩展，集群可以提高自己的存储容量和吞吐量。举例来说，当插入一条数据时，应用只需要访问存储这条数据的分片.</p>
+<p>　　使用分片减少了每个分片存储的数据。</p>
+<p>　　例如，如果数据库1tb的数据集，并有4个分片，然后每个分片可能仅持有256 GB的数据。如果有40个分片，那么每个切分可能只有25GB的数据。</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180106150209471-1233466151.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB 分片集群技术" alt="" /></p>
+
+<h3>2.1.3 分片机制提供了如下三种优势</h3>
+<p><strong>1.</strong><strong>对集群进行抽象，让集群&ldquo;不可见&rdquo;</strong></p>
+<p>　　MongoDB自带了一个叫做mongos的专有路由进程。mongos就是掌握统一路口的路由器，其会将客户端发来的请求准确无误的路由到集群中的一个或者一组服务器上，同时会把接收到的响应拼装起来发回到客户端。</p>
+<p><strong>2.</strong><strong>保证集群总是可读写</strong></p>
+<p>　　MongoDB通过多种途径来确保集群的可用性和可靠性。将MongoDB的分片和复制功能结合使用，在确保数据分片到多台服务器的同时，也确保了每分数据都有相应的备份，这样就可以确保有服务器换掉时，其他的从库可以立即接替坏掉的部分继续工作。</p>
+<p><strong>3.</strong><strong>使集群易于扩展</strong></p>
+<p>　　当系统需要更多的空间和资源的时候，MongoDB使我们可以按需方便的扩充系统容量。</p>
+<h3>2.1.4 分片集群架构</h3>
+<table style="width: 100%;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td valign="top" width="21%">
+<p style="text-align: center;"><strong>组件</strong></p>
+</td>
+<td valign="top" width="78%">
+<p style="text-align: center;"><strong>说明</strong></p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="21%">
+<p style="text-align: center;"><strong>Config Server</strong></p>
+</td>
+<td valign="top" width="78%">
+<p>存储集群所有节点、分片数据路由信息。默认需要配置3个Config Server节点。</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="21%">
+<p style="text-align: center;"><strong>Mongos</strong></p>
+</td>
+<td valign="top" width="78%">
+<p>提供对外应用访问，所有操作均通过mongos执行。一般有多个mongos节点。数据迁移和数据自动平衡。</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="21%">
+<p style="text-align: center;"><strong>Mongod</strong></p>
+</td>
+<td valign="top" width="78%">
+<p>存储应用数据记录。一般有多个Mongod节点，达到数据分片目的。</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180106150523846-1535223046.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB 分片集群技术" alt="" /></p>
+
+<p><span style="background-color: #00ff00;"><strong>分片集群的构造</strong></span></p>
+<blockquote>
+<p>&nbsp;（1）mongos ：数据路由，和客户端打交道的模块。mongos本身没有任何数据，他也不知道该怎么处理这数据，去找config server</p>
+<p>（2）config server：所有存、取数据的方式，所有shard节点的信息，分片功能的一些配置信息。可以理解为真实数据的元数据。</p>
+<p>&nbsp;（3）shard：真正的数据存储位置，以chunk为单位存数据。</p>
+</blockquote>
+<p>　　Mongos本身并不持久化数据，Sharded cluster所有的元数据都会存储到Config Server，而用户的数据会议分散存储到各个shard。Mongos启动后，会从配置服务器加载元数据，开始提供服务，将用户的请求正确路由到对应的碎片。</p>
+<p><strong>Mongos</strong><strong>的路由功能</strong></p>
+<p>　　当数据写入时，MongoDB Cluster根据分片键设计写入数据。</p>
+<p>　　当外部语句发起数据查询时，MongoDB根据数据分布自动路由至指定节点返回数据。</p>
+<h2>2.2 集群中数据分布</h2>
+<h3>2.2.1 Chunk是什么</h3>
+<p>　　在一个shard server内部，MongoDB还是会把数据分为chunks，每个chunk代表这个shard server内部一部分数据。chunk的产生，会有以下两个用途：</p>
+<p><strong>　　<span style="background-color: #00ff00;">Splitting</span></strong><span style="background-color: #00ff00;"><strong>：</strong></span>当一个chunk的大小超过配置中的chunk size时，MongoDB的后台进程会把这个chunk切分成更小的chunk，从而避免chunk过大的情况</p>
+<p><strong>　　<span style="background-color: #00ff00;">Balancing</span></strong><span style="background-color: #00ff00;"><strong>：</strong></span>在MongoDB中，balancer是一个后台进程，负责chunk的迁移，从而均衡各个shard server的负载，系统初始1个chunk，chunk size默认值64M,生产库上选择适合业务的chunk size是最好的。ongoDB会自动拆分和迁移chunks。</p>
+<p><strong>分片集群的数据分布（shard</strong><strong>节点）</strong></p>
+<div>
+<blockquote>
+<p class="a3">（1）使用chunk来存储数据</p>
+<p class="a3">（2）进群搭建完成之后，默认开启一个chunk，大小是64M，</p>
+<p class="a3">（3）存储需求超过64M，chunk会进行分裂，如果单位时间存储需求很大，设置更大的chunk</p>
+<p class="a3">（4）chunk会被自动均衡迁移。</p>
+</blockquote>
+</div>
+<h3>2.2.2 chunksize的选择</h3>
+<p>　　适合业务的chunksize是最好的。</p>
+<p>　　chunk的分裂和迁移非常消耗IO资源；chunk分裂的时机：在插入和更新，读数据不会分裂。</p>
+<p><strong>　　<span style="background-color: #00ff00;">chunksize</span></strong><span style="background-color: #00ff00;"><strong>的选择：</strong></span></p>
+<p>　　小的chunksize：数据均衡是迁移速度快，数据分布更均匀。数据分裂频繁，路由节点消耗更多资源。大的chunksize：数据分裂少。数据块移动集中消耗IO资源。通常100-200M</p>
+<h3>2.2.3 chunk分裂及迁移</h3>
+<p>　　随着数据的增长，其中的数据大小超过了配置的chunk size，默认是64M，则这个chunk就会分裂成两个。数据的增长会让chunk分裂得越来越多。</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180106150630018-1017846225.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB 分片集群技术" alt="" /></p>
+
+<p>　　这时候，各个shard 上的chunk数量就会不平衡。这时候，mongos中的一个组件balancer&nbsp; 就会执行自动平衡。把chunk从chunk数量最多的shard节点挪动到数量最少的节点。</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180106150636096-1641567859.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB 分片集群技术" alt="" />&nbsp;</p>
+
+<p><span style="background-color: #00ff00;"><strong>chunkSize </strong><strong>对分裂及迁移的影响</strong></span></p>
+<p>　　MongoDB 默认的 chunkSize 为64MB，如无特殊需求，建议保持默认值；chunkSize 会直接影响到 chunk 分裂、迁移的行为。</p>
+<p>　　chunkSize 越小，chunk 分裂及迁移越多，数据分布越均衡；反之，chunkSize 越大，chunk 分裂及迁移会更少，但可能导致数据分布不均。</p>
+<p>　　chunkSize 太小，容易出现 jumbo chunk（即shardKey 的某个取值出现频率很高，这些文档只能放到一个 chunk 里，无法再分裂）而无法迁移；chunkSize 越大，则可能出现 chunk 内文档数太多（chunk 内文档数不能超过 250000 ）而无法迁移。</p>
+<p>　　chunk 自动分裂只会在数据写入时触发，所以如果将 chunkSize 改小，系统需要一定的时间来将 chunk 分裂到指定的大小。</p>
+<p>　　chunk 只会分裂，不会合并，所以即使将 chunkSize 改大，现有的 chunk 数量不会减少，但 chunk 大小会随着写入不断增长，直到达到目标大小。</p>
+<h2>2.3 数据区分</h2>
+<h3>2.3.1 分片键shard key</h3>
+<p>　　MongoDB中数据的分片是、以集合为基本单位的，集合中的数据通过片键（Shard key）被分成多部分。其实片键就是在集合中选一个键，用该键的值作为数据拆分的依据。</p>
+<p>　　所以一个好的片键对分片至关重要。片键必须是一个索引，通过sh.shardCollection加会自动创建索引（前提是此集合不存在的情况下）。一个自增的片键对写入和数据均匀分布就不是很好，因为自增的片键总会在一个分片上写入，后续达到某个阀值可能会写到别的分片。但是按照片键查询会非常高效。</p>
+<p>　　随机片键对数据的均匀分布效果很好。注意尽量避免在多个分片上进行查询。在所有分片上查询，mongos会对结果进行归并排序。</p>
+<p>　　对集合进行分片时，你需要选择一个片键，片键是每条记录都必须包含的，且建立了索引的单个字段或复合字段，MongoDB按照片键将数据划分到不同的数据块中，并将数据块均衡地分布到所有分片中。</p>
+<p>　　为了按照片键划分数据块，MongoDB使用基于范围的分片方式或者 基于哈希的分片方式。</p>
+<p><strong>注意：</strong></p>
+<div>
+<blockquote>
+<p class="a3">分片键是不可变。</p>
+<p class="a3">分片键必须有索引。</p>
+<p class="a3">分片键大小限制512bytes。</p>
+<p class="a3">分片键用于路由查询。</p>
+<p class="a3">MongoDB不接受已进行collection级分片的collection上插入无分片</p>
+<p class="a3">键的文档（也不支持空值插入）</p>
+</blockquote>
+</div>
+<h3>2.3.2 以范围为基础的分片Sharded Cluster</h3>
+<p>　　Sharded Cluster支持将单个集合的数据分散存储在多shard上，用户可以指定根据集合内文档的某个字段即shard key来进行范围分片（range sharding）。</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180106150717440-244129239.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB 分片集群技术" alt="" /></p>
+
+<p>　　对于基于范围的分片，MongoDB按照片键的范围把数据分成不同部分。</p>
+<p>　　假设有一个数字的片键:想象一个从负无穷到正无穷的直线，每一个片键的值都在直线上画了一个点。MongoDB把这条直线划分为更短的不重叠的片段，并称之为数据块，每个数据块包含了片键在一定范围内的数据。在使用片键做范围划分的系统中，拥有&rdquo;相近&rdquo;片键的文档很可能存储在同一个数据块中，因此也会存储在同一个分片中。</p>
+<h3>2.3.3 基于哈希的分片</h3>
+<p>　　分片过程中利用哈希索引作为分片的单个键，且哈希分片的片键只能使用一个字段，而基于哈希片键最大的好处就是保证数据在各个节点分布基本均匀。</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180106150727893-1156186779.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MongoDB 分片集群技术" alt="" /></p>
+
+<p>　　对于基于哈希的分片，MongoDB计算一个字段的哈希值，并用这个哈希值来创建数据块。在使用基于哈希分片的系统中，拥有&rdquo;相近&rdquo;片键的文档很可能不会存储在同一个数据块中，因此数据的分离性更好一些。</p>
+<p>　　Hash分片与范围分片互补，能将文档随机的分散到各个chunk，充分的扩展写能力，弥补了范围分片的不足，但不能高效的服务范围查询，所有的范围查询要分发到后端所有的Shard才能找出满足条件的文档。</p>
+<h3>2.3.4 分片键选择建议</h3>
+<p><strong>1</strong><strong>、递增的sharding key</strong></p>
+<div>
+<blockquote>
+<p class="a3">数据文件挪动小。（优势）</p>
+<p class="a3">因为数据文件递增，所以会把insert的写IO永久放在最后一片上，造成最后一片的写热点。同时，随着最后一片的数据量增大，将不断的发生迁移至之前的片上。</p>
+</blockquote>
+</div>
+<p><strong>2</strong><strong>、随机的sharding key</strong></p>
+<div>
+<blockquote>
+<p class="a3">数据分布均匀，insert的写IO均匀分布在多个片上。（优势）</p>
+<p class="a3">大量的随机IO，磁盘不堪重荷。</p>
+</blockquote>
+</div>
+<p><strong>3</strong><strong>、混合型key</strong></p>
+<div>
+<blockquote>
+<div>
+<p class="a3">大方向随机递增，小范围随机分布。</p>
+</div>
+<p>为了防止出现大量的chunk均衡迁移，可能造成的IO压力。我们需要设置合理分片使用策略（片键的选择、分片算法（range、hash））</p>
+</blockquote>
+</div>
+<p><span style="color: #ff0000;"><strong>分片注意：</strong></span></p>
+<p>&nbsp;&nbsp; 分片键是不可变、分片键必须有索引、分片键大小限制512bytes、分片键用于路由查询。</p>
+<p>&nbsp;&nbsp; MongoDB不接受已进行collection级分片的collection上插入无分片键的文档（也不支持空值插入）</p>
+<h2>2.4 部署分片集群</h2>
+<p>　　<span style="color: #ff0000; background-color: #00ff00;">本集群的部署基于1.1的复制集搭建完成</span>。</p>
+<h3>2.4.1 环境准备</h3>
+<p>创建程序所需的目录</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span>  i <span style="color: #808080;">in</span> <span style="color: #800000; font-weight: bold;">17</span> <span style="color: #800000; font-weight: bold;">18</span> <span style="color: #800000; font-weight: bold;">19</span> <span style="color: #800000; font-weight: bold;">20</span> <span style="color: #800000; font-weight: bold;">21</span> <span style="color: #800000; font-weight: bold;">22</span> <span style="color: #800000; font-weight: bold;">23</span> <span style="color: #800000; font-weight: bold;">24</span> <span style="color: #800000; font-weight: bold;">25</span> <span style="color: #800000; font-weight: bold;">26</span><span style="color: #000000;"> 
+  do 
+  mkdir </span><span style="color: #808080;">-</span>p <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">280</span>$i<span style="color: #808080;">/</span><span style="color: #000000;">conf  
+  mkdir </span><span style="color: #808080;">-</span>p <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">280</span>$i<span style="color: #808080;">/</span><span style="color: #000000;">data  
+  mkdir </span><span style="color: #808080;">-</span>p <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">280</span>$i<span style="color: #808080;">/</span><span style="color: #ff00ff;">log</span><span style="color: #000000;">
+done</span></pre>
+</div>
+</div>
+<h3>2.4.2 shard集群配置</h3>
+<p>编辑shard集群配置文件</p>
+<div>
+<div class="cnblogs_code">
+<pre>cat <span style="color: #808080;">></span> <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">28021</span><span style="color: #808080;">/</span>conf<span style="color: #808080;">/</span>mongod.conf <span style="color: #808080;"><<</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">EOF</span><span style="color: #ff0000;">'</span><span style="color: #000000;">
+systemLog:
+  destination: </span><span style="color: #0000ff;">file</span><span style="color: #000000;">
+  path: </span><span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">28021</span><span style="color: #808080;">/</span><span style="color: #ff00ff;">log</span><span style="color: #808080;">/</span>mongodb.<span style="color: #ff00ff;">log</span><span style="color: #000000;">   
+  logAppend: true
+storage:
+  journal:
+    enabled: true
+  dbPath: </span><span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">28021</span><span style="color: #808080;">/</span><span style="color: #000000;">data
+  directoryPerDB: true
+  #engine: wiredTiger
+  wiredTiger:
+    engineConfig:
+      cacheSizeGB: </span><span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;">
+      directoryForIndexes: true
+    collectionConfig:
+      blockCompressor: zlib
+    indexConfig:
+      prefixCompression: true
+net:
+  bindIp: </span><span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span><span style="color: #000000;">
+  port: </span><span style="color: #800000; font-weight: bold;">28021</span>
+<span style="color: #0000ff;">replication</span><span style="color: #000000;">:
+  oplogSizeMB: </span><span style="color: #800000; font-weight: bold;">2048</span><span style="color: #000000;">
+  replSetName: sh1
+sharding:
+  clusterRole: shardsvr
+processManagement: 
+  fork: true
+EOF</span></pre>
+</div>
+</div>
+<p>复制shard集群配置文件</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span>  i <span style="color: #808080;">in</span>  <span style="color: #800000; font-weight: bold;">22</span> <span style="color: #800000; font-weight: bold;">23</span> <span style="color: #800000; font-weight: bold;">24</span> <span style="color: #800000; font-weight: bold;">25</span> <span style="color: #800000; font-weight: bold;">26</span><span style="color: #000000;">  
+  do  
+   \cp  </span><span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">28021</span><span style="color: #808080;">/</span>conf<span style="color: #808080;">/</span>mongod.conf  <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">280</span>$i<span style="color: #808080;">/</span>conf<span style="color: #808080;">/</span><span style="color: #000000;">
+done</span></pre>
+</div>
+</div>
+<p>修改配置文件端口</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span>  i <span style="color: #808080;">in</span>   <span style="color: #800000; font-weight: bold;">22</span> <span style="color: #800000; font-weight: bold;">23</span> <span style="color: #800000; font-weight: bold;">24</span> <span style="color: #800000; font-weight: bold;">25</span> <span style="color: #800000; font-weight: bold;">26</span><span style="color: #000000;">  
+  do 
+    sed  </span><span style="color: #808080;">-</span>i  "s#<span style="color: #800000; font-weight: bold;">28021</span>#<span style="color: #800000; font-weight: bold;">280</span>$i#g" <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">280</span>$i<span style="color: #808080;">/</span>conf<span style="color: #808080;">/</span><span style="color: #000000;">mongod.conf
+done</span></pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 修改配置文件复制集名称（replSetName）</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span>  i <span style="color: #808080;">in</span>    <span style="color: #800000; font-weight: bold;">24</span> <span style="color: #800000; font-weight: bold;">25</span> <span style="color: #800000; font-weight: bold;">26</span><span style="color: #000000;">  
+  do 
+    sed  </span><span style="color: #808080;">-</span>i  "s#sh1#sh2#g" <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">280</span>$i<span style="color: #808080;">/</span>conf<span style="color: #808080;">/</span><span style="color: #000000;">mongod.conf
+done</span></pre>
+</div>
+</div>
+<p>启动shard集群</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span>  i <span style="color: #808080;">in</span>  <span style="color: #800000; font-weight: bold;">21</span> <span style="color: #800000; font-weight: bold;">22</span> <span style="color: #800000; font-weight: bold;">23</span> <span style="color: #800000; font-weight: bold;">24</span> <span style="color: #800000; font-weight: bold;">25</span> <span style="color: #800000; font-weight: bold;">26</span><span style="color: #000000;">
+  do  
+    mongod </span><span style="color: #808080;">-</span>f <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">280</span>$i<span style="color: #808080;">/</span>conf<span style="color: #808080;">/</span><span style="color: #000000;">mongod.conf 
+done</span></pre>
+</div>
+</div>
+<p>配置复制集1</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongo <span style="color: #008080;">--</span><span style="color: #008080;">host 10.0.0.152 --port 28021  admin</span></pre>
+</div>
+<p class="ac">　　# 配置复制集</p>
+<div class="cnblogs_code">
+<pre>config <span style="color: #808080;">=</span> {_id: <span style="color: #ff0000;">'</span><span style="color: #ff0000;">sh1</span><span style="color: #ff0000;">'</span>, members: <span style="color: #ff0000;">[</span><span style="color: #ff0000;">
+                          {_id: 0, host: '10.0.0.152:28021'},
+                          {_id: 1, host: '10.0.0.152:28022'},
+                          {_id: 2, host: '10.0.0.152:28023',"arbiterOnly":true}</span><span style="color: #ff0000;">]</span><span style="color: #000000;">
+           }  
+ # 初始化配置
+rs.initiate(config)  </span></pre>
+</div>
+</div>
+<p>&nbsp;配置复制集2</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongo <span style="color: #008080;">--</span><span style="color: #008080;">host 10.0.0.152 --port 28024  admin</span></pre>
+</div>
+<p class="ac">　　# 配置复制集</p>
+<div class="cnblogs_code">
+<pre>config <span style="color: #808080;">=</span> {_id: <span style="color: #ff0000;">'</span><span style="color: #ff0000;">sh2</span><span style="color: #ff0000;">'</span>, members: <span style="color: #ff0000;">[</span><span style="color: #ff0000;">
+                          {_id: 0, host: '10.0.0.152:28024'},
+                          {_id: 1, host: '10.0.0.152:28025'},
+                          {_id: 2, host: '10.0.0.152:28026',"arbiterOnly":true}</span><span style="color: #ff0000;">]</span><span style="color: #000000;">
+           }
+# 初始化配置
+rs.initiate(config)</span></pre>
+</div>
+</div>
+<h3>2.4.3 config集群配置</h3>
+<p>创建主节点配置文件</p>
+<div>
+<div class="cnblogs_code">
+<pre>cat <span style="color: #808080;">></span> <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">28018</span><span style="color: #808080;">/</span>conf<span style="color: #808080;">/</span>mongod.conf <span style="color: #808080;"><<</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">EOF</span><span style="color: #ff0000;">'</span><span style="color: #000000;">
+systemLog:
+  destination: </span><span style="color: #0000ff;">file</span><span style="color: #000000;">
+  path: </span><span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">28018</span><span style="color: #808080;">/</span><span style="color: #ff00ff;">log</span><span style="color: #808080;">/</span><span style="color: #000000;">mongodb.conf
+  logAppend: true
+storage:
+  journal:
+    enabled: true
+  dbPath: </span><span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">28018</span><span style="color: #808080;">/</span><span style="color: #000000;">data
+  directoryPerDB: true
+  #engine: wiredTiger
+  wiredTiger:
+    engineConfig:
+      cacheSizeGB: </span><span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;">
+      directoryForIndexes: true
+    collectionConfig:
+      blockCompressor: zlib
+    indexConfig:
+      prefixCompression: true
+net:
+  bindIp: </span><span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span><span style="color: #000000;">
+  port: </span><span style="color: #800000; font-weight: bold;">28018</span>
+<span style="color: #0000ff;">replication</span><span style="color: #000000;">:
+  oplogSizeMB: </span><span style="color: #800000; font-weight: bold;">2048</span><span style="color: #000000;">
+  replSetName: configReplSet
+sharding:
+  clusterRole: configsvr
+processManagement: 
+  fork: true
+EOF</span></pre>
+</div>
+</div>
+<p>将配置文件分发到从节点</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span>  i <span style="color: #808080;">in</span> <span style="color: #800000; font-weight: bold;">19</span> <span style="color: #800000; font-weight: bold;">20</span><span style="color: #000000;"> 
+  do  
+   \cp  </span><span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">28018</span><span style="color: #808080;">/</span>conf<span style="color: #808080;">/</span>mongod.conf  <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">280</span>$i<span style="color: #808080;">/</span>conf<span style="color: #808080;">/</span><span style="color: #000000;">
+done</span></pre>
+</div>
+</div>
+<p>修改配置文件端口信息</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span>  i <span style="color: #808080;">in</span> <span style="color: #800000; font-weight: bold;">19</span> <span style="color: #800000; font-weight: bold;">20</span><span style="color: #000000;">  
+  do 
+    sed  </span><span style="color: #808080;">-</span>i  "s#<span style="color: #800000; font-weight: bold;">28018</span>#<span style="color: #800000; font-weight: bold;">280</span>$i#g" <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">280</span>$i<span style="color: #808080;">/</span>conf<span style="color: #808080;">/</span><span style="color: #000000;">mongod.conf
+done</span></pre>
+</div>
+</div>
+<p>启动config server集群</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span>  i <span style="color: #808080;">in</span>  <span style="color: #800000; font-weight: bold;">18</span> <span style="color: #800000; font-weight: bold;">19</span> <span style="color: #800000; font-weight: bold;">20</span><span style="color: #000000;"> 
+  do  
+    mongod </span><span style="color: #808080;">-</span>f <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">280</span>$i<span style="color: #808080;">/</span>conf<span style="color: #808080;">/</span><span style="color: #000000;">mongod.conf 
+done</span></pre>
+</div>
+</div>
+<p>配置config server复制集</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongo <span style="color: #008080;">--</span><span style="color: #008080;">host 10.0.0.152 --port 28018  admin</span></pre>
+</div>
+<p class="ac"># 配置复制集信息</p>
+<div class="cnblogs_code">
+<pre>config <span style="color: #808080;">=</span> {_id: <span style="color: #ff0000;">'</span><span style="color: #ff0000;">configReplSet</span><span style="color: #ff0000;">'</span>, members: <span style="color: #ff0000;">[</span><span style="color: #ff0000;">
+                          {_id: 0, host: '10.0.0.152:28018'},
+                          {_id: 1, host: '10.0.0.152:28019'},
+                          {_id: 2, host: '10.0.0.152:28020'}</span><span style="color: #ff0000;">]</span><span style="color: #000000;">
+           }
+# 初始化配置
+rs.initiate(config)    </span></pre>
+</div>
+<p>　　注：config server 使用复制集不用有arbiter节点。3.4版本以后config必须为复制集</p>
+</div>
+<h3>2.4.4 mongos节点配置</h3>
+<p>修改配置文件</p>
+<div>
+<div class="cnblogs_code">
+<pre>cat <span style="color: #808080;">></span> <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">28017</span><span style="color: #808080;">/</span>conf<span style="color: #808080;">/</span>mongos.conf <span style="color: #808080;"><<</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">EOF</span><span style="color: #ff0000;">'</span><span style="color: #000000;">
+systemLog:
+  destination: </span><span style="color: #0000ff;">file</span><span style="color: #000000;">
+  path: </span><span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">28017</span><span style="color: #808080;">/</span><span style="color: #ff00ff;">log</span><span style="color: #808080;">/</span>mongos.<span style="color: #ff00ff;">log</span><span style="color: #000000;">
+  logAppend: true
+net:
+  bindIp: </span><span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span><span style="color: #000000;">
+  port: </span><span style="color: #800000; font-weight: bold;">28017</span><span style="color: #000000;">
+sharding:
+  configDB: configReplSet</span><span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">28108</span>,<span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">28019</span>,<span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">28020</span><span style="color: #000000;">
+processManagement: 
+  fork: true
+EOF</span></pre>
+</div>
+</div>
+<p>启动mongos</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongos <span style="color: #808080;">-</span>f <span style="color: #808080;">/</span>mongodb<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">28017</span><span style="color: #808080;">/</span>conf<span style="color: #808080;">/</span>mongos.conf</pre>
+</div>
+</div>
+<p>登陆到mongos</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongo <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">28017</span><span style="color: #808080;">/</span>admin</pre>
+</div>
+</div>
+<p>添加分片节点</p>
+<div>
+<div class="cnblogs_code">
+<pre>db.runCommand( { addshard : "sh1<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">28021</span>,<span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">28022</span>,<span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">28023</span><span style="color: #000000;">",name:"shard1"} )
+db.runCommand( { addshard : "sh2</span><span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">28024</span>,<span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">28025</span>,<span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.152</span>:<span style="color: #800000; font-weight: bold;">28026</span>",name:"shard2"} )</pre>
+</div>
+</div>
+<p>列出分片</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongos<span style="color: #808080;">></span> db.runCommand( { listshards : <span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;"> } )
+{
+    "shards" : </span><span style="color: #ff0000;">[</span><span style="color: #ff0000;">
+        {
+            "_id" : "shard2",
+            "host" : "sh2/10.0.0.152:28024,10.0.0.152:28025"
+        },
+        {
+            "_id" : "shard1",
+            "host" : "sh1/10.0.0.152:28021,10.0.0.152:28022"
+        }
+    </span><span style="color: #ff0000;">]</span><span style="color: #000000;">,
+    "ok" : </span><span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;">
+}</span></pre>
+</div>
+</div>
+<p>整体状态查看</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongos<span style="color: #808080;">></span> sh.status();</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;<span style="background-color: #ffff00; color: #ff0000;"> <strong>至此MongoDB</strong><strong>的分片集群就搭建完成。</strong></span></p>
+<h3>2.4.5 数据库分片配置</h3>
+<p>激活数据库分片功能</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">语法：( { enablesharding : "数据库名称" } )
+
+mongos</span><span style="color: #808080;">></span> db.runCommand( { enablesharding : "test" } )</pre>
+</div>
+</div>
+<p>指定分片建对集合分片，范围片键--创建索引</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongos<span style="color: #808080;">></span> <span style="color: #0000ff;">use</span><span style="color: #000000;"> test 
+mongos</span><span style="color: #808080;">></span> db.vast.ensureIndex( { id: <span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;"> } )
+mongos</span><span style="color: #808080;">></span> <span style="color: #0000ff;">use</span><span style="color: #000000;"> admin
+mongos</span><span style="color: #808080;">></span> db.runCommand( { shardcollection : "test.vast",<span style="color: #0000ff;">key</span> : {id: <span style="color: #800000; font-weight: bold;">1</span>} } )</pre>
+</div>
+</div>
+<p>集合分片验证</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongos<span style="color: #808080;">></span> <span style="color: #0000ff;">use</span><span style="color: #000000;"> test
+mongos</span><span style="color: #808080;">></span> <span style="color: #0000ff;">for</span>(i<span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">0</span>;i<span style="color: #808080;"><</span><span style="color: #800000; font-weight: bold;">20000</span>;i<span style="color: #808080;">++</span>){ db.vast1.<span style="color: #0000ff;">insert</span>({"id":i,"name":"clsn","age":<span style="color: #800000; font-weight: bold;">70</span><span style="color: #000000;">,"date":new Date()}); }
+mongos</span><span style="color: #808080;">></span> db.vast.stats()</pre>
+</div>
+<p>　　&nbsp; 插入数据的条数尽量大些，能够看出更好的效果。</p>
+</div>
+<h2>2.5 分片集群的操作</h2>
+<h3>2.5.1 不同分片键的配置</h3>
+<p><strong>范围片键</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre>admin<span style="color: #808080;">></span> sh.shardCollection("数据库名称.集合名称",<span style="color: #0000ff;">key</span> : {分片键: <span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;">}  )
+或
+admin</span><span style="color: #808080;">></span> db.runCommand( { shardcollection : "数据库名称.集合名称",<span style="color: #0000ff;">key</span> : {分片键: <span style="color: #800000; font-weight: bold;">1</span>} } )</pre>
+</div>
+</div>
+<div>
+<p class="ac">eg：</p>
+<div class="cnblogs_code">
+<pre>admin <span style="color: #808080;">></span> sh.shardCollection("test.vast",<span style="color: #0000ff;">key</span> : {id: <span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;">}  )
+或
+admin</span><span style="color: #808080;">></span> db.runCommand( { shardcollection : "test.vast",<span style="color: #0000ff;">key</span> : {id: <span style="color: #800000; font-weight: bold;">1</span>} } )</pre>
+</div>
+</div>
+<p><strong>哈希片键</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre>admin <span style="color: #808080;">></span> sh.shardCollection( "数据库名.集合名", { 片键: "hashed" } )</pre>
+</div>
+</div>
+<p><strong>创建哈希索引</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre>admin<span style="color: #808080;">></span><span style="color: #000000;"> db.vast.ensureIndex( { a: "hashed" } )
+admin </span><span style="color: #808080;">></span> sh.shardCollection( "test.vast", { a: "hashed" } )</pre>
+</div>
+</div>
+<h3>2.5.2 分片集群的操作</h3>
+<p>判断是否Shard集群</p>
+<div>
+<div class="cnblogs_code">
+<pre>admin<span style="color: #808080;">></span> db.runCommand({ isdbgrid : <span style="color: #800000; font-weight: bold;">1</span>})</pre>
+</div>
+</div>
+<p>列出所有分片信息</p>
+<div>
+<div class="cnblogs_code">
+<pre>admin<span style="color: #808080;">></span> db.runCommand({ listshards : <span style="color: #800000; font-weight: bold;">1</span>})</pre>
+</div>
+</div>
+<p>列出开启分片的数据库</p>
+<div>
+<div class="cnblogs_code">
+<pre>admin<span style="color: #808080;">></span> <span style="color: #0000ff;">use</span><span style="color: #000000;"> config
+config</span><span style="color: #808080;">></span><span style="color: #000000;"> db.databases.find( { "partitioned": true } )
+config</span><span style="color: #808080;">></span> db.databases.find() <span style="color: #808080;">//</span>列出所有数据库分片情况</pre>
+</div>
+</div>
+<p>查看分片的片键</p>
+<div>
+<div class="cnblogs_code">
+<pre>config<span style="color: #808080;">></span><span style="color: #000000;"> db.collections.find()
+{
+    "_id" : "test.vast",
+    "lastmodEpoch" : ObjectId("58a599f19c898bbfb818b63c"),
+    "lastmod" : ISODate("</span><span style="color: #800000; font-weight: bold;">1970</span><span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">02</span><span style="color: #808080;">-</span>19T17:<span style="color: #800000; font-weight: bold;">02</span>:<span style="color: #800000; font-weight: bold;">47</span><span style="color: #000000;">.296Z"),
+    "dropped" : false,
+    "</span><span style="color: #0000ff;">key</span><span style="color: #000000;">" : {
+        "id" : </span><span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;">
+    },
+    "</span><span style="color: #0000ff;">unique</span><span style="color: #000000;">" : false
+}</span></pre>
+</div>
+</div>
+<p>查看分片的详细信息</p>
+<div>
+<div class="cnblogs_code">
+<pre>admin<span style="color: #808080;">></span><span style="color: #000000;"> db.printShardingStatus()
+或
+admin</span><span style="color: #808080;">></span> sh.status()</pre>
+</div>
+</div>
+<p>删除分片节点</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">sh.getBalancerState()
+mongos</span><span style="color: #808080;">></span> db.runCommand( { removeShard: "shard2" } )</pre>
+</div>
+</div>
+<h2>2.6 balance操作</h2>
+<p>　　查看mongo集群是否开启了 balance 状态</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongos<span style="color: #808080;">></span><span style="color: #000000;"> sh.getBalancerState()
+true</span></pre>
+</div>
+<p>　　当然你也可以通过在路由节点mongos上执行sh.status() 查看balance状态。</p>
+</div>
+<p>　　如果balance开启，查看是否正在有数据的迁移</p>
+<p>连接mongo集群的路由节点</p>
+<div>
+<div class="cnblogs_code">
+<pre>mongos<span style="color: #808080;">></span><span style="color: #000000;"> sh.isBalancerRunning()
+false</span></pre>
+</div>
+</div>
+<h3>2.6.1 设置balance 窗口</h3>
+<p>（1）连接mongo集群的路由节点</p>
+<p>（2）切换到配置节点</p>
+<div>
+<div class="cnblogs_code">
+<pre>     <span style="color: #0000ff;">use</span> config</pre>
+</div>
+</div>
+<p>（3）确定balance 开启中</p>
+<div>
+<div class="cnblogs_code">
+<pre>     sh.getBalancerState()</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 如果未开启，执行命令</p>
+<div>
+<div class="cnblogs_code">
+<pre>   sh.setBalancerState( true )</pre>
+</div>
+</div>
+<p>（4）修改balance 窗口的时间</p>
+<div>
+<div class="cnblogs_code">
+<pre>db.settings.<span style="color: #0000ff;">update</span><span style="color: #000000;">(
+   { _id: "balancer" },
+   { $</span><span style="color: #0000ff;">set</span>: { activeWindow : { start : "<span style="color: #808080;"><</span>start<span style="color: #808080;">-</span>time<span style="color: #808080;">></span>", stop : "<span style="color: #808080;"><</span>stop<span style="color: #808080;">-</span>time<span style="color: #808080;">></span><span style="color: #000000;">" } } },
+   { upsert: true }
+)</span></pre>
+</div>
+</div>
+<p>eg：</p>
+<div>
+<div class="cnblogs_code">
+<pre>db.settings.<span style="color: #0000ff;">update</span>({ _id : "balancer" }, { $<span style="color: #0000ff;">set</span> : { activeWindow : { start : "<span style="color: #800000; font-weight: bold;">00</span>:<span style="color: #800000; font-weight: bold;">00</span>", stop : "<span style="color: #800000; font-weight: bold;">5</span>:<span style="color: #800000; font-weight: bold;">00</span>" } } }, true )</pre>
+</div>
+<p>　　当你设置了activeWindow，就不能用sh.startBalancer() 启动balance</p>
+</div>
+<div>
+<blockquote>
+<p class="ac"><span style="color: #ff0000;">NOTE</span></p>
+<p class="ac">The balancer window must be sufficient to complete the migration of all data inserted during the day.</p>
+<p class="ac">As data insert rates can change based on activity and usage patterns, it is important to ensure that the balancing window you select will be sufficient to support the needs of your deployment.</p>
+</blockquote>
+</div>
+<p>（5）删除balance 窗口</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">use</span><span style="color: #000000;"> config
+db.settings.</span><span style="color: #0000ff;">update</span>({ _id : "balancer" }, { $unset : { activeWindow : true } })</pre>
+</div>
+</div>
+<h3>2.6.2 关闭balance</h3>
+<p>　　默认balance 的运行可以在任何时间，只迁移需要迁移的chunk，如果要关闭balance运行，停止一段时间可以用下列方法：</p>
+<p>（1） 连接到路由mongos节点</p>
+<p>（2） 停止balance</p>
+<div>
+<div class="cnblogs_code">
+<pre>      sh.stopBalancer()</pre>
+</div>
+</div>
+<p>（3） 查看balance状态</p>
+<div>
+<div class="cnblogs_code">
+<pre>  sh.getBalancerState()</pre>
+</div>
+</div>
+<p>（4）停止balance 后，没有迁移进程正在迁移，可以执行下列命令</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">use</span><span style="color: #000000;"> config
+</span><span style="color: #0000ff;">while</span><span style="color: #000000;">( sh.isBalancerRunning() ) {
+          </span><span style="color: #0000ff;">print</span><span style="color: #000000;">("waiting...");
+          sleep(</span><span style="color: #800000; font-weight: bold;">1000</span><span style="color: #000000;">);
+}</span></pre>
+</div>
+</div>
+<h3>2.6.3 重新打开balance</h3>
+<p>如果你关闭了balance，准备重新打开balance</p>
+<p>（1） 连接到路由mongos节点</p>
+<p>（2） 打开balance</p>
+<div>
+<div class="cnblogs_code">
+<pre>        sh.setBalancerState(true)</pre>
+</div>
+</div>
+<p>如果驱动没有命令&nbsp; sh.startBalancer()，可以用下列命令</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">use</span><span style="color: #000000;"> config
+db.settings.</span><span style="color: #0000ff;">update</span>( { _id: "balancer" }, { $<span style="color: #0000ff;">set</span> : { stopped: false } } , { upsert: true } )</pre>
+</div>
+</div>
+<h3>2.6.4 关于集合的balance</h3>
+<p>关闭某个集合的balance</p>
+<div>
+<div class="cnblogs_code">
+<pre>sh.disableBalancing("students.grades")</pre>
+</div>
+</div>
+<p>打开某个集合的balance</p>
+<div>
+<div class="cnblogs_code">
+<pre>sh.enableBalancing("students.grades")</pre>
+</div>
+</div>
+<p>确定某个集合的balance是开启或者关闭</p>
+<div>
+<div class="cnblogs_code">
+<pre>db.getSiblingDB("config").collections.findOne({_id : "students.grades"}).noBalance;</pre>
+</div>
+</div>
+<h3>2.6.5 问题解决</h3>
+<p>mongodb在做自动分片平衡的时候，或引起数据库响应的缓慢，可以通过禁用自动平衡以及设置自动平衡进行的时间来解决这一问题。</p>
+<p>（1）禁用分片的自动平衡</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #808080;">//</span> connect <span style="color: #0000ff;">to</span><span style="color: #000000;"> mongos
+</span><span style="color: #808080;">></span> <span style="color: #0000ff;">use</span><span style="color: #000000;"> config
+</span><span style="color: #808080;">></span> db.settings.<span style="color: #0000ff;">update</span>( { _id: "balancer" }, { $<span style="color: #0000ff;">set</span> : { stopped: true } } , true );</pre>
+</div>
+</div>
+<p>（2）自定义 自动平衡进行的时间段</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #808080;">//</span> connect <span style="color: #0000ff;">to</span><span style="color: #000000;"> mongos
+</span><span style="color: #808080;">></span> <span style="color: #0000ff;">use</span><span style="color: #000000;"> config
+</span><span style="color: #808080;">></span> db.settings.<span style="color: #0000ff;">update</span>({ _id : "balancer" }, { $<span style="color: #0000ff;">set</span> : { activeWindow : { start : "<span style="color: #800000; font-weight: bold;">21</span>:<span style="color: #800000; font-weight: bold;">00</span>", stop : "<span style="color: #800000; font-weight: bold;">9</span>:<span style="color: #800000; font-weight: bold;">00</span>" } } }, true )</pre>
+</div>
+</div>
+<h2>2.7 参考文献</h2>
+<div>
+<blockquote>
+<p class="a3">[1]&nbsp;&nbsp;<a href="go.php-url=https---www.jianshu.com-p-ddcc3643aec9.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.jianshu.com/p/ddcc3643aec9" >https://www.jianshu.com/p/ddcc3643aec9</a></p>
+<p class="a3">[2]&nbsp;&nbsp;<a href="go.php-url=https---docs.mongodb.com-manual-replication-.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://docs.mongodb.com/manual/replication/" >https://docs.mongodb.com/manual/replication/</a></p>
+<p class="a3">[3]&nbsp;&nbsp;<a href="go.php-url=https---docs.mongodb.com-manual-core-replica-set-architecture-three-members-.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://docs.mongodb.com/manual/core/replica-set-architecture-three-members/" >https://docs.mongodb.com/manual/core/replica-set-architecture-three-members/</a></p>
+<p class="a3">[4]&nbsp;&nbsp;<a href="go.php-url=http---www.mongoing.com-archives-2155.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.mongoing.com/archives/2155" >http://www.mongoing.com/archives/2155</a></p>
+<p class="a3">[5]&nbsp;&nbsp;<a href="go.php-url=https---docs.mongodb.com-manual-sharding-.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://docs.mongodb.com/manual/sharding/" >https://docs.mongodb.com/manual/sharding/</a></p>
+<p class="a3">[6]&nbsp;&nbsp;<a href="go.php-url=http---www.ywnds.com--p=3476.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.ywnds.com/?p=3476" >http://www.ywnds.com/?p=3476</a></p>
+<p class="a3">[7]&nbsp;&nbsp;<a href="go.php-url=https---yq.aliyun.com-articles-32434.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://yq.aliyun.com/articles/32434" >https://yq.aliyun.com/articles/32434</a></p>
+</blockquote>
+</div>
+<p>&nbsp;</p>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="254" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/" rel="category tag">NoSQL</a> <a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/" rel="category tag">数据库</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2018年1月16日<i class="i-time">01:19:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 13667 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx254.html" tppabs="http://clsn.io/clsn/lx254.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx254.html">MongoDB 分片集群技术 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/18.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx268.html" tppabs="http://clsn.io/clsn/lx268.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>MongoDB 入门篇</span></a><a href="lx247.html" tppabs="http://clsn.io/clsn/lx247.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>MongoDB的备份与恢复</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx268.html" tppabs="http://clsn.io/clsn/lx268.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx247.html" tppabs="http://clsn.io/clsn/lx247.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx254.html#respond" tppabs="http://clsn.io/clsn/lx254.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='254' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx983.html" tppabs="http://clsn.io/clsn/lx983.html" rel="bookmark">linux中的权限</a></li> <li><a href="lx109.html" tppabs="http://clsn.io/clsn/lx109.html" rel="bookmark">日志切割之Logrotate</a></li> <li><a href="lx797.html" tppabs="http://clsn.io/clsn/lx797.html" rel="bookmark">kickstart模式实现批量安装centos7.x系统</a></li> <li><a href="lx427.html" tppabs="http://clsn.io/clsn/lx427.html" rel="bookmark">keepalived实现服务高可用</a></li> <li><a href="lx254.html" tppabs="http://clsn.io/clsn/lx254.html" rel="bookmark">MongoDB 分片集群技术</a></li> <li><a href="lx45.html" tppabs="http://clsn.io/clsn/lx45.html" rel="bookmark">内建DNS服务器&#8211;BIND</a></li> <li><a href="lx212.html" tppabs="http://clsn.io/clsn/lx212.html" rel="bookmark">HTTPS 原理与证书实践</a></li> <li><a href="lx946.html" tppabs="http://clsn.io/clsn/lx946.html" rel="bookmark">DNS DHCP 路由 FTP</a></li> <li><a href="lx899.html" tppabs="http://clsn.io/clsn/lx899.html" rel="bookmark">NTP时间服务器 搭建</a></li> <li><a href="lx300.html" tppabs="http://clsn.io/clsn/lx300.html" rel="bookmark">MySQL Replication 主从复制全方位解决方案</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx254.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx254.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx254.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

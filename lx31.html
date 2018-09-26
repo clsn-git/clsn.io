@@ -1,0 +1,1343 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>Docker 容器入门 | 惨绿少年</title><meta name="description" content="是，但也不竟然。我们用一种简单方式来思考一下：" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx31.html" tppabs="http://clsn.io/clsn/lx31.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-31 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/" rel="category tag">云计算</a><i class="be be-arrowright"></i><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/" rel="category tag">虚拟化</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>Docker 容器入门 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-31" class="post-31 post type-post status-publish format-standard hentry category-linux category-cloud category-virt category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">Docker 容器入门</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2018年2月24日<i class="i-time">07:56:00</i></span><span class="comment"><a href="lx31.html#respond" tppabs="http://clsn.io/clsn/lx31.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="lx31.html" tppabs="http://clsn.io/clsn/lx31.html?wpzmaction=add&postid=31" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h2>1.1 <span style="font-family: '微软雅黑',sans-serif;">容器简介</span></h2>
+<h3>1.1.1 <span style="font-family: '微软雅黑',sans-serif;">什么是</span> Linux <span style="font-family: '微软雅黑',sans-serif;">容器</span></h3>
+<p style="text-indent: 21.0pt;">Linux<span style="font-family: '微软雅黑',sans-serif;">容器是与系统其他部分隔离开的一系列进程，从另一个镜像运行，并由该镜像提供支持进程所需的全部文件。容器提供的镜像包含了应用的所有依赖项，因而在从开发到测试再到生产的整个过程中，它都具有可移植性和一致性。</span></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203180215265-876984278.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Docker 容器入门" alt="" /></p>
+
+<blockquote>
+<p style="text-indent: 21.0pt;">&nbsp;更加详细地来说，请您假定您在开发一个应用。您使用的是一台笔记本电脑，而且您的开发环境具有特定的配置。其他开发人员身处的环境配置可能稍有不同。您正在开发的应用依赖于您当前的配置，还要依赖于某些特定文件。与此同时，您的企业还拥有标准化的测试和生产环境，且具有自身的配置和一系列支持文件。您希望尽可能多在本地模拟这些环境，而不产生重新创建服务器环境的开销。</p>
+<p style="text-indent: 21.0pt;">&nbsp;因此，您要如何确保应用能够在这些环境中运行和通过质量检测，并且在部署过程中不出现令人头疼的问题，也无需重新编写代码和进行故障修复？答案就是使用容器。容器可以确保您的应用拥有必需的配置和文件，使得这些应用能够在从开发到测试、再到生产的整个流程中顺利运行，而不出现任何不良问题。这样可以避免危机，做到皆大欢喜。</p>
+</blockquote>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">虽然这只是简化的示例，但在需要很高的可移植性、可配置性和隔离的情况下，我们可以利用</span> Linux <span style="font-family: '微软雅黑',sans-serif;">容器通过很多方式解决难题。无论基础架构是在企业内部还是在云端，或者混合使用两者，容器都能满足您的需求。</span></p>
+<h3>1.1.2 <span style="font-family: '微软雅黑',sans-serif;">容器不就是虚拟化吗</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">是，但也不竟然。我们用一种简单方式来思考一下：</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">虚拟化使得许多操作系统可同时在单个系统上运行。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">容器则可共享同一个操作系统内核，将应用进程与系统其他部分隔离开。</span></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203180225718-1372384956.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Docker 容器入门" alt="" /></p>
+
+<p style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif;">图</span> - <span style="font-size: 10.5pt; font-family: 微软雅黑, sans-serif; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">普通虚拟化技术和</span><span style="font-size: 10.5pt; font-family: Verdana, sans-serif; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">Docker</span><span style="font-size: 10.5pt; font-family: 微软雅黑, sans-serif; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">的对比</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">这意味着什么？首先，让多个操作系统在单个虚拟机监控程序上运行以实现虚拟化，并不能达成和使用容器同等的轻量级效果。事实上，在仅拥有容量有限的有限资源时，您需要能够可以进行密集部署的轻量级应用。</span>Linux <span style="font-family: '微软雅黑',sans-serif;">容器可从单个操作系统运行，在所有容器中共享该操作系统，因此应用和服务能够保持轻量级，并行快速运行。</span></p>
+<h3>1.1.3 <span style="font-family: '微软雅黑',sans-serif;">容器发展简史</span></h3>
+<p style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203180240093-1881375898.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Docker 容器入门" alt="" /></p>
+
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">我们现在称为容器技术的概念最初出现在</span> 2000 <span style="font-family: '微软雅黑',sans-serif;">年，当时称为</span> FreeBSD jail<span style="font-family: '微软雅黑',sans-serif;">，这种技术可将</span> FreeBSD <span style="font-family: '微软雅黑',sans-serif;">系统分区为多个子系统（也称为</span> Jail<span style="font-family: '微软雅黑',sans-serif;">）。</span>Jail <span style="font-family: '微软雅黑',sans-serif;">是作为安全环境而开发的，系统管理员可与企业内部或外部的多个用户共享这些</span> Jail<span style="font-family: '微软雅黑',sans-serif;">。</span></p>
+<p style="text-indent: 21.0pt;">Jail <span style="font-family: '微软雅黑',sans-serif;">的目的是让进程在经过修改的</span> <em>chroot </em><span style="font-family: '微软雅黑',sans-serif;">环境中创建，而不会脱离和影响整个系统</span> <span style="font-family: '微软雅黑',sans-serif;">&mdash;</span> <span style="font-family: '微软雅黑',sans-serif;">在</span> chroot <span style="font-family: '微软雅黑',sans-serif;">环境中，对文件系统、网络和用户的访问都实现了虚拟化。尽管</span> Jail <span style="font-family: '微软雅黑',sans-serif;">在实施方面存在局限性，但最终人们找到了脱离这种隔离环境的方法。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">但这个概念非常有吸引力。</span></p>
+<p style="text-indent: 21.0pt;">2001 <span style="font-family: '微软雅黑',sans-serif;">年，通过</span> Jacques G<span style="font-family: '微软雅黑',sans-serif;">&eacute;</span>linas <span style="font-family: '微软雅黑',sans-serif;">的</span> VServer <span style="font-family: '微软雅黑',sans-serif;">项目，隔离环境的实施进入了</span> Linux <span style="font-family: '微软雅黑',sans-serif;">领域。正如</span> G<span style="font-family: '微软雅黑',sans-serif;">&eacute;</span>linas <span style="font-family: '微软雅黑',sans-serif;">所说，这项工作的目的是&ldquo;在高度独立且安全的单一环境中运行多个通用</span> Linux <span style="font-family: '微软雅黑',sans-serif;">服务器</span> [sic]<span style="font-family: '微软雅黑',sans-serif;">。&rdquo;</span> <span style="font-family: '微软雅黑',sans-serif;">在完成了这项针对</span> Linux <span style="font-family: '微软雅黑',sans-serif;">中多个受控制用户空间的基础性工作后，</span>Linux <span style="font-family: '微软雅黑',sans-serif;">容器开始逐渐成形并最终发展成了现在的模样。</span></p>
+<h2>1.2 <span style="font-family: '微软雅黑',sans-serif;">什么是</span> Docker<span style="font-family: '微软雅黑',sans-serif;">？</span></h2>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">&ldquo;</span>Docker<span style="font-family: '微软雅黑',sans-serif;">&rdquo;</span> <span style="font-family: '微软雅黑',sans-serif;">一词指代多种事物，包括开源社区项目、开源项目使用的工具、主导支持此类项目的公司</span> Docker Inc. <span style="font-family: '微软雅黑',sans-serif;">以及该公司官方支持的工具。技术产品和公司使用同一名称，的确让人有点困惑。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">我们来简单说明一下：</span></p>
+<blockquote>
+<p style="text-indent: 21.0pt;">&nbsp;?&nbsp;IT&nbsp;软件中所说的&nbsp;&ldquo;Docker&rdquo;&nbsp;，是指容器化技术，用于支持创建和使用&nbsp;Linux&nbsp;容器。</p>
+<p style="text-indent: 21.0pt;">?&nbsp;开源&nbsp;Docker&nbsp;社区致力于改进这类技术，并免费提供给所有用户，使之获益。</p>
+<p style="text-indent: 21.0pt;">?&nbsp;Docker Inc.&nbsp;公司凭借&nbsp;Docker&nbsp;社区产品起家，它主要负责提升社区版本的安全性，并将改进后的版本与更广泛的技术社区分享。此外，它还专门对这些技术产品进行完善和安全固化，以服务于企业客户。</p>
+</blockquote>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">借助</span> Docker <span style="font-family: '微软雅黑',sans-serif;">，您可将容器当做重量轻、模块化的虚拟机使用。同时，您还将获得高度的灵活性，从而实现对容器的高效创建、部署及复制，并能将其从一个环境顺利迁移至另一个环境。</span></p>
+<h3>1.2.1 Docker <span style="font-family: '微软雅黑',sans-serif;">如何工作？</span></h3>
+<p style="text-indent: 21.0pt;">Docker <span style="font-family: '微软雅黑',sans-serif;">技术使用</span> Linux <span style="font-family: '微软雅黑',sans-serif;">内核和内核功能（例如</span><em> Cgroups </em><em><span style="font-family: '微软雅黑',sans-serif;">和</span> namespaces</em><span style="font-family: '微软雅黑',sans-serif;">）来分隔进程，以便各进程相互独立运行。这种独立性正是采用容器的目的所在；它可以独立运行多种进程、多个应用程序，更加充分地发挥基础设施的作用，同时保持各个独立系统的安全性。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">容器工具（包括</span> Docker<span style="font-family: '微软雅黑',sans-serif;">）可提供基于镜像的部署模式。这使得它能够轻松跨多种环境，与其依赖程序共享应用或服务组。</span>Docker <span style="font-family: '微软雅黑',sans-serif;">还可在这一容器环境中自动部署应用程序（或者合并多种流程，以构建单个应用程序）。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">此外，由于这些工具基于</span> Linux <span style="font-family: '微软雅黑',sans-serif;">容器构建，使得</span> Docker <span style="font-family: '微软雅黑',sans-serif;">既易于使用，又别具一格</span> <span style="font-family: '微软雅黑',sans-serif;">&mdash;&mdash;</span> <span style="font-family: '微软雅黑',sans-serif;">它可为用户提供前所未有的高度应用程访问权限、快速部署以及版本控制和分发能力。</span></p>
+<h3>1.2.2 Docker <span style="font-family: '微软雅黑',sans-serif;">技术是否与传统的</span> Linux <span style="font-family: '微软雅黑',sans-serif;">容器相同？</span></h3>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">否。</span>Docker <span style="font-family: '微软雅黑',sans-serif;">技术最初是基于</span> LXC <span style="font-family: '微软雅黑',sans-serif;">技术构建（大多数人都会将这一技术与&ldquo;传统的&rdquo;</span> Linux <span style="font-family: '微软雅黑',sans-serif;">容器联系在一起），但后来它逐渐摆脱了对这种技术的依赖。</span></p>
+<p style="text-indent: 21.0pt;"><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">就轻量级</span> </span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">虚拟化</span> </span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">这一功能来看，</span>LXC </span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">非常有用</span></span><span style="font-family: '微软雅黑',sans-serif;">，但它无法提供出色的开发人员或用户体验。除了运行容器之外，</span>Docker <span style="font-family: '微软雅黑',sans-serif;">技术还具备其他多项功能，包括简化用于构建容器、传输镜像以及控制镜像版本的流程。</span></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203180257031-1116592892.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Docker 容器入门" alt="" /></p>
+
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">传统的</span> Linux <span style="font-family: '微软雅黑',sans-serif;">容器使用</span> init <span style="font-family: '微软雅黑',sans-serif;">系统来管理多种进程。这意味着，所有应用程序都作为一个整体运行。与此相反，</span>Docker <span style="font-family: '微软雅黑',sans-serif;">技术鼓励应用程序各自独立运行其进程，并提供相应工具以实现这一功能。这种精细化运作模式自有其优势。</span></p>
+<h3>1.2.3 docker<span style="font-family: '微软雅黑',sans-serif;">的目标</span></h3>
+<p style="text-indent: 7.1pt;">docker<span style="font-family: '微软雅黑',sans-serif;">的主要目标是</span>"Build,Ship and Run any App,Angwhere",<span style="font-family: '微软雅黑',sans-serif;">构建，运输，处处运行</span></p>
+<p style="margin-left: 21.0pt; text-indent: 21.0pt;"><strong><span style="font-family: '微软雅黑',sans-serif;">构建</span></strong><span style="font-family: '微软雅黑',sans-serif;">：做一个</span>docker<span style="font-family: '微软雅黑',sans-serif;">镜像</span></p>
+<p style="margin-left: 21.0pt; text-indent: 21.0pt;"><strong><span style="font-family: '微软雅黑',sans-serif;">运输</span></strong><span style="font-family: '微软雅黑',sans-serif;">：</span>docker pull</p>
+<p style="margin-left: 21.0pt; text-indent: 21.0pt;"><strong><span style="font-family: '微软雅黑',sans-serif;">运行</span></strong><span style="font-family: '微软雅黑',sans-serif;">：启动一个容器</span></p>
+<p style="text-indent: 7.1pt;"><span style="font-family: '微软雅黑',sans-serif;">每一个容器，他都有自己的文件系统</span>rootfs.</p>
+<h2>1.3 <span style="font-family: '微软雅黑',sans-serif;">安装</span>Docker</h2>
+<p><span style="font-family: '微软雅黑',sans-serif;">环境说明</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 需要两台几点进行安装</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0f7d60607b4f6b606c646a7d3f3e">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat /etc/redhat-release </span>
+CentOS Linux release 7.2.1511<span style="color: #000000;"> (Core) 
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="60120f0f1420040f030b05125051">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> uname  -r </span>
+3.10.0-327<span style="color: #000000;">.el7.x86_64
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ddafb2b2a99db9b2beb6b8afedec">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> hostname -I</span>
+10.0.0.100 172.16.1.100<span style="color: #000000;"> 
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dcaeb3b3a89cb8b3bfb7b9aeecee">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> hostname -I</span>
+10.0.0.101 172.16.1.101</pre>
+</div>
+<p style="text-indent: 15.75pt;"><span style="font-family: '微软雅黑',sans-serif;">在<strong>两个节点</strong>上都进行操作</span></p>
+<div class="cnblogs_code">
+<pre>wget -O /etc/yum.repos.d/docker-ce.repo https://mirrors.ustc.edu.cn/docker-ce/linux/centos/docker-<span style="color: #000000;">ce.repo
+sed </span>-i <span style="color: #800000;">'</span><span style="color: #800000;">s#download.docker.com#mirrors.ustc.edu.cn/docker-ce#g</span><span style="color: #800000;">'</span> /etc/yum.repos.d/docker-<span style="color: #000000;">ce.repo
+yum install docker</span>-ce -y</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">修改在</span><span style="background: yellow;">docker01</span><span style="font-family: '微软雅黑',sans-serif;">配置：</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 修改启动文件，监听远程端口</span>
+vim /usr/lib/systemd/system/<span style="color: #000000;">docker.service
+ExecStart</span>=/usr/bin/dockerd -H unix:///var/run/docker.sock -H tcp://10.0.0.100:2375<span style="color: #000000;">
+systemctl daemon</span>-<span style="color: #000000;">reload
+systemctl enable docker.service 
+systemctl restart docker.service
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> ps -ef检查进行，是否启动</span></pre>
+</div>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">在</span>docker02<span style="font-family: '微软雅黑',sans-serif;">测试</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="30425f5f4470545f535b55420002">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker -H 10.0.0.100 info</span>
+<span style="color: #000000;">Containers: 0
+ Running: 0
+ Paused: 0
+ Stopped: 0
+Images: 0
+Server Version: </span>17.12.0-<span style="color: #000000;">ce
+Storage Driver: devicemapper
+&middot;&middot;&middot;</span></pre>
+</div>
+<h3>1.3.1 Docker<span style="font-family: '微软雅黑',sans-serif;">基础命令操作</span></h3>
+<p style="margin-left: 7.1pt;"><span style="font-family: '微软雅黑',sans-serif;">查看</span>docker<span style="font-family: '微软雅黑',sans-serif;">相关信息</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3f4d50504b7f5b505c545a4d0f0e">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;">  docker version  </span>
+<span style="color: #000000;">Client:
+ Version:    </span>17.12.0-<span style="color: #000000;">ce
+ API version:    </span>1.35<span style="color: #000000;">
+ Go version:    go1.</span>9.2<span style="color: #000000;">
+ Git commit:    c97c6d6
+ Built:    Wed Dec </span>27 20:10:14 2017<span style="color: #000000;">
+ OS</span>/Arch:    linux/<span style="color: #000000;">amd64
+Server:
+ Engine:
+  Version:    </span>17.12.0-<span style="color: #000000;">ce
+  API version:    </span>1.35 (minimum version 1.12<span style="color: #000000;">)
+  Go version:    go1.</span>9.2<span style="color: #000000;">
+  Git commit:    c97c6d6
+  Built:    Wed Dec </span>27 20:12:46 2017<span style="color: #000000;">
+  OS</span>/Arch:    linux/<span style="color: #000000;">amd64
+  Experimental:    false</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">配置</span>docker<span style="font-family: '微软雅黑',sans-serif;">镜像加速</span></p>
+<div class="cnblogs_code">
+<pre>vi /etc/docker/<span style="color: #000000;">daemon.json
+{
+  </span><span style="color: #800000;">"</span><span style="color: #800000;">registry-mirrors</span><span style="color: #800000;">"</span>: [<span style="color: #800000;">"</span><span style="color: #800000;">https://registry.docker-cn.com</span><span style="color: #800000;">"</span><span style="color: #000000;">]
+}    </span></pre>
+</div>
+<h3>1.3.2 <span style="font-family: '微软雅黑',sans-serif;">启动第一个容器</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="89fbe6e6fdc9ede6eae2ecfbb9b8">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run -d -p 80:80 nginx</span>
+Unable to find image <span style="color: #800000;">'</span><span style="color: #800000;">nginx:latest</span><span style="color: #800000;">'</span><span style="color: #000000;"> locally
+latest: Pulling </span><span style="color: #0000ff;">from</span> library/<span style="color: #000000;">nginx
+e7bb522d92ff: Pull complete 
+6edc05228666: Pull complete 
+cd866a17e81f: Pull complete 
+Digest: sha256:285b49d42c703fdf257d1e2422765c4ba9d3e37768d6ea83d7fe2043dad6e63d
+Status: Downloaded newer image </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> nginx:latest
+8d8f81da12b5c10af6ba1a5d07f4abc041cb95b01f3d632c3d638922800b0b4d
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 容器启动后，在浏览器进行访问测试</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">参数说明</span></p>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 40.62%; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="40%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">参数</span></strong></p>
+</td>
+<td style="width: 59.38%; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" width="59%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.62%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="40%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>run</strong></p>
+</td>
+<td style="width: 59.38%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="59%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">创建并运行一个容器</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.62%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="40%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>-d</strong></p>
+</td>
+<td style="width: 59.38%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="59%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">放入后台</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.62%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="40%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>-p</strong></p>
+</td>
+<td style="width: 59.38%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="59%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">端口映射</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 40.62%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="40%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>nginx</strong></p>
+</td>
+<td style="width: 59.38%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="59%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">镜像名称</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>1.3.3 Docker<span style="font-family: '微软雅黑',sans-serif;">镜像生命周期</span></h3>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203180313468-930180890.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Docker 容器入门" alt="" />&nbsp;</p>
+
+<h2>1.4 docker<span style="font-family: '微软雅黑',sans-serif;">镜像相关操作</span></h2>
+<h3>1.4.1 <span style="font-family: '微软雅黑',sans-serif;">搜索官方仓库镜像</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="196b76766d597d767a727c6b2928">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;">  docker search centos</span>
+<span style="color: #000000;">NAME                      DESCRIPTION                    STARS    OFFICIAL               AUTOMATED
+centos                    The official build of CentOS.  </span>3992<span style="color: #000000;">     [OK]      
+ansible</span>/centos7-ansible   Ansible on Centos7             105                              [OK]</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">列表说明</span></p>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 39.26%; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="39%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">参数</span></strong></p>
+</td>
+<td style="width: 60.74%; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="60%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 39.26%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" valign="top" width="39%">
+<p><strong>NAME</strong></p>
+</td>
+<td style="width: 60.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="60%">
+<p><span style="font-family: '微软雅黑',sans-serif;">镜像名称</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 39.26%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" valign="top" width="39%">
+<p><strong>DESCRIPTION</strong></p>
+</td>
+<td style="width: 60.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="60%">
+<p><span style="font-family: '微软雅黑',sans-serif;">镜像说明</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 39.26%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" valign="top" width="39%">
+<p><strong>STARS</strong></p>
+</td>
+<td style="width: 60.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="60%">
+<p><span style="font-family: '微软雅黑',sans-serif;">点赞数量</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 39.26%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" valign="top" width="39%">
+<p><strong>OFFICIAL</strong></p>
+</td>
+<td style="width: 60.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="60%">
+<p><span style="font-family: '微软雅黑',sans-serif;">是否是官方的</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 39.26%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" valign="top" width="39%">
+<p><strong>AUTOMATED</strong></p>
+</td>
+<td style="width: 60.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="60%">
+<p><span style="font-family: '微软雅黑',sans-serif;">是否是自动构建的</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>1.4.2 <span style="font-family: '微软雅黑',sans-serif;">获取镜像</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">根据镜像名称拉取镜像</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="54263b3b2014303b373f31266465">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker pull centos</span>
+<span style="color: #000000;">Using default tag: latest
+latest: Pulling </span><span style="color: #0000ff;">from</span> library/<span style="color: #000000;">centos
+af4b0a2388c6: Downloading  </span>34.65MB/73.67MB</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">查看当前主机镜像列表</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="285a47475c684c474b434d5a1819">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker image list </span>
+<span style="color: #000000;">REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+centos              latest              ff426288ea90        </span>3<span style="color: #000000;"> weeks ago         207MB
+nginx               latest              3f8a4339aadd        </span>5 weeks ago         108MB</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">拉第三方镜像方法</span></p>
+<div class="cnblogs_code">
+<pre>docker pull index.tenxcloud.com/tenxcloud/httpd</pre>
+</div>
+<h3>1.4.3 <span style="font-family: '微软雅黑',sans-serif;">导出镜像</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dcaeb3b3a89cb8b3bfb7b9aeeced">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker image list </span>
+<span style="color: #000000;">REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+centos              latest              ff426288ea90        </span>3<span style="color: #000000;"> weeks ago         207MB
+nginx               latest              3f8a4339aadd        </span>5<span style="color: #000000;"> weeks ago         108MB
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 导出</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a9dbc6c6dde9cdc6cac2ccdb9998">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker image save centos > docker-centos.tar.gz</span></pre>
+</div>
+<h3>1.4.4 <span style="font-family: '微软雅黑',sans-serif;">删除镜像</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3b4954544f7b5f5458505e490b0a">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker image rm centos:latest</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7d0f1212093d19121e16180f4d4c">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker image list </span>
+<span style="color: #000000;">REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+nginx               latest              3f8a4339aadd        </span>5 weeks ago         108MB</pre>
+</div>
+<h3>1.4.5 <span style="font-family: '微软雅黑',sans-serif;">导入镜像</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="addfc2c2d9edc9c2cec6c8df9d9c">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker image load -i docker-centos.tar.gz  </span>
+e15afa4858b6: Loading layer  215.8MB/215<span style="color: #000000;">.8MB
+Loaded image: centos:latest
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="295b46465d694d464a424c5b1918">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker image list </span>
+<span style="color: #000000;">REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+centos              latest              ff426288ea90        </span>3<span style="color: #000000;"> weeks ago         207MB
+nginx               latest              3f8a4339aadd        </span>5 weeks ago         108MB</pre>
+</div>
+<h3>1.4.6 <span style="font-family: '微软雅黑',sans-serif;">查看镜像的详细信息</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0775686873476368646c62753736">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker image inspect centos</span></pre>
+</div>
+<h2>1.5 <span style="font-family: '微软雅黑',sans-serif;">容器的日常管理</span></h2>
+<h3>1.5.1 <span style="font-family: '微软雅黑',sans-serif;">容器的起</span>/<span style="font-family: '微软雅黑',sans-serif;">停</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">最简单的运行一个容器</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f98b96968db99d969a929c8bc9c8">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run nginx</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">创建容器，两步走（不常用）</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2e5c41415a6e4a414d454b5c1e1f">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker create centos:latest  /bin/bash</span>
+<span style="color: #000000;">bb7f32368ecf0492adb59e20032ab2e6cf6a563a0e6751e58930ee5f7aaef204
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3b4954544f7b5f5458505e490b0a">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker start stupefied_nobel</span>
+stupefied_nobel</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">快速启动容器方法</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ea9885859eaa8e8589818f98dadb">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run  centos:latest  /usr/bin/sleep 20;</span></pre>
+</div>
+<p>&nbsp;&nbsp; <strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new"; color: red;">容器内的第一个进程必须一直处于运行的状态，否则这个容器，就会处于退出状态！</span></strong></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">查看正在运行的容器</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ff8d90908bbf9b909c949a8dcfce">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker container ls</span>
+<span style="color: #000000;">    或
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="681a07071c280c070b030d1a5859">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker ps </span>
+<span style="color: #000000;">CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+8708e93fd767        nginx               </span><span style="color: #800000;">"</span><span style="color: #800000;">nginx -g 'daemon of&hellip;</span><span style="color: #800000;">"</span>   6 seconds ago       Up 4 seconds        80/tcp              keen_lewin</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">查看你容器详细信息</span>/ip</p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2d5f4242596d49424e46485f1d1c">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker container  inspect  容器名称/id</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">查看你所有容器（包括未运行的）</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8dffe2e2f9cde9e2eee6e8ffbdbc">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker ps -a</span>
+<span style="color: #000000;">CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                      PORTS               NAMES
+8708e93fd767        nginx               </span><span style="color: #800000;">"</span><span style="color: #800000;">nginx -g 'daemon of&hellip;</span><span style="color: #800000;">"</span>   4 minutes ago       Exited (0) 59<span style="color: #000000;"> seconds ago                       keen_lewin
+f9f3e6af7508        nginx               </span><span style="color: #800000;">"</span><span style="color: #800000;">nginx -g 'daemon of&hellip;</span><span style="color: #800000;">"</span>   5 minutes ago       Exited (0) 5<span style="color: #000000;"> minutes ago                        optimistic_haibt
+8d8f81da12b5        nginx               </span><span style="color: #800000;">"</span><span style="color: #800000;">nginx -g 'daemon of&hellip;</span><span style="color: #800000;">"</span>   3 hours ago         Exited (0) 3 hours ago                          lucid_bohr</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">停止容器</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d1a3bebea591b5beb2bab4a3e1e0">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker stop 容器名称/id </span>
+<span style="color: #000000;">或
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c5b7aaaab185a1aaa6aea0b7f5f4">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker container  kill  容器名称/id</span></pre>
+</div>
+<h3>1.5.2 <span style="font-family: '微软雅黑',sans-serif;">进入容器方法</span></h3>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">启动时进去方法</span></strong></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b3c1dcdcc7f3d7dcd0d8d6c18382">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run -it #参数：-it 可交互终端</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="13617c7c6753777c707876612322">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run -it nginx:latest  /bin/bash</span>
+<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="55273a3a2115626c676164656c666d606c30">[email&#160;protected]</a>:/<span style="color: #008000;">#</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">退出</span>/<span style="font-family: '微软雅黑',sans-serif;">离开容器</span></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:Perl;gutter:true;">ctrl+p & ctrl+q
+</pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">启动后进入容器的方法</span></strong></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">启动一个</span>docker</p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="285a47475c684c474b434d5a1819">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run -it centos:latest </span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="22504d4d5662134044124416114116461044">[email&#160;protected]</a> /]<span style="color: #008000;">#</span><span style="color: #008000;"> ps -ef </span>
+<span style="color: #000000;">UID         PID   PPID  C STIME TTY          TIME CMD
+root          </span>1      0  0 15:47 pts/0    00:00:00 /bin/<span style="color: #000000;">bash
+root         </span>13      1  0 15:47 pts/0    00:00:00 ps -ef</pre>
+</div>
+<p>attach<span style="font-family: '微软雅黑',sans-serif;">进入容器，使用</span>pts/0 <span style="font-family: '微软雅黑',sans-serif;">，会让所用通过此方法进如放入用户看到同样的操作。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b5c7dadac1f5d1dad6ded0c78584">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker attach 1bf0f43c4d2f</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="05776a6a7145346763356331366631613763">[email&#160;protected]</a> /]<span style="color: #008000;">#</span><span style="color: #008000;"> ps -ef </span>
+<span style="color: #000000;">UID         PID   PPID  C STIME TTY          TIME CMD
+root          </span>1      0  0 15:47 pts/0    00:00:00 /bin/<span style="color: #000000;">bash
+root         </span>14      1  0 15:49 pts/0    00:00:00 ps -ef</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">自命名启动一个容器</span> --name</p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ff8d90908bbf9b909c949a8dcfce">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker attach 1bf0f43c4d2f</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e5978a8a91a5d48783d583d1d686d181d783">[email&#160;protected]</a> /]<span style="color: #008000;">#</span><span style="color: #008000;"> ps -ef </span>
+<span style="color: #000000;">UID         PID   PPID  C STIME TTY          TIME CMD
+root          </span>1      0  0 15:47 pts/0    00:00:00 /bin/<span style="color: #000000;">bash
+root         </span>14      1  0 15:49 pts/0    00:00:00 ps -ef</pre>
+</div>
+<p><strong><span style="background: yellow;">exrc </span></strong><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new"; background: yellow;">进入容器方法（推荐使用）</span></strong></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="44362b2b3004202b272f21367475">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker exec -it clsn1  /bin/bash </span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="88fae7e7fcc8eabab8eee9bfbdeabceabcb8">[email&#160;protected]</a> /]<span style="color: #008000;">#</span><span style="color: #008000;"> 重新分配一个终端</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fe8c91918abe9cccce989fc9cb9cca9ccace">[email&#160;protected]</a> /]<span style="color: #008000;">#</span><span style="color: #008000;"> ps -ef </span>
+<span style="color: #000000;">UID         PID   PPID  C STIME TTY          TIME CMD
+root          </span>1      0  0 16:11 pts/0    00:00:00 /bin/<span style="color: #000000;">bash
+root         </span>13      0  0 16:14 pts/1    00:00:00 /bin/<span style="color: #000000;">bash
+root         </span>26     13  0 16:14 pts/1    00:00:00 ps -ef</pre>
+</div>
+<h3>1.5.3 <span style="font-family: '微软雅黑',sans-serif;">删除所有容器</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="99ebf6f6edd9fdf6faf2fceba9a8">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker rm -f  `docker ps -a -q`</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> -f 强制删除</span></pre>
+</div>
+<h3>1.5.4 <span style="font-family: '微软雅黑',sans-serif;">启动时进行端口映射</span></h3>
+<p style="text-indent: 7.1pt;">-p<span style="font-family: '微软雅黑',sans-serif;">参数端口映射</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b0c2dfdfc4f0d4dfd3dbd5c28081">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run -d -p 8888:80  nginx:latest </span>
+287bec5c60263166c03e1fc5b0b8262fe76507be3dfae4ce5cd2ee2d1e8a89a9</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">不同指定映射方法</span></p>
+<table style="border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 233.65pt; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="312">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">参数</span></strong></p>
+</td>
+<td style="width: 289.15pt; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" width="386">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 233.65pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="312">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>-p hostPort:containerPort&nbsp;&nbsp;&nbsp;&nbsp; </strong></p>
+</td>
+<td style="width: 289.15pt; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="386">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">端口映射</span>&nbsp; -p 8080:80</p>
+</td>
+</tr>
+<tr>
+<td style="width: 233.65pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="312">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>-p ip:hostPort:containerPort&nbsp; </strong></p>
+</td>
+<td style="width: 289.15pt; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="386">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">配置监听地址</span> -p 10.0.0.100:8080:80</p>
+</td>
+</tr>
+<tr>
+<td style="width: 233.65pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="312">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>-p ip::containerPort&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </strong></p>
+</td>
+<td style="width: 289.15pt; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="386">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">随机分配端口</span> -p 10.0.0.100::80</p>
+</td>
+</tr>
+<tr>
+<td style="width: 233.65pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="312">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>-p hostPort:containerPort:udp </strong></p>
+</td>
+<td style="width: 289.15pt; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="386">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">指定协议</span> -p 8080:80:tcp</p>
+</td>
+</tr>
+<tr>
+<td style="width: 233.65pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="312">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>-p 81:80 &ndash;p 443:443&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </strong></p>
+</td>
+<td style="width: 289.15pt; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="386">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">指定多个</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span style="font-family: '微软雅黑',sans-serif;">随机映射</span></p>
+<div class="cnblogs_code">
+<pre>docker run -P （大P）<span style="color: #008000;">#</span><span style="color: #008000;"> 需要镜像支持</span></pre>
+</div>
+<h2>1.6 Docker <span style="font-family: '微软雅黑',sans-serif;">数据卷的管理</span></h2>
+<h3>1.6.1 <span style="font-family: '微软雅黑',sans-serif;">挂载时创建卷</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">挂载卷</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dba9b4b4af9bbfb4b8b0bea9ebea">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run -d -p 80:80 -v /data:/usr/share/nginx/html nginx:latest</span>
+079786c1e297b5c5031e7a841160c74e91d4ad06516505043c60dbb78a259d09</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">容器内站点目录</span>: /usr/share/nginx/html</p>
+<p><span style="font-family: '微软雅黑',sans-serif;">在宿主机写入数据，查看</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="42302d2d3602262d212927307273">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> echo "http://www.nmtui.com" >/data/index.html</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="eb9984849fab8f8488808e99dbda">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl 10.0.0.100</span>
+http://www.nmtui.com</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">设置共享卷，使用同一个卷启动一个新的容器</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="582a37372c183c373b333d2a6869">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run -d -p 8080:80 -v /data:/usr/share/nginx/html nginx:latest </span>
+<span style="color: #000000;">351f0bd78d273604bd0971b186979aa0f3cbf45247274493d2490527babb4e42
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f0829f9f84b0949f939b9582c0c1">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl 10.0.0.100:8080</span>
+http://www.nmtui.com</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">查看卷列表</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="15677a7a6155717a767e70672524">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker volume ls</span>
+DRIVER              VOLUME NAME</pre>
+</div>
+<h3>1.6.2 <span style="font-family: '微软雅黑',sans-serif;">创建卷后挂载</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">创建一个卷</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5f2d30302b1f3b303c343a2d6f6e">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker volume create </span>
+<span style="color: #000000;">f3b95f7bd17da220e63d4e70850b8d7fb3e20f8ad02043423a39fdd072b83521
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e99b86869da98d868a828c9bd9d8">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker volume ls </span>
+<span style="color: #000000;">DRIVER              VOLUME NAME
+local               f3b95f7bd17da220e63d4e70850b8d7fb3e20f8ad02043423a39fdd072b83521</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">指定卷名</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="43312c2c3703272c202826317372">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker volume ls </span>
+<span style="color: #000000;">DRIVER              VOLUME NAME
+local               clsn
+local               f3b95f7bd17da220e63d4e70850b8d7fb3e20f8ad02043423a39fdd072b83521</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">查看卷路径</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9ae8f5f5eedafef5f9f1ffe8aaab">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker volume inspect clsn </span>
+<span style="color: #000000;">[
+    {
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">CreatedAt</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">2018-02-01T00:39:25+08:00</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Driver</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">local</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Labels</span><span style="color: #800000;">"</span><span style="color: #000000;">: {},
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Mountpoint</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">/var/lib/docker/volumes/clsn/_data</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Name</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">clsn</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Options</span><span style="color: #800000;">"</span><span style="color: #000000;">: {},
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Scope</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">local</span><span style="color: #800000;">"</span><span style="color: #000000;">
+    }
+]</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">使用卷创建</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d3a1bcbca793b7bcb0b8b6a1e3e2">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run -d -p 9000:80 -v clsn:/usr/share/nginx/html nginx:latest </span>
+<span style="color: #000000;">1434559cff996162da7ce71820ed8f5937fb7c02113bbc84e965845c219d3503
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 宿主机测试</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="42302d2d3602262d212927307273">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> echo 'blog.nmtui.com' >/var/lib/docker/volumes/clsn/_data/index.html </span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="02706d6d7642666d616967703233">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl 10.0.0.100:9000</span>
+blog.nmtui.com</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">设置卷</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cfbda0a0bb8faba0aca4aabdfffe">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run  -d  -P  --volumes-from 079786c1e297 nginx:latest </span>
+b54b9c9930b417ab3257c6e4a8280b54fae57043c0b76b9dc60b4788e92369fb</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">查看使用的端口</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d3a1bcbca793b7bcb0b8b6a1e3e2">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> netstat -lntup </span>
+<span style="color: #000000;">Active Internet connections (only servers)
+Proto Recv</span>-Q Send-Q Local Address           Foreign Address         State       PID/<span style="color: #000000;">Program name    
+tcp        0      0 </span>0.0.0.0:22              0.0.0.0:*               LISTEN      1400/<span style="color: #000000;">sshd           
+tcp        0      0 </span>10.0.0.100:2375         0.0.0.0:*               LISTEN      26218/<span style="color: #000000;">dockerd       
+tcp6       0      0 :::</span>9000                 :::*                    LISTEN      32015/docker-<span style="color: #000000;">proxy  
+tcp6       0      0 :::</span>8080                 :::*                    LISTEN      31853/docker-<span style="color: #000000;">proxy  
+tcp6       0      0 :::</span>80                   :::*                    LISTEN      31752/docker-<span style="color: #000000;">proxy  
+tcp6       0      0 :::</span>22                   :::*                    LISTEN      1400/<span style="color: #000000;">sshd           
+tcp6       0      0 :::</span>32769                :::*                    LISTEN      32300/docker-<span style="color: #000000;">proxy  
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c5b7aaaab185a1aaa6aea0b7f5f4">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl 10.0.0.100:32769</span>
+http://www.nmtui.com</pre>
+</div>
+<h3><span style="courier new"4courier new";background: yellow;">1.6.3 </span><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new"; background: yellow;">手动将容器保存为镜像</span></h3>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">本次是基于</span>docker<span style="font-family: '微软雅黑',sans-serif;">官方</span>centos 6.8 <span style="font-family: '微软雅黑',sans-serif;">镜像创建</span></p>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">官方镜像列表：</span><a href="go.php-url=https---hub.docker.com-explore-.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://hub.docker.com/explore/" >https://hub.docker.com/explore/</a></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">启动一个</span>centos6.8<span style="font-family: '微软雅黑',sans-serif;">的镜像</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="82f0ededf6c2e6ede1e9e7f0b2b3">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker pull  centos:6.8</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e795888893a78388848c8295d7d6">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run -it -p 1022:22 centos:6.8  /bin/bash</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 在容器种安装sshd服务，并修改系统密码</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1b6974746f5b2e23292b2e2a792979222979">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> yum install  openssh-server -y </span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="aad8c5c5deea9f92989a9f9bc898c89398c8">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> echo "root:123456" |chpasswd</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="097b66667d493c313b393c386b3b6b303b6b">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;">  /etc/init.d/sshd start</span></pre>
+</div>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">启动完成后镜像</span>ssh<span style="font-family: '微软雅黑',sans-serif;">连接测试</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">将容器提交为镜像</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d0a2bfbfa490b4bfb3bbb5a2e0e1">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker commit brave_mcclintock  centos6-ssh</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">使用新的镜像启动容器</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="afddc0c0dbefcbc0ccc4cadd9f9e">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run -d  -p 1122:22  centos6-ssh:latest  /usr/sbin/sshd -D </span>
+5b8161fda2a9f2c39c196c67e2eb9274977e7723fe51c4f08a0190217ae93094</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">在容器安装</span>httpd<span style="font-family: '微软雅黑',sans-serif;">服务</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="087a67677c483d6a30393e396e6c693a6931">[email&#160;protected]</a> /]<span style="color: #008000;">#</span><span style="color: #008000;">  yum install httpd -y</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">编写启动脚本脚本</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b6c4d9d9c2f683d48e878087d0d2d784d78f">[email&#160;protected]</a> /]<span style="color: #008000;">#</span><span style="color: #008000;"> cat  init.sh </span><span style="color: #008000;">
+#</span><span style="color: #008000;">!/bin/bash </span>
+/etc/init.d/<span style="color: #000000;">httpd start 
+</span>/usr/sbin/sshd -<span style="color: #000000;">D
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f3819c9c87b3c691cbc2c5c2959792c192ca">[email&#160;protected]</a> </span>/]<span style="color: #008000;">#</span><span style="color: #008000;"> chmod +x init.sh </span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 注意执行权限</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">再次提交为新的镜像</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="91e3fefee5d1f5fef2faf4e3a1a0">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker commit  5b8161fda2a9 centos6-httpd </span>
+sha256:705d67a786cac040800b8485cf046fd57b1828b805c515377fc3e9cea3a481c1</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">启动镜像，做好端口映射。并在浏览器中测试访问</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b4c6dbdbc0f4d0dbd7dfd1c68485">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run -d -p 1222:22 -p 80:80  centos6-httpd /init.sh </span>
+46fa6a06644e31701dc019fb3a8c3b6ef008d4c2c10d46662a97664f838d8c2c</pre>
+</div>
+<h2>1.7 Dockerfile<span style="font-family: '微软雅黑',sans-serif;">自动构建</span>docker<span style="font-family: '微软雅黑',sans-serif;">镜像</span></h2>
+<p style="margin-left: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">官方构建</span>dockerffile<span style="font-family: '微软雅黑',sans-serif;">文件参考</span></p>
+<p style="text-indent: 21.0pt;"><a href="go.php-url=https---github.com-CentOS-CentOS-Dockerfiles.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://github.com/CentOS/CentOS-Dockerfiles" >https://github.com/CentOS/CentOS-Dockerfiles</a></p>
+<h3>1.7.1 Dockerfile<span style="font-family: '微软雅黑',sans-serif;">指令集</span></h3>
+<p>dockerfile<span style="font-family: '微软雅黑',sans-serif;">主要组成部分：</span></p>
+<blockquote>
+<p>&nbsp;&nbsp; &nbsp; 基础镜像信息&nbsp;FROM centos:6.8</p>
+<p>&nbsp;&nbsp; &nbsp; 制作镜像操作指令RUN yum insatll openssh-server -y</p>
+<p>&nbsp;&nbsp; &nbsp; 容器启动时执行指令&nbsp;CMD ["/bin/bash"]</p>
+</blockquote>
+<p>dockerfile<span style="font-family: '微软雅黑',sans-serif;">常用指令：</span></p>
+<blockquote>
+<p>&nbsp;&nbsp; &nbsp; FROM&nbsp;这个镜像的妈妈是谁？（指定基础镜像）</p>
+<p>&nbsp;&nbsp; &nbsp; MAINTAINER&nbsp;告诉别人，谁负责养它？（指定维护者信息，可以没有）</p>
+<p>&nbsp;&nbsp; &nbsp; RUN&nbsp;你想让它干啥（在命令前面加上RUN即可）</p>
+<p>&nbsp;&nbsp; &nbsp; ADD&nbsp;给它点创业资金（COPY文件，会自动解压）</p>
+<p>&nbsp;&nbsp; &nbsp; WORKDIR&nbsp;我是cd,今天刚化了妆（设置当前工作目录）</p>
+<p>&nbsp;&nbsp; &nbsp; VOLUME&nbsp;给它一个存放行李的地方（设置卷，挂载主机目录）</p>
+<p>&nbsp;&nbsp; &nbsp; EXPOSE&nbsp;它要打开的门是啥（指定对外的端口）</p>
+<p>&nbsp;&nbsp; &nbsp; CMD&nbsp;奔跑吧，兄弟！（指定容器启动后的要干的事情）</p>
+</blockquote>
+<p>dockerfile<span style="font-family: '微软雅黑',sans-serif;">其他指令：</span>&nbsp;</p>
+<blockquote>
+<p>&nbsp; &nbsp; COPY&nbsp;复制文件</p>
+<p>&nbsp;&nbsp;&nbsp; ENV&nbsp;&nbsp;环境变量</p>
+<p>&nbsp;&nbsp;&nbsp; ENTRYPOINT&nbsp;&nbsp;容器启动后执行的命令</p>
+</blockquote>
+<h3>1.7.2 <span style="font-family: '微软雅黑',sans-serif;">创建一个</span>Dockerfile</h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">创建第一个</span>Dockerfile<span style="font-family: '微软雅黑',sans-serif;">文件</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 创建目录</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8cfee3e3f8cce8e3efe7e9febcbd">[email&#160;protected]</a> base]<span style="color: #008000;">#</span><span style="color: #008000;"> cd /opt/base</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 创建Dcokerfile文件，注意大小写</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="41332e2e3501252e222a24337170">[email&#160;protected]</a> base]<span style="color: #008000;">#</span><span style="color: #008000;"> vim Dockerfile</span>
+FROM centos:6.8<span style="color: #000000;">
+RUN yum install openssh</span>-server -<span style="color: #000000;">y 
+RUN echo </span><span style="color: #800000;">"</span><span style="color: #800000;">root:123456</span><span style="color: #800000;">"</span> |<span style="color: #000000;">chpasswd
+RUN </span>/etc/init.d/<span style="color: #000000;">sshd start 
+CMD [</span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/sbin/sshd</span><span style="color: #800000;">"</span>,<span style="color: #800000;">"</span><span style="color: #800000;">-D</span><span style="color: #800000;">"</span>]</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">构建</span>docker<span style="font-family: '微软雅黑',sans-serif;">镜像</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8ffde0e0fbcfebe0ece4eafdbfbe">[email&#160;protected]</a> base]<span style="color: #008000;">#</span><span style="color: #008000;"> docker image build  -t centos6.8-ssh . </span>
+-t 为镜像标签打标签  . 表示当前路径</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">使用自构建的镜像启动</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cfbda0a0bb8faba0aca4aabdfffe">[email&#160;protected]</a> base]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run  -d -p 2022:22 centos6.8-ssh-b </span>
+dc3027d3c15dac881e8e2aeff80724216f3ac725f142daa66484f7cb5d074e7a</pre>
+</div>
+<h3>1.7.3 <span style="font-family: '微软雅黑',sans-serif;">使用</span>Dcokerfile<span style="font-family: '微软雅黑',sans-serif;">安装</span>kodexplorer</h3>
+<p style="margin-left: 15.75pt;">Dockerfile<span style="font-family: '微软雅黑',sans-serif;">文件内容</span></p>
+<div class="cnblogs_code">
+<pre>FROM centos:6.8<span style="color: #000000;">
+RUN yum install wget unzip php php</span>-gd php-mbstring -y &&<span style="color: #000000;"> yum clean all
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 设置工作目录，之后的操作都在这个目录中</span>
+WORKDIR /var/www/html/<span style="color: #000000;">
+RUN wget </span>-c http://static.kodcloud.com/update/download/kodexplorer4.25<span style="color: #000000;">.zip
+RUN unzip kodexplorer4.</span>25.zip && rm -f kodexplorer4.25<span style="color: #000000;">.zip
+RUN chown </span>-<span style="color: #000000;">R apache.apache .
+CMD [</span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/sbin/apachectl</span><span style="color: #800000;">"</span>,<span style="color: #800000;">"</span><span style="color: #800000;">-D</span><span style="color: #800000;">"</span>,<span style="color: #800000;">"</span><span style="color: #800000;">FOREGROUND</span><span style="color: #800000;">"</span>]</pre>
+</div>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">更多的</span>Dockerfile<span style="font-family: '微软雅黑',sans-serif;">可以参考官方方法。</span></p>
+<h2>1.8 Docker<span style="font-family: '微软雅黑',sans-serif;">中的镜像分层</span></h2>
+<p style="margin-left: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">参考文档：</span><a href="go.php-url=http---www.maiziedu.com-wiki-cloud-dockerimage-.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.maiziedu.com/wiki/cloud/dockerimage/" >http://www.maiziedu.com/wiki/cloud/dockerimage/</a></p>
+<p style="margin-left: 21.0pt;">Docker <span style="font-family: '微软雅黑',sans-serif;">支持通过扩展现有镜像，创建新的镜像。实际上，</span>Docker Hub <span style="font-family: '微软雅黑',sans-serif;">中</span> 99% <span style="font-family: '微软雅黑',sans-serif;">的镜像都是通过在</span> base <span style="font-family: '微软雅黑',sans-serif;">镜像中安装和配置需要的软件构建出来的。</span></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203180342031-1621628053.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Docker 容器入门" alt="" />&nbsp;</p>
+
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">从上图可以看到，新镜像是从</span> base <span style="font-family: '微软雅黑',sans-serif;">镜像一层一层叠加生成的。每安装一个软件，就在现有镜像的基础上增加一层。</span></p>
+<h3>1.8.1 Docker <span style="font-family: '微软雅黑',sans-serif;">镜像为什么分层</span></h3>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">镜像分层最大的一个好处就是共享资源。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">比如说有多个镜像都从相同的</span> base <span style="font-family: '微软雅黑',sans-serif;">镜像构建而来，那么</span> Docker Host <span style="font-family: '微软雅黑',sans-serif;">只需在磁盘上保存一份</span> base <span style="font-family: '微软雅黑',sans-serif;">镜像；同时内存中也只需加载一份</span> base <span style="font-family: '微软雅黑',sans-serif;">镜像，就可以为所有容器服务了。而且镜像的每一层都可以被共享。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">如果多个容器共享一份基础镜像，当某个容器修改了基础镜像的内容，比如</span> /etc <span style="font-family: '微软雅黑',sans-serif;">下的文件，这时其他容器的</span> /etc <span style="font-family: '微软雅黑',sans-serif;">是不会被修改的，修改只会被限制在单个容器内。这就是容器</span><strong><span style="text-decoration: underline;"> Copy-on-Write </span></strong><span style="font-family: '微软雅黑',sans-serif;">特性。</span></p>
+<h3>1.8.2 <span style="font-family: '微软雅黑',sans-serif;">可写的容器层</span></h3>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">当容器启动时，一个新的可写层被加载到镜像的顶部。这一层通常被称作&ldquo;容器层&rdquo;，&ldquo;容器层&rdquo;之下的都叫&ldquo;镜像层&rdquo;。</span></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203180355656-1765414705.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Docker 容器入门" alt="" />&nbsp;</p>
+
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">所有对容器的改动</span> - <span style="font-family: '微软雅黑',sans-serif;">无论添加、删除、还是修改文件都只会发生在容器层中。只有<strong><span style="color: red;">容器层是可写的，容器层下面的所有镜像层都是只读的</span></strong>。</span></p>
+<h3>1.8.3 <span style="font-family: '微软雅黑',sans-serif;">容器层的细节说明</span></h3>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">镜像层数量可能会很多，所有镜像层会联合在一起组成一个统一的文件系统。如果不同层中有一个相同路径的文件，比如</span> /a<span style="font-family: '微软雅黑',sans-serif;">，上层的</span> /a <span style="font-family: '微软雅黑',sans-serif;">会覆盖下层的</span> /a<span style="font-family: '微软雅黑',sans-serif;">，也就是说用户只能访问到上层中的文件</span> /a<span style="font-family: '微软雅黑',sans-serif;">。在容器层中，用户看到的是一个叠加之后的文件系统。</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">文件操作的</span></p>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 20.3%; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="20%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">文件操作</span></strong></p>
+</td>
+<td style="width: 79.7%; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" width="79%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">说明</span></strong></p>
+</td>
+</tr>
+<tr style="height: 34.65pt;">
+<td style="width: 20.3%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 34.65pt;" width="20%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif;">添加文件</span></strong></p>
+</td>
+<td style="width: 79.7%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 34.65pt;" width="79%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">在容器中创建文件时，新文件被<span style="color: red;">添加到容器层</span>中。</span></p>
+</td>
+</tr>
+<tr style="height: 50.05pt;">
+<td style="width: 20.3%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 50.05pt;" width="20%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif;">读取文件</span></strong></p>
+</td>
+<td style="width: 79.7%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 50.05pt;" width="79%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">在容器中读取某个文件时，</span>Docker <span style="font-family: '微软雅黑',sans-serif;">会<span style="color: red;">从上往下依次在各镜像层中查找</span>此文件。<span style="color: red;">一旦找到，立即将其复制到容器层，然后打开并读入内存</span>。</span></p>
+</td>
+</tr>
+<tr style="height: 49.2pt;">
+<td style="width: 20.3%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 49.2pt;" width="20%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif;">修改文件</span></strong></p>
+</td>
+<td style="width: 79.7%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 49.2pt;" width="79%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">在容器中修改已存在的文件时，</span>Docker <span style="font-family: '微软雅黑',sans-serif;">会从<span style="color: red;">上往下依次在各镜像层中查找</span>此文件。一旦找到，立即将其复制到容器层，然后修改之。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 20.3%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="20%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif;">删除文件</span></strong></p>
+</td>
+<td style="width: 79.7%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="79%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">在容器中删除文件时，</span>Docker <span style="font-family: '微软雅黑',sans-serif;">也是<span style="color: red;">从上往下依次在镜像层中查找</span>此文件。找到后，会在容器层中<strong><span style="color: red; background: yellow;">记录下此删除操作</span></strong>。（只是记录删除操作）</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">只有当需要修改时才复制一份数据，这种特性被称作</span> Copy-on-Write<span style="font-family: '微软雅黑',sans-serif;">。可见，容器层保存的是镜像变化的部分，不会对镜像本身进行任何修改。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">这样就解释了我们前面提出的问题：容器层记录对镜像的修改，所有镜像层都是只读的，不会被容器修改，所以镜像可以被多个容器共享。</span></p>
+<h2>1.9 <span style="font-family: '微软雅黑',sans-serif;">使用</span>docker<span style="font-family: '微软雅黑',sans-serif;">运行</span>zabbix-server</h2>
+<h3>1.9.1 <span style="font-family: '微软雅黑',sans-serif;">容器间的互联</span></h3>
+<p style="margin-left: 15.75pt;"><span style="font-family: '微软雅黑',sans-serif;">在运行</span>zabbix<span style="font-family: '微软雅黑',sans-serif;">之前务必要了解容器间互联的方法</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 创建一个nginx容器</span>
+docker run -d -p 80:80<span style="color: #000000;"> nginx
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 创建容器，做link，并进入容器中</span>
+docker run -it --link quirky_brown:web01 centos-ssh /bin/<span style="color: #000000;">bash
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 在容器中访问nginx容器可以ping通</span>
+ping web01    </pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">命令执行过程</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 启动apache容器</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2d5f4242596d49424e46485f1d1c">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run -d httpd:2.4  </span>
+<span style="color: #000000;">3f1f7fc554720424327286bd2b04aeab1b084a3fb011a785b0deab6a34e56955
+</span>^[[A[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e795888893a78388848c8295d7d6">[email&#160;protected]</a> docker ps -<span style="color: #000000;">a
+CONTAINER ID        IMAGE               COMMAND              CREATED             STATUS              PORTS               NAMES
+3f1f7fc55472        httpd:</span>2.4           <span style="color: #800000;">"</span><span style="color: #800000;">httpd-foreground</span><span style="color: #800000;">"</span>   6 seconds ago       Up 5 seconds        80/<span style="color: #000000;">tcp              determined_clarke
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 拉取一个busybox 镜像</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bfcdd0d0cbffdbd0dcd4dacd8f8e">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker pull busybox </span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 启动容器</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="42302d2d3602262d212927307273">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run -it  --link determined_clarke:web busybox:latest   /bin/sh </span>
+/ <span style="color: #008000;">#</span> <span style="color: #008000;">
+#</span><span style="color: #008000;"> 使用新的容器访问最初的web容器</span>
+/ <span style="color: #008000;">#</span><span style="color: #008000;"> ping web </span>
+PING web (172.17.0.2): 56<span style="color: #000000;"> data bytes
+</span>64 bytes <span style="color: #0000ff;">from</span> 172.17.0.2: seq=0 ttl=64 time=0.058<span style="color: #000000;"> ms
+</span>^<span style="color: #000000;">C
+</span>--- web ping statistics ---
+1 packets transmitted, 1 packets received, 0%<span style="color: #000000;"> packet loss
+round</span>-trip min/avg/max = 0.058/0.058/0.058 ms</pre>
+</div>
+<h3>1.9.2 <span style="font-family: '微软雅黑',sans-serif;">启动</span>zabbix<span style="font-family: '微软雅黑',sans-serif;">容器</span></h3>
+<p>1<span style="font-family: '微软雅黑',sans-serif;">、启动一个</span>mysql<span style="font-family: '微软雅黑',sans-serif;">的容器</span></p>
+<div class="cnblogs_code">
+<pre>docker run --name mysql-server -<span style="color: #000000;">t \
+      </span>-e MYSQL_DATABASE=<span style="color: #800000;">"</span><span style="color: #800000;">zabbix</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>-e MYSQL_USER=<span style="color: #800000;">"</span><span style="color: #800000;">zabbix</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>-e MYSQL_PASSWORD=<span style="color: #800000;">"</span><span style="color: #800000;">zabbix_pwd</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>-e MYSQL_ROOT_PASSWORD=<span style="color: #800000;">"</span><span style="color: #800000;">root_pwd</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>-d mysql:5.7<span style="color: #000000;"> \
+      </span>--character-set-server=utf8 --collation-server=utf8_bin</pre>
+</div>
+<p>2<span style="font-family: '微软雅黑',sans-serif;">、启动</span>java-gateway<span style="font-family: '微软雅黑',sans-serif;">容器监控</span>java<span style="font-family: '微软雅黑',sans-serif;">服务</span></p>
+<div class="cnblogs_code">
+<pre>docker run --name zabbix-java-gateway -<span style="color: #000000;">t \
+      </span>-d zabbix/zabbix-java-gateway:latest</pre>
+</div>
+<p>3<span style="font-family: '微软雅黑',sans-serif;">、启动</span>zabbix-mysql<span style="font-family: '微软雅黑',sans-serif;">容器使用</span>link<span style="font-family: '微软雅黑',sans-serif;">连接</span>mysql<span style="font-family: '微软雅黑',sans-serif;">与</span>java-gateway<span style="font-family: '微软雅黑',sans-serif;">。</span></p>
+<div class="cnblogs_code">
+<pre>docker run --name zabbix-server-mysql -<span style="color: #000000;">t \
+      </span>-e DB_SERVER_HOST=<span style="color: #800000;">"</span><span style="color: #800000;">mysql-server</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>-e MYSQL_DATABASE=<span style="color: #800000;">"</span><span style="color: #800000;">zabbix</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>-e MYSQL_USER=<span style="color: #800000;">"</span><span style="color: #800000;">zabbix</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>-e MYSQL_PASSWORD=<span style="color: #800000;">"</span><span style="color: #800000;">zabbix_pwd</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>-e MYSQL_ROOT_PASSWORD=<span style="color: #800000;">"</span><span style="color: #800000;">root_pwd</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>-e ZBX_JAVAGATEWAY=<span style="color: #800000;">"</span><span style="color: #800000;">zabbix-java-gateway</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>--link mysql-<span style="color: #000000;">server:mysql \
+      </span>--link zabbix-java-gateway:zabbix-java-<span style="color: #000000;">gateway \
+      </span>-p 10051:10051<span style="color: #000000;"> \
+      </span>-d zabbix/zabbix-server-mysql:latest</pre>
+</div>
+<p>4<span style="font-family: '微软雅黑',sans-serif;">、启动</span>zabbix web<span style="font-family: '微软雅黑',sans-serif;">显示，使用</span>link<span style="font-family: '微软雅黑',sans-serif;">连接</span>zabbix-mysql<span style="font-family: '微软雅黑',sans-serif;">与</span>mysql<span style="font-family: '微软雅黑',sans-serif;">。</span></p>
+<div class="cnblogs_code">
+<pre>docker run --name zabbix-web-nginx-mysql -<span style="color: #000000;">t \
+      </span>-e DB_SERVER_HOST=<span style="color: #800000;">"</span><span style="color: #800000;">mysql-server</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>-e MYSQL_DATABASE=<span style="color: #800000;">"</span><span style="color: #800000;">zabbix</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>-e MYSQL_USER=<span style="color: #800000;">"</span><span style="color: #800000;">zabbix</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>-e MYSQL_PASSWORD=<span style="color: #800000;">"</span><span style="color: #800000;">zabbix_pwd</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>-e MYSQL_ROOT_PASSWORD=<span style="color: #800000;">"</span><span style="color: #800000;">root_pwd</span><span style="color: #800000;">"</span><span style="color: #000000;"> \
+      </span>--link mysql-<span style="color: #000000;">server:mysql \
+      </span>--link zabbix-server-mysql:zabbix-<span style="color: #000000;">server \
+      </span>-p 80:80<span style="color: #000000;"> \
+      </span>-d zabbix/zabbix-web-nginx-mysql:latest</pre>
+</div>
+<h3>1.9.3 <span style="font-family: '微软雅黑',sans-serif;">关于</span>zabbix API</h3>
+<p style="margin-left: 7.1pt;"><span style="font-family: '微软雅黑',sans-serif;">关于</span>zabbix API<span style="font-family: '微软雅黑',sans-serif;">可以参考官方文档：</span><a href="go.php-url=https---www.zabbix.com-documentation-3.4-zh-manual-api.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.zabbix.com/documentation/3.4/zh/manual/api" >https://www.zabbix.com/documentation/3.4/zh/manual/api</a></p>
+<p>1<span style="font-family: '微软雅黑',sans-serif;">、获取</span>token<span style="font-family: '微软雅黑',sans-serif;">方法</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 获取token</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4634292932062229252d23347674">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl -s -X POST -H 'Content-Type:application/json' -d '</span>
+<span style="color: #000000;">{
+</span><span style="color: #800000;">"</span><span style="color: #800000;">jsonrpc</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">2.0</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #800000;">"</span><span style="color: #800000;">method</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">user.login</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #800000;">"</span><span style="color: #800000;">params</span><span style="color: #800000;">"</span><span style="color: #000000;">: {
+</span><span style="color: #800000;">"</span><span style="color: #800000;">user</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">Admin</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+</span><span style="color: #800000;">"</span><span style="color: #800000;">password</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">zabbix</span><span style="color: #800000;">"</span><span style="color: #000000;">
+},
+</span><span style="color: #800000;">"</span><span style="color: #800000;">id</span><span style="color: #800000;">"</span>: 1<span style="color: #000000;">
+}</span><span style="color: #800000;">'</span><span style="color: #800000;"> http://10.0.0.100/api_jsonrpc.php</span>
+{<span style="color: #800000;">"</span><span style="color: #800000;">jsonrpc</span><span style="color: #800000;">"</span>:<span style="color: #800000;">"</span><span style="color: #800000;">2.0</span><span style="color: #800000;">"</span>,<span style="color: #800000;">"</span><span style="color: #800000;">result</span><span style="color: #800000;">"</span>:<span style="color: #800000;">"</span><span style="color: #800000;">d3be707f9e866ec5d0d1c242292cbebd</span><span style="color: #800000;">"</span>,<span style="color: #800000;">"</span><span style="color: #800000;">id</span><span style="color: #800000;">"</span>:1}</pre>
+</div>
+<h2>1.10 docker <span style="font-family: '微软雅黑',sans-serif;">仓库（</span>registry<span style="font-family: '微软雅黑',sans-serif;">）</span></h2>
+<h3>1.10.1 <span style="font-family: '微软雅黑',sans-serif;">创建一个普通仓库</span></h3>
+<p>1<span style="font-family: '微软雅黑',sans-serif;">、创建仓库</span></p>
+<div class="cnblogs_code">
+<pre>docker run -d -p 5000:5000 --restart=always --name registry -v /opt/myregistry:/var/lib/registry  registry </pre>
+</div>
+<p>2<span style="font-family: '微软雅黑',sans-serif;">、修改配置文件，使之支持</span>http</p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a8dac7c7dce8ccc7cbc3cdda9899">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat  /etc/docker/daemon.json </span>
+<span style="color: #000000;">{
+  </span><span style="color: #800000;">"</span><span style="color: #800000;">registry-mirrors</span><span style="color: #800000;">"</span>: [<span style="color: #800000;">"</span><span style="color: #800000;">https://registry.docker-cn.com</span><span style="color: #800000;">"</span><span style="color: #000000;">],
+  </span><span style="color: #800000;">"</span><span style="color: #800000;">insecure-registries</span><span style="color: #800000;">"</span>: [<span style="color: #800000;">"</span><span style="color: #800000;">10.0.0.100:5000</span><span style="color: #800000;">"</span><span style="color: #000000;">]
+}</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">重启</span>docker<span style="font-family: '微软雅黑',sans-serif;">让修改生效</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="85f7eaeaf1c5e1eae6eee0f7b5b4">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> systemctl restart  docker.service</span></pre>
+</div>
+<p>3<span style="font-family: '微软雅黑',sans-serif;">、修改镜像标签</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e0928f8f94a0848f838b8592d0d1">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker tag  busybox:latest  10.0.0.100:5000/clsn/busybox:1.0</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7b0914140f3b1f1418101e094b4a">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker images</span>
+<span style="color: #000000;">REPOSITORY                      TAG                 IMAGE ID            CREATED             SIZE
+centos6</span>-ssh                     latest              3c2b1e57a0f5        18<span style="color: #000000;"> hours ago        393MB
+httpd                           </span>2.4                 2e202f453940        6<span style="color: #000000;"> days ago          179MB
+</span>10.0.0.100:5000/clsn/busybox    1.0                 5b0d59026729        8 days ago          1.15MB</pre>
+</div>
+<p>4<span style="font-family: '微软雅黑',sans-serif;">、将新打标签的镜像上传镜像到仓库</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c7b5a8a8b387a3a8a4aca2b5f7f6">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker push   10.0.0.100:5000/clsn/busybox</span></pre>
+</div>
+<h3>1.10.2 <span style="font-family: '微软雅黑',sans-serif;">带</span>basic<span style="font-family: '微软雅黑',sans-serif;">认证的仓库</span></h3>
+<p>1<span style="font-family: '微软雅黑',sans-serif;">、安装加密工具</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e2908d8d96a2868d81898790d2d3">[email&#160;protected]</a> clsn]<span style="color: #008000;">#</span><span style="color: #008000;"> yum install httpd-tools  -y</span></pre>
+</div>
+<p>2<span style="font-family: '微软雅黑',sans-serif;">、设置认证密码</span></p>
+<div class="cnblogs_code">
+<pre>mkdir /opt/registry-var/auth/ -<span style="color: #000000;">p
+htpasswd  </span>-Bbn clsn 123456  > /opt/registry-var/auth/htpasswd</pre>
+</div>
+<p>3<span style="font-family: '微软雅黑',sans-serif;">、启动容器，在启动时传入认证参数</span></p>
+<div class="cnblogs_code">
+<pre>docker run -d -p 5000:5000 -v /opt/registry-var/auth/:/auth/ -e <span style="color: #800000;">"</span><span style="color: #800000;">REGISTRY_AUTH=htpasswd</span><span style="color: #800000;">"</span> -e <span style="color: #800000;">"</span><span style="color: #800000;">REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm</span><span style="color: #800000;">"</span> -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd registry</pre>
+</div>
+<p>4<span style="font-family: '微软雅黑',sans-serif;">、使用验证用户测试</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 登陆用户</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7b0914140f3b1f1418101e094b4a">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker login 10.0.0.100:5000 </span>
+<span style="color: #000000;">Username: clsn  
+Password: </span>123456<span style="color: #000000;">
+Login Succeeded
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 推送镜像到仓库</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="96e4f9f9e2d6f2f9f5fdf3e4a6a7">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker push 10.0.0.100:5000/clsn/busybox </span>
+The push refers to repository [10.0.0.100:5000/clsn/<span style="color: #000000;">busybox]
+4febd3792a1f: Pushed 
+</span>1.0: digest: sha256:4cee1979ba0bf7db9fc5d28fb7b798ca69ae95a47c5fecf46327720df4ff352d size: 527
+<span style="color: #008000;">#</span><span style="color: #008000;">认证文件的保存位置</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b6c4d9d9c2f6d2d9d5ddd3c48687">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat .docker/config.json </span>
+<span style="color: #000000;">{
+    </span><span style="color: #800000;">"</span><span style="color: #800000;">auths</span><span style="color: #800000;">"</span><span style="color: #000000;">: {
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">10.0.0.100:5000</span><span style="color: #800000;">"</span><span style="color: #000000;">: {
+            </span><span style="color: #800000;">"</span><span style="color: #800000;">auth</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">Y2xzbjoxMjM0NTY=</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        },
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">https://index.docker.io/v1/</span><span style="color: #800000;">"</span><span style="color: #000000;">: {
+            </span><span style="color: #800000;">"</span><span style="color: #800000;">auth</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">Y2xzbjpIenNAMTk5Ng==</span><span style="color: #800000;">"</span><span style="color: #000000;">
+        }
+    },
+    </span><span style="color: #800000;">"</span><span style="color: #800000;">HttpHeaders</span><span style="color: #800000;">"</span><span style="color: #000000;">: {
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">User-Agent</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">Docker-Client/17.12.0-ce (linux)</span><span style="color: #800000;">"</span><span style="color: #000000;">
+    }
+}</span></pre>
+</div>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">至此，一个简单的</span>docker<span style="font-family: '微软雅黑',sans-serif;">镜像仓库搭建完成</span></p>
+<h2>1.11 docker-compose<span style="font-family: '微软雅黑',sans-serif;">编排工具</span></h2>
+<h3>1.11.1 <span style="font-family: '微软雅黑',sans-serif;">安装</span>docker-compose</h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">安装</span>docker-compose</p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 下载pip软件</span>
+yum install -y python2-<span style="color: #000000;">pip
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 下载 docker-compose</span>
+pip install docker-compose</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">国内开启</span>pip <span style="font-family: '微软雅黑',sans-serif;">下载加速：</span><a href="go.php-url=http---mirrors.aliyun.com-help-pypi.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://mirrors.aliyun.com/help/pypi" >http://mirrors.aliyun.com/help/pypi</a></p>
+<div class="cnblogs_code">
+<pre>mkdir ~/.pip/<span style="color: #000000;">
+cat </span>> ~/.pip/pip.conf <<<span style="color: #800000;">'</span><span style="color: #800000;">EOF</span><span style="color: #800000;">'</span><span style="color: #000000;">
+[</span><span style="color: #0000ff;">global</span><span style="color: #000000;">]
+index</span>-url = https://mirrors.aliyun.com/pypi/simple/<span style="color: #000000;">
+[install]
+trusted</span>-host=<span style="color: #000000;">mirrors.aliyun.com
+EOF</span></pre>
+</div>
+<h3>1.11.2 <span style="font-family: '微软雅黑',sans-serif;">编排启动镜像</span></h3>
+<p>1<span style="font-family: '微软雅黑',sans-serif;">、创建文件目录</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="41332e2e3501252e222a24337170">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> mkdir /opt/my_wordpress/</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="186a77776c587c777b737d6a2829">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cd /opt/my_wordpress/</span></pre>
+</div>
+<p>2<span style="font-family: '微软雅黑',sans-serif;">、编写编排文件</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9deff2f2e9ddf9f2fef6f8efadac">[email&#160;protected]</a> my_wordpress]<span style="color: #008000;">#</span><span style="color: #008000;"> vim docker-compose.yml</span>
+version: <span style="color: #800000;">'</span><span style="color: #800000;">3</span><span style="color: #800000;">'</span><span style="color: #000000;">
+services:
+   db:
+     image: mysql:</span>5.7<span style="color: #000000;">
+     volumes:
+       </span>- /data/db_data:/var/lib/<span style="color: #000000;">mysql
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: somewordpress
+       MYSQL_DATABASE: wordpress
+       MYSQL_USER: wordpress
+       MYSQL_PASSWORD: wordpress
+   wordpress:
+     depends_on:
+       </span>-<span style="color: #000000;"> db
+     image: wordpress:latest
+     volumes:
+       </span>- /data/web_data:/var/www/<span style="color: #000000;">html
+     ports: 
+       </span>- <span style="color: #800000;">"</span><span style="color: #800000;">8000:80</span><span style="color: #800000;">"</span><span style="color: #000000;">
+     restart: always
+     environment:
+       WORDPRESS_DB_HOST: db:</span>3306<span style="color: #000000;">
+       WORDPRESS_DB_USER: wordpress
+       WORDPRESS_DB_PASSWORD: wordpress</span></pre>
+</div>
+<p>3<span style="font-family: '微软雅黑',sans-serif;">、启动</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c2e3333281c38333f37392e6c6d">[email&#160;protected]</a> my_wordpress]<span style="color: #008000;">#</span><span style="color: #008000;"> docker-compose up</span>
+　　<span style="color: #008000;">#</span><span style="color: #008000;">启动方法：docker-compose up</span>
+　　<span style="color: #008000;">#</span><span style="color: #008000;">后台启动方法：docker-compose up -d</span></pre>
+</div>
+<p>4<span style="font-family: '微软雅黑',sans-serif;">、浏览器上访问<a href="go.php-url=http---10.0.0.100-8000-.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://10.0.0.100:8000/" >http://10.0.0.100:8000</a></span></p>
+<p>&nbsp;<strong>&nbsp; <span style="font-family: '微软雅黑',sans-serif;">进行</span>wordpress<span style="font-family: '微软雅黑',sans-serif;">的安装即可</span></strong></p>
+<h3>1.11.3 haproxy<span style="font-family: '微软雅黑',sans-serif;">代理后端</span>docker<span style="font-family: '微软雅黑',sans-serif;">容器</span></h3>
+<p>1<span style="font-family: '微软雅黑',sans-serif;">、修改编排脚本</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c2b0adadb682a6ada1a9a7b0f2f3">[email&#160;protected]</a> my_wordpress]<span style="color: #008000;">#</span><span style="color: #008000;"> cat docker-compose.yml </span>
+version: <span style="color: #800000;">'</span><span style="color: #800000;">3</span><span style="color: #800000;">'</span><span style="color: #000000;">
+services:
+   db:
+     image: mysql:</span>5.7<span style="color: #000000;">
+     volumes:
+       </span>- /data/db_data:/var/lib/<span style="color: #000000;">mysql
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: somewordpress
+       MYSQL_DATABASE: wordpress
+       MYSQL_USER: wordpress
+       MYSQL_PASSWORD: wordpress
+   wordpress:
+     depends_on:
+       </span>-<span style="color: #000000;"> db
+     image: wordpress:latest
+     volumes:
+       </span>- /data/web_data:/var/www/<span style="color: #000000;">html
+     ports: 
+       </span>- <span style="color: #800000;">"</span><span style="color: #800000;">80</span><span style="color: #800000;">"</span><span style="color: #000000;">
+     restart: always
+     environment:
+       WORDPRESS_DB_HOST: db:</span>3306<span style="color: #000000;">
+       WORDPRESS_DB_USER: wordpress
+       WORDPRESS_DB_PASSWORD: wordpress</span></pre>
+</div>
+<p>2<span style="font-family: '微软雅黑',sans-serif;">、同时启动<strong>两台</strong></span>wordpress</p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a6d4c9c9d2e6c2c9c5cdc3d49697">[email&#160;protected]</a> my_wordpress]<span style="color: #008000;">#</span><span style="color: #008000;"> docker-compose scale wordpress=2 </span>
+WARNING: The scale command <span style="color: #0000ff;">is</span> deprecated. Use the up command with the --<span style="color: #000000;">scale flag instead.
+Starting mywordpress_wordpress_1 ... done
+Creating mywordpress_wordpress_2 ... done</span></pre>
+</div>
+<p>3<span style="font-family: '微软雅黑',sans-serif;">、安装</span>haproxy</p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2c5e4343586c48434f47495e1c1d">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> yum install haproxy -y</span></pre>
+</div>
+<p>4<span style="font-family: '微软雅黑',sans-serif;">、修改</span>haproxy<span style="font-family: '微软雅黑',sans-serif;">配置文件</span></p>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">关于配置文件的详细说明，参考：</span><a href="go.php-url=https---www.cnblogs.com-MacoLee-p-5853413.html" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.cnblogs.com/MacoLee/p/5853413.html" >https://www.cnblogs.com/MacoLee/p/5853413.html</a></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="71031e1e0531151e121a14034140">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;">cp /etc/haproxy/haproxy.cfg{,.bak}</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="afddc0c0dbefcbc0ccc4cadd9f9e">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> vim /etc/haproxy/haproxy.cfg</span>
+<span style="color: #0000ff;">global</span><span style="color: #000000;">
+    log         </span>127.0.0.1<span style="color: #000000;"> local2
+    chroot      </span>/var/lib/<span style="color: #000000;">haproxy
+    pidfile     </span>/var/run/<span style="color: #000000;">haproxy.pid
+    maxconn     </span>4000<span style="color: #000000;">
+    user        haproxy
+    group       haproxy
+    daemon
+    stats socket </span>/var/lib/haproxy/stats level admin  <span style="color: #008000;">#</span><span style="color: #008000;">支持命令行控制</span>
+<span style="color: #000000;">defaults
+    mode                    http
+    log                     </span><span style="color: #0000ff;">global</span><span style="color: #000000;">
+    option                  httplog
+    option                  dontlognull
+    option http</span>-server-<span style="color: #000000;">close
+    option forwardfor       </span><span style="color: #0000ff;">except</span> 127.0.0.0/8<span style="color: #000000;">
+    option                  redispatch
+    retries                 </span>3<span style="color: #000000;">
+    timeout http</span>-<span style="color: #000000;">request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http</span>-keep-<span style="color: #000000;">alive 10s
+    timeout check           10s
+    maxconn                 </span>3000<span style="color: #000000;">
+listen stats
+    mode http
+    bind </span>0.0.0.0:8888<span style="color: #000000;">
+    stats enable
+    stats uri     </span>/haproxy-<span style="color: #000000;">status 
+    stats auth    admin:</span>123456<span style="color: #000000;">
+frontend frontend_www_example_com
+    bind </span>10.0.0.100:8000<span style="color: #000000;">
+    mode http
+    option httplog
+    log </span><span style="color: #0000ff;">global</span><span style="color: #000000;">
+    default_backend backend_www_example_com
+backend backend_www_example_com
+    option forwardfor header X</span>-REAL-<span style="color: #000000;">IP
+    option httpchk HEAD </span>/ HTTP/1.0<span style="color: #000000;">
+    balance roundrobin
+    server web</span>-node1  10.0.0.100:32768 check inter 2000 rise 30 fall 15<span style="color: #000000;">
+    server web</span>-node2  10.0.0.100:32769 check inter 2000 rise 30 fall 15</pre>
+</div>
+<p>5<span style="font-family: '微软雅黑',sans-serif;">、启动</span>haproxy</p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">systemctl start haproxy
+systemctl enable haproxy</span></pre>
+</div>
+<p>6<span style="font-family: '微软雅黑',sans-serif;">、使用浏览器访问</span>hapeoxy<span style="font-family: '微软雅黑',sans-serif;">监听的</span>8000<span style="font-family: '微软雅黑',sans-serif;">端口可以看到负载的情况</span></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203180443968-707439565.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Docker 容器入门" alt="" /></p>
+
+<p>7<span style="font-family: '微软雅黑',sans-serif;">、使用浏览器访问</span> <a href="go.php-url=http---10.0.0.100-8888-haproxy-status.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://10.0.0.100:8888/haproxy-status" >http://10.0.0.100:8888/haproxy-status</a></p>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">可以看到后端节点的监控状况，</span></p>
+<p style="margin: 0cm; margin-bottom: .0001pt; text-align: center; layout-grid-mode: both;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203180452109-1127111900.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Docker 容器入门" alt="" />&nbsp;</p>
+
+<h3>1.11.4 <span style="font-family: '微软雅黑',sans-serif;">安装</span>socat <span style="font-family: '微软雅黑',sans-serif;">直接操作</span>socket<span style="font-family: '微软雅黑',sans-serif;">控制</span>haproxy</h3>
+<p>1<span style="font-family: '微软雅黑',sans-serif;">、安装软件</span></p>
+<div class="cnblogs_code">
+<pre>yum install socat.x86_64 -y</pre>
+</div>
+<p>2<span style="font-family: '微软雅黑',sans-serif;">、查看帮助</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e2908d8d96a2868d81898790d2d3">[email&#160;protected]</a> web_data]<span style="color: #008000;">#</span><span style="color: #008000;"> echo "help"|socat stdio /var/lib/haproxy/stats</span></pre>
+</div>
+<p>3<span style="font-family: '微软雅黑',sans-serif;">、下线后端节点</span></p>
+<div class="cnblogs_code">
+<pre>echo <span style="color: #800000;">"</span><span style="color: #800000;">disable server backend_www_example_com/web-node2</span><span style="color: #800000;">"</span>|socat stdio /var/lib/haproxy/stats</pre>
+</div>
+<p>4<span style="font-family: '微软雅黑',sans-serif;">、上线后端节点</span></p>
+<div class="cnblogs_code">
+<pre>echo <span style="color: #800000;">"</span><span style="color: #800000;">enable server backend_www_example_com/web-node3</span><span style="color: #800000;">"</span>|socat stdio /var/lib/haproxy/stats</pre>
+</div>
+<p>5<span style="font-family: '微软雅黑',sans-serif;">、编写</span>php<span style="font-family: '微软雅黑',sans-serif;">测试页，放到</span>/data/web_data<span style="font-family: '微软雅黑',sans-serif;">下，在浏览器中访问可以查看当前的节点</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="64160b0b1024000b070f01165455">[email&#160;protected]</a> web_data]<span style="color: #008000;">#</span><span style="color: #008000;"> vim check.php</span>
+<html>
+    <head>
+        <title>PHP测试</title>
+    </head>
+    <body>
+        <?php  <span style="color: #0000ff;">echo</span> '<p>Hello World </p>'; ?>
+        <?php  <span style="color: #0000ff;">echo</span> "访问的服务器地址是:"."<fontcolor=red>".<span style="color: #800080;">$_SERVER</span>['SERVER_ADDR']."</font>"."<br />"<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">echo</span>"访问的服务器域名是:"."<fontcolor=red>".<span style="color: #800080;">$_SERVER</span>['SERVER_NAME']."</font>"."<br />"<span style="color: #000000;">;
+        </span>?>
+    <script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+</html></pre>
+</div>
+<h2><span style="courier new"4courier new";background: yellow;">1.12 </span><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new"; background: yellow;">重启</span><span style="background: yellow;">docker</span><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new"; background: yellow;">服务，容器全部退出的解决办法</span></h2>
+<h3>1.12.1 <span style="font-family: '微软雅黑',sans-serif;">在启动是指定自动重启</span></h3>
+<div class="cnblogs_code">
+<pre>docker run  --restart=always</pre>
+</div>
+<h3>1.12.2 <span style="font-family: '微软雅黑',sans-serif;">修改</span>docker<span style="font-family: '微软雅黑',sans-serif;">默认配置文件</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 添加上下面这行</span>
+<span style="color: #800000;">"</span><span style="color: #800000;">live-restore</span><span style="color: #800000;">"</span>: true</pre>
+</div>
+<p>docker server<span style="font-family: '微软雅黑',sans-serif;">配置文件</span>/etc/docker/daemon.json<span style="font-family: '微软雅黑',sans-serif;">参考</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="40322f2f3400242f232b25327072">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat  /etc/docker/daemon.json </span>
+<span style="color: #000000;">{
+  </span><span style="color: #800000;">"</span><span style="color: #800000;">registry-mirrors</span><span style="color: #800000;">"</span>: [<span style="color: #800000;">"</span><span style="color: #800000;">https://registry.docker-cn.com</span><span style="color: #800000;">"</span><span style="color: #000000;">],
+  </span><span style="color: #800000;">"</span><span style="color: #800000;">graph</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">/opt/mydocker</span><span style="color: #800000;">"</span>, <span style="color: #008000;">#</span><span style="color: #008000;"> 修改数据的存放目录到/opt/mydocker/，原/var/lib/docker/</span>
+  <span style="color: #800000;">"</span><span style="color: #800000;">insecure-registries</span><span style="color: #800000;">"</span>: [<span style="color: #800000;">"</span><span style="color: #800000;">10.0.0.100:5000</span><span style="color: #800000;">"</span><span style="color: #000000;">],
+  </span><span style="color: #800000;">"</span><span style="color: #800000;">live-restore</span><span style="color: #800000;">"</span><span style="color: #000000;">: true
+}</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">重启生效，只对在此之后启动的容器生效</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="97e5f8f8e3d7f3f8f4fcf2e5a7a6">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> systemctl restart  docker.service</span></pre>
+</div>
+<h2>1.13 Docker<span style="font-family: '微软雅黑',sans-serif;">网络类型</span></h2>
+<p style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203180512750-529190946.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Docker 容器入门" alt="" /></p>
+
+<h3>1.13.1 docker<span style="font-family: '微软雅黑',sans-serif;">的网络类型</span></h3>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 16.22%; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="16%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">类型</span></strong></p>
+</td>
+<td style="width: 83.78%; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" width="83%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 16.22%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="16%">
+<p style="text-align: center;" align="center"><strong>None</strong></p>
+</td>
+<td style="width: 83.78%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="83%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">不为容器配置任何网络功能，没有网络</span> --net=none</p>
+</td>
+</tr>
+<tr>
+<td style="width: 16.22%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="16%">
+<p style="text-align: center;" align="center"><strong>Container</strong></p>
+</td>
+<td style="width: 83.78%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="83%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">与另一个运行中的容器共享</span>Network Namespace<span style="font-family: '微软雅黑',sans-serif;">，</span>--net=container:containerID</p>
+</td>
+</tr>
+<tr>
+<td style="width: 16.22%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="16%">
+<p style="text-align: center;" align="center"><strong>Host</strong></p>
+</td>
+<td style="width: 83.78%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="83%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">与主机共享</span>Network Namespace<span style="font-family: '微软雅黑',sans-serif;">，</span>--net=host</p>
+</td>
+</tr>
+<tr>
+<td style="width: 16.22%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="16%">
+<p style="text-align: center;" align="center"><strong>Bridge</strong></p>
+</td>
+<td style="width: 83.78%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="83%">
+<p style="text-align: justify; text-justify: inter-ideograph;">Docker<span style="font-family: '微软雅黑',sans-serif;">设计的</span>NAT<span style="font-family: '微软雅黑',sans-serif;">网络模型<strong><span style="color: #92d050;">（默认类型）</span></strong></span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p style="text-indent: 21.0pt;"><strong>Bridge</strong><span style="font-family: '微软雅黑',sans-serif;">默认</span>docker<span style="font-family: '微软雅黑',sans-serif;">网络隔离基于网络命名空间，在物理机上创建</span>docker<span style="font-family: '微软雅黑',sans-serif;">容器时会为每一个</span>docker<span style="font-family: '微软雅黑',sans-serif;">容器分配网络命名空间，并且把容器</span>IP<span style="font-family: '微软雅黑',sans-serif;">桥接到物理机的虚拟网桥上。</span></p>
+<h3>1.13.2 <span style="font-family: '微软雅黑',sans-serif;">不为容器配置网络功能</span></h3>
+<p style="text-indent: 15.75pt;"><span style="font-family: '微软雅黑',sans-serif;">此模式下创建容器是不会为容器配置任何网络参数的，如：容器网卡、</span>IP<span style="font-family: '微软雅黑',sans-serif;">、通信路由等，全部需要自己去配置。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f1839e9e85b1959e929a9483c1c0">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run  -it --network none busybox:latest  /bin/sh </span>
+/ <span style="color: #008000;">#</span><span style="color: #008000;"> ip a</span>
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536<span style="color: #000000;"> qdisc noqueue 
+    link</span>/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00<span style="color: #000000;">
+    inet </span>127.0.0.1/8<span style="color: #000000;"> scope host lo
+       valid_lft forever preferred_lft forever</span></pre>
+</div>
+<h3>1.13.3 <span style="font-family: '微软雅黑',sans-serif;">与其他容器共享网络配置</span>(Container<span style="font-family: '微软雅黑',sans-serif;">）</span></h3>
+<p style="text-indent: 15.75pt;"><span style="font-family: '微软雅黑',sans-serif;">此模式和</span>host<span style="font-family: '微软雅黑',sans-serif;">模式很类似，只是此模式创建容器共享的是其他容器的</span>IP<span style="font-family: '微软雅黑',sans-serif;">和端口而不是物理机，此模式容器自身是不会配置网络和端口，创建此模式容器进去后，你会发现里边的</span>IP<span style="font-family: '微软雅黑',sans-serif;">是你所指定的那个容器</span>IP<span style="font-family: '微软雅黑',sans-serif;">并且端口也是共享的，而且其它还是<strong><span style="color: #00b0f0;">互相隔离</span></strong>的，如进程等。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="81f3eeeef5c1e5eee2eae4f3b1b0">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run  -it --network container:mywordpress_db_1  busybox:latest  /bin/sh </span>
+/ <span style="color: #008000;">#</span><span style="color: #008000;"> ip a</span>
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536<span style="color: #000000;"> qdisc noqueue 
+    link</span>/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00<span style="color: #000000;">
+    inet </span>127.0.0.1/8<span style="color: #000000;"> scope host lo
+       valid_lft forever preferred_lft forever
+</span>105: <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2643524e16664f40171610">[email&#160;protected]</a>: <BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN> mtu 1500<span style="color: #000000;"> qdisc noqueue 
+    link</span>/ether 02:42:ac:12:00:03<span style="color: #000000;"> brd ff:ff:ff:ff:ff:ff
+    inet </span>172.18.0.3/16 brd 172.18.255.255 scope <span style="color: #0000ff;">global</span><span style="color: #000000;"> eth0
+       valid_lft forever preferred_lft forever</span></pre>
+</div>
+<h3>1.13.4 <span style="font-family: '微软雅黑',sans-serif;">使用宿主机网络</span></h3>
+<p style="text-indent: 15.75pt;"><span style="font-family: '微软雅黑',sans-serif;">此模式创建的容器没有自己独立的网络命名空间，是和物理机共享一个</span>Network Namespace<span style="font-family: '微软雅黑',sans-serif;">，并且共享物理机的所有端口与</span>IP<span style="font-family: '微软雅黑',sans-serif;">，并且这个<span style="text-decoration: underline;">模式认为是不安全的</span>。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c0b2afafb480a4afa3aba5b2f0f1">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run  -it --network host  busybox:latest  /bin/sh</span></pre>
+</div>
+<h3>1.13.5 <span style="font-family: '微软雅黑',sans-serif;">查看网络列表</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="aedcc1c1daeecac1cdc5cbdc9e9f">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker network list </span>
+<span style="color: #000000;">NETWORK ID          NAME                  DRIVER              SCOPE
+b15e8a720d3b        bridge                bridge              local
+345d65b4c2a0        host                  host                local
+bc5e2a32bb55        mywordpress_default   bridge              local
+ebf76eea91bb        none                  null                local</span></pre>
+</div>
+<h3>1.13.6 <span style="font-family: '微软雅黑',sans-serif;">用</span>PIPEWORK<span style="font-family: '微软雅黑',sans-serif;">为</span>docker<span style="font-family: '微软雅黑',sans-serif;">容器配置独立</span>IP</h3>
+<p style="margin-left: 42.0pt;"><span style="font-family: '微软雅黑',sans-serif;">参考文档：</span><a href="go.php-url=http---blog.csdn.net-design321-article-details-48264825.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://blog.csdn.net/design321/article/details/48264825" >http://blog.csdn.net/design321/article/details/48264825</a></p>
+<p style="margin-left: 42.0pt;"><span style="font-family: '微软雅黑',sans-serif;">官方网站：</span><a href="go.php-url=https---github.com-jpetazzo-pipework.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://github.com/jpetazzo/pipework" >https://github.com/jpetazzo/pipework</a></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">宿主环境：</span>centos7.2</p>
+<p><strong>1</strong><strong><span style="font-family: '微软雅黑',sans-serif;">、安装</span>pipework</strong></p>
+<div class="cnblogs_code">
+<pre>wget https://github.com/jpetazzo/pipework/archive/<span style="color: #000000;">master.zip
+unzip master.zip 
+cp pipework</span>-master/pipework  /usr/local/bin/<span style="color: #000000;">
+chmod </span>+x /usr/local/bin/pipework</pre>
+</div>
+<p><strong>2</strong><strong><span style="font-family: '微软雅黑',sans-serif;">、配置桥接网卡</span></strong></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">安装桥接工具</span></p>
+<div class="cnblogs_code">
+<pre>yum install bridge-utils.x86_64 -y</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">修改网卡配置，实现桥接</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 修改eth0配置，让br0实现桥接</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f0829f9f84b0949f939b9582c0c1">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat /etc/sysconfig/network-scripts/ifcfg-eth0 </span>
+TYPE=<span style="color: #000000;">Ethernet
+BOOTPROTO</span>=<span style="color: #000000;">static
+NAME</span>=<span style="color: #000000;">eth0
+DEVICE</span>=<span style="color: #000000;">eth0
+ONBOOT</span>=<span style="color: #000000;">yes
+BRIDGE</span>=<span style="color: #000000;">br0
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="54263b3b2014303b373f31266465">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat /etc/sysconfig/network-scripts/ifcfg-br0 </span>
+TYPE=<span style="color: #000000;">Bridge
+BOOTPROTO</span>=<span style="color: #000000;">static
+NAME</span>=<span style="color: #000000;">br0
+DEVICE</span>=<span style="color: #000000;">br0
+ONBOOT</span>=<span style="color: #000000;">yes
+IPADDR</span>=10.0.0.100<span style="color: #000000;">
+NETMASK</span>=255.255.255.0<span style="color: #000000;">
+GATEWAY</span>=10.0.0.254<span style="color: #000000;">
+DNS1</span>=223.5.5.5
+<span style="color: #008000;">#</span><span style="color: #008000;"> 重启网络</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2755484853674348444c42551716">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> /etc/init.d/network restart</span></pre>
+</div>
+<p><strong>3</strong><strong><span style="font-family: '微软雅黑',sans-serif;">、运行一个容器镜像测试：</span></strong></p>
+<div class="cnblogs_code">
+<pre>pipework br0 $(docker run -d -it -p 6880:80 --name  httpd_pw httpd) 10.0.0.220/<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7547413544455b455b455b474041">[email&#160;protected]</a></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">在其他主机上测试端口及连通性</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="35475a5a4175515a565e50470504">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl 10.0.0.220</span>
+<html><body><h1>It works!</h1><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body></html><span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a2d0cdcdd6e2c6cdc1c9c7d09293">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> ping 10.0.0.220 -c 1</span>
+PING 10.0.0.220 (10.0.0.220) 56(84<span style="color: #000000;">) bytes of data.
+</span>64 bytes <span style="color: #0000ff;">from</span> 10.0.0.220: icmp_seq=1 ttl=64 time=0.043 ms</pre>
+</div>
+<p><strong>4</strong><strong><span style="font-family: '微软雅黑',sans-serif;">、再运行一个容器，设置网路类型为</span>none</strong><strong><span style="font-family: '微软雅黑',sans-serif;">：</span></strong></p>
+<div class="cnblogs_code">
+<pre>pipework br0 $(docker run -d -it --net=none --name test httpd:2.4) 10.0.0.221/<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3c0e087c0d0c120c120c120e0908">[email&#160;protected]</a></pre>
+</div>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">进行访问测试</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1765787863577378747c72652726">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl 10.0.0.221</span>
+<html><body><h1>It works!</h1><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body></html></pre>
+</div>
+<p><strong>5</strong><strong><span style="font-family: '微软雅黑',sans-serif;">、重启容器后需要再次指定：</span></strong></p>
+<div class="cnblogs_code">
+<pre>pipework br0 testduliip  172.16.146.113/<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1d2f295d2c2a2f332c2b332c292b332c">[email&#160;protected]</a><span style="color: #000000;">
+pipework br0 testduliip01  </span>172.16.146.112/<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d2e0e692e3e5e0fce3e4fce3e6e4fce3">[email&#160;protected]</a></pre>
+</div>
+<p style="text-align: right;" align="right">Dcoker<span style="font-family: '微软雅黑',sans-serif;">跨主机通信之</span>overlay<span style="font-family: '微软雅黑',sans-serif;">可以参考：</span></p>
+<p style="text-align: right;" align="right"><a href="go.php-url=http---www.cnblogs.com-CloudMan6-p-7270551.html" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/CloudMan6/p/7270551.html" >http://www.cnblogs.com/CloudMan6/p/7270551.html</a></p>
+<h3>1.13.7 Docker<span style="font-family: '微软雅黑',sans-serif;">跨主机通信之</span>macvlan</h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">创建网络</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cdbfa2a2b98da9a2aea6a8bffdfc">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker network  create --driver macvlan  --subnet 10.1.0.0/24 --gateway 10.1.0.254 -o parent=eth0  macvlan_1</span>
+33a1f41dcc074f91b5bd45e7dfedabfb2b8ec82db16542f05213839a119b62ca</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">设置网卡为混杂模式</span></p>
+<div class="cnblogs_code">
+<pre>ip link set eth0 promisc on</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">创建使用</span>macvlan<span style="font-family: '微软雅黑',sans-serif;">网络容器</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5e2c31312a1e3a313d353b2c6e6c">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker run  -it --network macvlan_1  --ip=10.1.0.222 busybox /bin/sh</span></pre>
+</div>
+<h2>1.14 docker<span style="font-family: '微软雅黑',sans-serif;">企业级镜像仓库</span><a name="_Hlk505362321"></a>harbor</h2>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">容器管理</span></strong></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ea9885859eaa8e8589818f98dadb">[email&#160;protected]</a> harbor]<span style="color: #008000;">#</span><span style="color: #008000;"> pwd</span>
+/opt/<span style="color: #000000;">harbor
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6a1805051e2a0e0509010f185a5b">[email&#160;protected]</a> harbor]</span><span style="color: #008000;">#</span><span style="color: #008000;"> docker-compose stop</span></pre>
+</div>
+<p>1<span style="font-family: '微软雅黑',sans-serif;">、安装</span>docker<span style="font-family: '微软雅黑',sans-serif;">、</span>docker-compose</p>
+<p><span style="font-family: '微软雅黑',sans-serif;">下载</span> harbor</p>
+<div class="cnblogs_code">
+<pre>cd /opt && https://storage.googleapis.com/harbor-releases/harbor-offline-installer-v1.3.0<span style="color: #000000;">.tgz
+tar xf harbor</span>-offline-installer-v1.3.0.tgz</pre>
+</div>
+<p>2<span style="font-family: '微软雅黑',sans-serif;">、修改主机及</span>web<span style="font-family: '微软雅黑',sans-serif;">界面密码</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bac8d5d5cefaded5d9d1dfc88a8b">[email&#160;protected]</a> harbor]<span style="color: #008000;">#</span><span style="color: #008000;"> vim harbor.cfg </span>
+<span style="color: #000000;">    &middot;&middot;&middot;
+    hostname </span>= 10.0.0.100<span style="color: #000000;">
+    harbor_admin_password </span>=<span style="color: #000000;"> Harbor12345
+    &middot;&middot;&middot;</span></pre>
+</div>
+<p>3<span style="font-family: '微软雅黑',sans-serif;">、执行安装脚本</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="acdec3c3d8ecc8c3cfc7c9de9c9d">[email&#160;protected]</a> harbor]<span style="color: #008000;">#</span><span style="color: #008000;"> ./install.sh</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">浏览器访问</span> http://10.0.0.11</p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203180540421-2093222305.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Docker 容器入门" alt="" />&nbsp;</p>
+
+<p><span style="font-family: '微软雅黑',sans-serif;">添加一个项目</span></p>
+<p style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203180546390-776847142.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Docker 容器入门" alt="" /></p>
+
+<p>4<span style="font-family: '微软雅黑',sans-serif;">、镜像推送到仓库的指定项目</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="11637e7e6551757e727a74632123">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker  tag centos:6.8  10.0.0.100/clsn/centos6.8:1.0</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e795888893a78388848c8295d7d5">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span>  
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1d6f7272695d79727e76786f2d2f">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker images </span>
+<span style="color: #000000;">REPOSITORY                  TAG                 IMAGE ID            CREATED             SIZE
+busybox                     latest              5b0d59026729        </span>8 days ago          1<span style="color: #000000;">.15MB
+</span>10.0.0.100/clsn/centos6.8   1.0                 6704d778b3ba        2<span style="color: #000000;"> months ago        195MB
+centos                      </span>6.8                 6704d778b3ba        2<span style="color: #000000;"> months ago        195MB
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c0b2afafb480a4afa3aba5b2f0f2">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker login 10.0.0.100</span>
+<span style="color: #000000;">Username: admin
+Password: 
+Login Succeeded</span></pre>
+</div>
+<p>5<span style="font-family: '微软雅黑',sans-serif;">、推送镜像</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c9bba6a6bd89ada6aaa2acbbf9fb">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> docker push 10.0.0.100/clsn/centos6.8 </span>
+The push refers to repository [10.0.0.100/clsn/centos6.8<span style="color: #000000;">]
+e00c9229b481: Pushing  </span>13.53MB/194.5MB</pre>
+</div>
+<p>6<span style="font-family: '微软雅黑',sans-serif;">、在</span>web<span style="font-family: '微软雅黑',sans-serif;">界面里查看</span></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203180555281-1909245260.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Docker 容器入门" alt="" />&nbsp;</p>
+
+<h3>1.14.1 <span style="font-family: '微软雅黑',sans-serif;">使用容器的建议</span></h3>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;">1.&nbsp;<span style="font-family: '微软雅黑',sans-serif;">不要以拆分方式进行应用程序发布</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;">2.&nbsp;<span style="font-family: '微软雅黑',sans-serif;">不要创建大型镜像</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;">3.&nbsp;<span style="font-family: '微软雅黑',sans-serif;">不要在单个容器中运行多个进程</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;">4.&nbsp;<span style="font-family: '微软雅黑',sans-serif;">不要再镜像内保存凭证，不要依赖</span>IP<span style="font-family: '微软雅黑',sans-serif;">地址</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;">5.&nbsp;<span style="font-family: '微软雅黑',sans-serif;">以非</span>root<span style="font-family: '微软雅黑',sans-serif;">用户运行进程</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;">6.&nbsp;<span style="font-family: '微软雅黑',sans-serif;">不要使用&ldquo;最新&rdquo;标签</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;">7.&nbsp;<span style="font-family: '微软雅黑',sans-serif;">不要利用运行中的容器创建镜像</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;">8.&nbsp;<span style="font-family: '微软雅黑',sans-serif;">不要使用单层镜像</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;">9.&nbsp;<span style="font-family: '微软雅黑',sans-serif;">不要将数据存放在容器内</span></p>
+<h3>1.14.2 <span style="font-family: '微软雅黑',sans-serif;">关于</span>Docker<span style="font-family: '微软雅黑',sans-serif;">容器的监控</span></h3>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">容器的基本信息</span></strong></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">包括容器的数量、</span>ID<span style="font-family: '微软雅黑',sans-serif;">、名称、镜像、启动命令、端口等信息</span></p>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">容器的运行状态</span></strong></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">统计各状态的容器的数量，包括运行中、暂停、停止及异常退出</span></p>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">容器的用量信息</span></strong></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">统计容器的</span>CPU<span style="font-family: '微软雅黑',sans-serif;">使用率、内存使用量、块设备</span>I/O<span style="font-family: '微软雅黑',sans-serif;">使用量、网络使用情况等资源的使用情况</span></p>
+<h2>1.15 <span style="font-family: '微软雅黑',sans-serif;">参考文献</span></h2>
+<blockquote>
+<p>&nbsp;[1]&nbsp;<a href="go.php-url=https---www.redhat.com-zh-topics-containers-whats-a-linux-container.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.redhat.com/zh/topics/containers/whats-a-linux-container" >https://www.redhat.com/zh/topics/containers/whats-a-linux-container</a></p>
+<p>&nbsp;[2]&nbsp;<a href="go.php-url=https---www.redhat.com-zh-topics-containers-what-is-docker.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.redhat.com/zh/topics/containers/what-is-docker" >https://www.redhat.com/zh/topics/containers/what-is-docker</a></p>
+<p><span style="background-color: initial;">[3]&nbsp;</span><a style="background-color: initial;" href="go.php-url=http---blog.51cto.com-dihaifeng-1713512.htm" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://blog.51cto.com/dihaifeng/1713512" >http://blog.51cto.com/dihaifeng/1713512</a></p>
+<p>&nbsp;[4]&nbsp;<a href="go.php-url=https---www.cnblogs.com-Bourbon-tian-p-6867796.html" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.cnblogs.com/Bourbon-tian/p/6867796.html" >https://www.cnblogs.com/Bourbon-tian/p/6867796.html</a></p>
+<p>&nbsp;[5]&nbsp;<a href="go.php-url=https---www.cnblogs.com-CloudMan6-p-6806193.html" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.cnblogs.com/CloudMan6/p/6806193.html" >https://www.cnblogs.com/CloudMan6/p/6806193.html</a></p>
+</blockquote>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="31" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/" rel="category tag">云计算</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/" rel="category tag">虚拟化</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2018年2月24日<i class="i-time">07:56:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 22514 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx31.html" tppabs="http://clsn.io/clsn/lx31.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx31.html">Docker 容器入门 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/14.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx45.html" tppabs="http://clsn.io/clsn/lx45.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>内建DNS服务器&#8211;BIND</span></a><a href="lx28.html" tppabs="http://clsn.io/clsn/lx28.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>分布式文件系统&#8212;GlusterFS</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx45.html" tppabs="http://clsn.io/clsn/lx45.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx28.html" tppabs="http://clsn.io/clsn/lx28.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx31.html#respond" tppabs="http://clsn.io/clsn/lx31.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='31' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx387.html" tppabs="http://clsn.io/clsn/lx387.html" rel="bookmark">JIRA 敏捷开发平台部署记录</a></li> <li><a href="lx300.html" tppabs="http://clsn.io/clsn/lx300.html" rel="bookmark">MySQL Replication 主从复制全方位解决方案</a></li> <li><a href="lx910.html" tppabs="http://clsn.io/clsn/lx910.html" rel="bookmark">NFS存储服务部署</a></li> <li><a href="lx268.html" tppabs="http://clsn.io/clsn/lx268.html" rel="bookmark">MongoDB 入门篇</a></li> <li><a href="lx287.html" tppabs="http://clsn.io/clsn/lx287.html" rel="bookmark">MySQL 优化实施方案</a></li> <li><a href="lx988.html" tppabs="http://clsn.io/clsn/lx988.html" rel="bookmark">用户与磁盘</a></li> <li><a href="lx930.html" tppabs="http://clsn.io/clsn/lx930.html" rel="bookmark">网络知识 ACL NAT IPv6</a></li> <li><a href="lx997.html" tppabs="http://clsn.io/clsn/lx997.html" rel="bookmark">Linux分区规划与xshell使用排错</a></li> <li><a href="lx243.html" tppabs="http://clsn.io/clsn/lx243.html" rel="bookmark">SVN服务实战应用指南</a></li> <li><a href="lx31.html" tppabs="http://clsn.io/clsn/lx31.html" rel="bookmark">Docker 容器入门</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx31.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx31.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx31.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

@@ -1,0 +1,1096 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>rsync 服务部署详解 | 惨绿少年</title><meta name="description" content="类似于&nbsp;cp&nbsp;命令&nbsp;--&nbsp;实现本地备份传输数据" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx920.html" tppabs="http://clsn.io/clsn/lx920.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-920 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><i class="be be-arrowright"></i><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/" rel="category tag">存储</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><i class="be be-arrowright"></i><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/" rel="category tag">自动化</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>rsync 服务部署详解 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-920" class="post-920 post type-post status-publish format-standard hentry category-linux category-storage category-automation category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">rsync 服务部署详解</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2017年10月14日<i class="i-time">11:40:00</i></span><span class="comment"><a href="lx920.html#respond" tppabs="http://clsn.io/clsn/lx920.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="javascript:if(confirm('http://clsn.io/clsn/lx920.html?wpzmaction=add&postid=920  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx920.html?wpzmaction=add&postid=920'" tppabs="http://clsn.io/clsn/lx920.html?wpzmaction=add&postid=920" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h1>第1章 rsync <span style="font-family: '微软雅黑',sans-serif;">软件介绍</span></h1>
+<h2>1.1 <span style="font-family: '微软雅黑',sans-serif;">什么是</span>rsync</h2>
+<p style="margin-left: 21.0pt; text-indent: 21.0pt;">rsync <span style="font-family: '微软雅黑',sans-serif;">是一款开源的、快速的、多功能的、可实现<span style="background: yellow;">全量及增量的本地或远程数据同步备份</span>的优秀工具。</span></p>
+<p style="margin-left: 21.0pt; text-indent: 21.0pt;">http://www.samba.org/ftp/rsync/rsync.html</p>
+<h3>1.1.1 <span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">全量及增量</span></h3>
+<p style="margin-left: 21.0pt; text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">全量：将全部数据，进行传输覆盖</span></p>
+<p style="margin-left: 21.0pt; text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">增量：只传输差异部分的数据</span></p>
+<h2>1.2 <span style="font-family: '微软雅黑',sans-serif;">实现增量复制的原理</span></h2>
+<p style="text-indent: 21.0pt;">Rsync<span style="font-family: '微软雅黑',sans-serif;">通过其独特的</span>&ldquo;quick check&rdquo;<span style="font-family: '微软雅黑',sans-serif;">算法，实现增量传输数据</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f3819c9c87b3919290988683">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;">man rsync</span>
+Rsync  finds  files  that  need  to  be transferred using a &ldquo;quick check&rdquo; algorithm (by default)  that  looks  <span style="color: #0000ff;">for</span>  files  that  have changed  <span style="color: #0000ff;">in</span>  size  <span style="color: #0000ff;">or</span>  <span style="color: #0000ff;">in</span>  last-modified time.  Any changes <span style="color: #0000ff;">in</span> the other preserved attributes (as requested by options) are  made  on the  destination file directly when the quick check indicates that the file&rsquo;s data does <span style="color: #0000ff;">not</span> need to be updated.</pre>
+</div>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">在同步备份数据时，默认情况下，</span>Rsync<span style="font-family: '微软雅黑',sans-serif;">通过其独特的</span>&ldquo;quick check&rdquo;<span style="font-family: '微软雅黑',sans-serif;">算法，它仅同步大小或者最后修改时间发生变化的文件或目录，当然也可根据权限，属主等属性的变化同步，但需要指定相应的参数，甚至可以实现只同步一个文件里有变化的内容部分，所以，可以实现快速的同步备份数据。</span></p>
+<blockquote>
+<p style="text-indent: 21.0pt;">&nbsp;centos 5 rsync 2.x&nbsp;先比对再同步，速度较慢</p>
+<p style="text-indent: 21.0pt;">&nbsp;centos 6 rsync 3.x&nbsp;一边比对，一边对差异部分进行同步</p>
+</blockquote>
+<h3>1.2.1 <span style="font-family: '微软雅黑',sans-serif;">软件版本</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d0a2bfbfa490b2b1b3bba5a0">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync --version</span>
+rsync  version 3.0.6  protocol version 30<span style="color: #000000;">
+Copyright (C) </span>1996-2009 by Andrew Tridgell, Wayne Davison, <span style="color: #0000ff;">and</span><span style="color: #000000;"> others.
+Web site: http:</span>//rsync.samba.org/<span style="color: #000000;">
+Capabilities:
+    </span>64-bit files, 64-bit inums, 64-bit timestamps, 64-<span style="color: #000000;">bit long ints,
+    socketpairs, hardlinks, symlinks, IPv6, batchfiles, inplace,
+    append, ACLs, xattrs, iconv, symtimes
+rsync comes with ABSOLUTELY NO WARRANTY.  This </span><span style="color: #0000ff;">is</span> free software, <span style="color: #0000ff;">and</span><span style="color: #000000;"> you
+are welcome to redistribute it under certain conditions.  See the GNU
+General Public Licence </span><span style="color: #0000ff;">for</span> details.</pre>
+</div>
+<h2>1.3 rsync <span style="font-family: '微软雅黑',sans-serif;">软件功能介绍</span>&nbsp;</h2>
+<blockquote>
+<p>类似于&nbsp;cp&nbsp;命令&nbsp;--&nbsp;实现本地备份传输数据</p>
+<p>类似于scp&nbsp;命令&nbsp;--&nbsp;远程备份传输数据</p>
+<p>类似于&nbsp;rm&nbsp;命令&nbsp;--&nbsp;实现无差异同步备份</p>
+<p>类似于&nbsp;ls&nbsp;命令&nbsp;--&nbsp;本地文件信息查看</p>
+</blockquote>
+<p>rsync <span style="font-family: '微软雅黑',sans-serif;">命令属于</span>1 v 4 <span style="font-family: '微软雅黑',sans-serif;">的命令</span></p>
+<h3>1.3.1 rsync == cp</h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4634292932062427252d3336">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cp -a  /etc/hosts /tmp/</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b1c3dedec5f1d3d0d2dac4c1">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ls /tmp/</span>
+<span style="color: #000000;">hosts
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="93e1fcfce7d3f1f2f0f8e6e3">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> \rm /tmp/hosts</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="35475a5a41755754565e4045">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync  /etc/hosts /tmp/</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1e6c71716a5e7c7f7d756b6e">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ls /tmp/hosts</span>
+/tmp/hosts</pre>
+</div>
+<h3>1.3.2 rsync == scp</h3>
+<p><span style="background: yellow;">#</span><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">使用</span><span style="background: yellow;">scp</span><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">实现</span></p>
+<p style="text-indent: 15.75pt;">#<span style="font-family: '微软雅黑',sans-serif;">检查对端服务器目标位置上是否有该文件</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="12607d7d66527c74612223">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ls /tmp/hosts</span>
+ls: cannot access /tmp/hosts: No such file <span style="color: #0000ff;">or</span> directory</pre>
+</div>
+<p style="text-indent: 15.75pt;">#<span style="font-family: '微软雅黑',sans-serif;">从本地拷贝到远端服务器上</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0d7f6262794d6f6c6e66787d">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ls /tmp/hosts</span>
+/tmp/<span style="color: #000000;">hosts
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dcaeb3b3a89cbebdbfb7a9ac">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> scp -rp /etc/hosts 10.0.0.31:/tmp/</span>
+The authenticity of host <span style="color: #800000;">'</span><span style="color: #800000;">10.0.0.31 (10.0.0.31)</span><span style="color: #800000;">'</span> can<span style="color: #800000;">'</span><span style="color: #800000;">t be established.</span>
+RSA key fingerprint <span style="color: #0000ff;">is</span> d3:41:bb:0d:43:88:da:a3:2c:e8:36:91:11<span style="color: #000000;">:c9:e4:9c.
+Are you sure you want to </span><span style="color: #0000ff;">continue</span> connecting (yes/<span style="color: #000000;">no)? yes
+Warning: Permanently added </span><span style="color: #800000;">'</span><span style="color: #800000;">10.0.0.31</span><span style="color: #800000;">'</span><span style="color: #000000;"> (RSA) to the list of known hosts.
+<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="96e4f9f9e2d6">[email&#160;protected]</a></span>10.0.0.31<span style="color: #800000;">'</span><span style="color: #800000;">s password:</span>
+hosts                                           100%  357     0.4KB/s   00:00</pre>
+</div>
+<p style="text-indent: 15.75pt;">#<span style="font-family: '微软雅黑',sans-serif;">检查远端服务器上的结果</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fc8e939388bc929a8fcccd">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ls /tmp/hosts</span>
+/tmp/hosts</pre>
+</div>
+<p><span style="background: yellow;">#</span><span style="font-family: 微软雅黑, sans-serif; background: yellow;">使用</span><span style="background: yellow;">rsync </span><span style="font-family: 微软雅黑, sans-serif; background: yellow;">实现</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="72001d1d0632101311190702">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -rp /etc/hosts 10.0.0.31:/tmp/</span>
+<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e0928f8f94a0d1d0ced0ced0ced3d1">[email&#160;protected]</a><span style="color: #800000;">'</span><span style="color: #800000;">s password:</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d0a2bfbfa490b2b1b3bba5a0">[email&#160;protected]</a> ~]<span style="color: #008000;">#
+</span>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="30425f5f44705e56430001">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ls /tmp/hosts</span>
+/tmp/hosts</pre>
+</div>
+<h3>1.3.3 rsync == rm</h3>
+<h4>1.3.3.1&nbsp;<span style="font-family: '微软雅黑',sans-serif;">环境准备</span></h4>
+<p><span style="font-family: '微软雅黑',sans-serif;">创建出来一次命令</span> <span style="font-family: '微软雅黑',sans-serif;">进行操作</span></p>
+<div class="cnblogs_code">
+<pre> [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dcaeb3b3a89cbebdbfb7a9ac">[email&#160;protected]</a> tmp]<span style="color: #008000;">#</span><span style="color: #008000;"> mkdir /znix</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c2b0adadb682a0a3a1a9b7b2">[email&#160;protected]</a> znix]<span style="color: #008000;">#</span><span style="color: #008000;"> cp /tmp/* .</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4735282833072526242c3237">[email&#160;protected]</a> znix]<span style="color: #008000;">#</span><span style="color: #008000;"> ll</span>
+total 4
+-rw-r--r-- 1 root root 357 Oct 11 15:21 hosts</pre>
+</div>
+<p>#rm<span style="font-family: '微软雅黑',sans-serif;">命令操作</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="abd9c4c4dfebc9cac8c0dedb">[email&#160;protected]</a> znix]<span style="color: #008000;">#</span><span style="color: #008000;"> rm -rf /znix/hosts</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="285a47475c684a494b435d58">[email&#160;protected]</a> znix]<span style="color: #008000;">#</span><span style="color: #008000;"> ll /znix/hosts</span>
+ls: cannot access /znix/hosts: No such file <span style="color: #0000ff;">or</span> directory</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">查看这文件</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f98b96968db99b989a928c89">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> l</span>
+total 4
+-rw-r--r-- 1 root root 357 Oct 11 15:21 hosts</pre>
+</div>
+<p style="margin-left: 7.1pt;"><span style="font-family: '微软雅黑',sans-serif;">创建一个空目录，使用空目录进行<span style="background: yellow;">无差异同步</span></span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="72001d1d0632101311190702">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> mkdir /null</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="21534e4e55614340424a5451">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync --delete  /null/ /znix/</span>
+rsync: --delete does <span style="color: #0000ff;">not</span> work without -r <span style="color: #0000ff;">or</span> -<span style="color: #000000;">d.
+rsync error: syntax </span><span style="color: #0000ff;">or</span> usage error (code 1) at main.c(1422) [client=3.0.6<span style="color: #000000;">]
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f0829f9f84b09291939b8580">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync  -a  --delete  /null/ /znix/</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e89a87879ca88a898b839d98">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ll /znix/</span>
+total 0</pre>
+</div>
+<h3>1.3.4 rsync == ls -l</h3>
+<p style="margin-left: 7.1pt;"><span style="font-family: '微软雅黑',sans-serif;">使用</span>rsync <span style="font-family: '微软雅黑',sans-serif;">可以实现与</span> ls <span style="font-family: '微软雅黑',sans-serif;">类似的功能</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="285a47475c684a494b435d58">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ls -l install.log</span>
+-rw-r--r--. 1 root root 21736 Sep 25 08:38<span style="color: #000000;"> install.log
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f5879a9a81b59794969e8085">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync install.log</span>
+-rw-r--r--       21736 2017/09/25 08:38:28 install.log</pre>
+</div>
+<h2>1.4 Rsync<span style="font-family: '微软雅黑',sans-serif;">的特性总结（</span><span style="background: yellow;">7</span><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new"; background: yellow;">个特性信息说明</span><span style="font-family: '微软雅黑',sans-serif;">）</span></h2>
+<div class="cnblogs_code">
+<pre>01<span style="color: #000000;">. 支持拷贝普通文件与特殊文件如链接文件，设备等。
+</span>02<span style="color: #000000;">. 可以有排除指定文件或目录同步的功能，相当于打包命令tar的排除功能。
+    </span><span style="color: #008000;">#</span><span style="color: #008000;">tar zcvf backup_1.tar.gz  /opt/data  -exclude=clsn   </span>
+    说明：在打包/opt/<span style="color: #000000;">data时就排除了clsn命名的目录和文件。
+</span>03. 可以做到保持原文件或目录的权限、时间、软硬链接、属主、组等所有属性均不改变-<span style="color: #000000;">p。
+</span>04. 可实现增量同步，既只同步发生变化的数据，因此数据传输效率很高（tar -<span style="color: #000000;">N）。
+    </span><span style="color: #008000;">#</span><span style="color: #008000;"> 将备份/home 目录自 2008-01-29 以来修改过的文件</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> tar -N 2008-01-29 -zcvf /backups/inc-backup_$(date +%F).tar.gz /home</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 将备份 /home 目录昨天以来修改过的文件</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> tar -N $(date -d yesterday "+%F") -zcvf /backups/inc-backup_$(date +%F).tar.gz /home</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> 添加文件到已经打包的文件</span>
+    <span style="color: #008000;">#</span><span style="color: #008000;"> tar -rf all.tar *.gif</span>
+    说明：这条命令是将所有.gif的文件增加到all.tar的包里面去。-<span style="color: #000000;">r是表示增加文件的意思。
+</span>05<span style="color: #000000;">. 可以使用rcp,rsh,ssh等方式来配合进行隧道加密传输文件（rsync本身不对数据加密）
+</span>06. 可以通过socket(进程方式)传输文件和数据（服务端和客户端）*****<span style="color: #000000;">。重点掌握
+</span>07. 支持匿名的或认证（无需系统用户）的进程模式传输，可实现方便安全的进行数据备份及镜像。</pre>
+</div>
+<h2>1.5 Rsync<span style="font-family: '微软雅黑',sans-serif;">的企业工作场景说明</span></h2>
+<blockquote>
+<p><span style="background-color: initial;">01.&nbsp;两台服务器之间数据同步（定时任务cron+rsync）</span></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;同步网站内部人员数据信息（定时任务最小周期为1分钟）</p>
+<p>02.&nbsp;两台服务器之间数据同步（实时任务inotify/sersync/lrsyncd+rsync）</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;同步网站用户人员数据信息</p>
+</blockquote>
+<h1>第2章 rsync<span style="font-family: '微软雅黑',sans-serif;">使用方式</span></h1>
+<h2>2.1 rsync<span style="font-family: '微软雅黑',sans-serif;">软件工作方式</span></h2>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">SYNOPSIS
+        本地数据同步方式
+       Local:  rsync [OPTION...] SRC... [DEST]
+        远程数据同步方式
+       Access via remote shell:
+         Pull: rsync [OPTION...] [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="461315031406">[email&#160;protected]</a>]HOST:SRC... [DEST]
+         Push: rsync [OPTION...] SRC... [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="346167716674">[email&#160;protected]</a>]HOST:DEST
+        守护进程方式同步数据
+       Access via rsync daemon:
+         Pull: rsync [OPTION...] [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="92c7c1d7c0d2">[email&#160;protected]</a>]HOST::SRC... [DEST]
+               rsync [OPTION...] rsync:</span>//[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="396c6a7c6b79">[email&#160;protected]</a>]HOST[:PORT]/<span style="color: #000000;">SRC... [DEST]
+         Push: rsync [OPTION...] SRC... [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="045157415644">[email&#160;protected]</a>]HOST::DEST
+               rsync [OPTION...] SRC... rsync:</span>//[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d88d8b9d8a98">[email&#160;protected]</a>]HOST[:PORT]/DEST</pre>
+</div>
+<h3>2.1.1 <span style="font-family: '微软雅黑',sans-serif;">本地数据同步方式（类似于</span>cp<span style="font-family: '微软雅黑',sans-serif;">）</span></h3>
+<div class="cnblogs_code">
+<pre>Local:  rsync [OPTION...] SRC... [DEST]</pre>
+</div>
+<table style="border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 148.85pt; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="198">
+<p><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";   color: white;">参数</span></strong></p>
+</td>
+<td style="width: 219.7pt; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="293">
+<p><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";   color: white;">含义</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 148.85pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" valign="top" width="198">
+<p><strong>rsync&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </strong></p>
+</td>
+<td style="width: 219.7pt; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="293">
+<p><span style="font-family: '微软雅黑',sans-serif;">数据同步命令</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 148.85pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" valign="top" width="198">
+<p><strong>[OPTION...]&nbsp; </strong></p>
+</td>
+<td style="width: 219.7pt; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="293">
+<p>rsync<span style="font-family: '微软雅黑',sans-serif;">命令参数信息</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 148.85pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" valign="top" width="198">
+<p><strong>SRC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </strong></p>
+</td>
+<td style="width: 219.7pt; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="293">
+<p><span style="font-family: '微软雅黑',sans-serif;">要同不得数据信息（文件或目录）</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 148.85pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" valign="top" width="198">
+<p><strong>[DEST]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </strong></p>
+</td>
+<td style="width: 219.7pt; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="293">
+<p><span style="font-family: '微软雅黑',sans-serif;">将数据传输到什么位置</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h4>2.1.1.1&nbsp;<span style="font-family: '微软雅黑',sans-serif;">实例演示命令：</span>&nbsp;&nbsp;</h4>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ea9885859eaa888b89819f9a">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync  /etc/hosts /tmp/</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="97e5f8f8e3d7f5f6f4fce2e7">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ls /tmp/hosts</span>
+/tmp/hosts</pre>
+</div>
+<h3>2.1.2 <span style="font-family: '微软雅黑',sans-serif;">远程数据同步方式（类似</span>scp<span style="font-family: '微软雅黑',sans-serif;">）</span>---<span style="font-family: '微软雅黑',sans-serif;">又称为隧道传输</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">Access via remote shell:
+  Pull: rsync [OPTION...] [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0e5b5d4b5c4e">[email&#160;protected]</a>]HOST:SRC... [DEST]
+  Push: rsync [OPTION...] SRC... [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="085d5b4d5a48">[email&#160;protected]</a>]HOST:DEST</span></pre>
+</div>
+<p style="text-indent: 15.75pt;"><span style="font-family: '微软雅黑',sans-serif;">说明：需要进行交互传输数据。如果想实现免交互传输数据，需要借助</span>ssh+key<span style="font-family: '微软雅黑',sans-serif;">方式实现</span></p>
+<table style="border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 410.85pt; border-width: 1pt; border-style: solid; border-color: #9bbb59; background: #92d050; padding: 0cm 5.4pt;" colspan="2" valign="top" width="548">
+<p><strong><span style="color: white;">pull</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">：</span> </strong><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">拉：</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 155.7pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" valign="top" width="208">
+<p><strong>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a9fcfaecfbe9">[email&#160;protected]</a>] </strong><strong><span style="font-family: '微软雅黑',sans-serif;">：</span></strong></p>
+</td>
+<td style="width: 9.0cm; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p><span style="font-family: '微软雅黑',sans-serif;">以什么用户身份传输数据信息</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 155.7pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" valign="top" width="208">
+<p><strong>HOST:&nbsp;&nbsp;&nbsp;&nbsp; </strong></p>
+</td>
+<td style="width: 9.0cm; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p><span style="font-family: '微软雅黑',sans-serif;">远程主机信息（</span>IP<span style="font-family: '微软雅黑',sans-serif;">地址信息</span> <span style="font-family: '微软雅黑',sans-serif;">主机名称信息）</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 155.7pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" valign="top" width="208">
+<p><strong>SRC:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </strong></p>
+</td>
+<td style="width: 9.0cm; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p><span style="font-family: '微软雅黑',sans-serif;">远端要恏过来的数据信息</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 155.7pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" valign="top" width="208">
+<p><strong>[dest]&nbsp;&nbsp;&nbsp; </strong></p>
+</td>
+<td style="width: 9.0cm; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p><span style="font-family: '微软雅黑',sans-serif;">恏到本地什么位置</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 410.85pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #92d050; padding: 0cm 5.4pt;" colspan="2" valign="top" width="548">
+<p><strong><span style="color: white;">push</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">：推：</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 155.7pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" valign="top" width="208">
+<p><strong>SRC</strong><strong><span style="font-family: '微软雅黑',sans-serif;">：</span>&nbsp;&nbsp;&nbsp;&nbsp; </strong></p>
+</td>
+<td style="width: 9.0cm; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p><span style="font-family: '微软雅黑',sans-serif;">本地要怼过去的数据信息</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 155.7pt; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" valign="top" width="208">
+<p><strong>DEST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </strong></p>
+</td>
+<td style="width: 9.0cm; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p><span style="font-family: '微软雅黑',sans-serif;">怼到远端什么位置</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>2.1.3 <span style="font-family: '微软雅黑',sans-serif;">【实践操作】</span>pull <span style="font-family: '微软雅黑',sans-serif;">拉</span></h3>
+<p style="margin-left: 7.1pt;"><span style="font-family: '微软雅黑',sans-serif;">从远端拉文件到当前目录</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1b6974746f5b757d682b2a">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> touch /tmp/1.txt</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e4968b8b90a48685878f9194">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync nfs01:/tmp/1.txt .</span>
+<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="40322f2f34002e26337071">[email&#160;protected]</a><span style="color: #800000;">'</span><span style="color: #800000;">s password:</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1765787863577576747c6267">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ll</span>
+total 44
+-rw-r--r--  1 root root     0 Oct 11 16:16 1.txt</pre>
+</div>
+<h3>2.1.4 <span style="font-family: '微软雅黑',sans-serif;">【实践操作】</span>push <span style="font-family: '微软雅黑',sans-serif;">推</span> <span style="font-family: '微软雅黑',sans-serif;">（目录）</span></h3>
+<p style="margin-left: 7.1pt;"><span style="font-family: '微软雅黑',sans-serif;">将本地的</span>hosts<span style="font-family: '微软雅黑',sans-serif;">文件推到远端服务器上</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5624393922163437353d2326">[email&#160;protected]</a> tmp]<span style="color: #008000;">#</span><span style="color: #008000;"> ll</span>
+total 4
+-rw-r--r-- 1 root root 357 Oct 11 15:12 hosts</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">使用</span>push<span style="font-family: '微软雅黑',sans-serif;">的格式</span> <span style="font-family: '微软雅黑',sans-serif;">推整个目录（包括目录）</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="20524f4f54604241434b5550">[email&#160;protected]</a> tmp]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -r /tmp nfs01:/tmp/</span>
+<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e89a87879ca8868e9bd8d9">[email&#160;protected]</a><span style="color: #800000;">'</span><span style="color: #800000;">s password:</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="87f5e8e8f3c7e9e1f4b7b6">[email&#160;protected]</a> tmp]<span style="color: #008000;">#</span><span style="color: #008000;"> ll</span>
+total 4<span style="color: #000000;">
+drwxr</span>-xr-x 3 root root 4096 Oct 11 16:20 tmp</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">推整个目录下的文件（不包括目录本身）</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fd8f929289bd9f9c9e96888d">[email&#160;protected]</a> tmp]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -r /tmp/ nfs01:/tmp/</span>
+<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="aad8c5c5deeac4ccd99a9b">[email&#160;protected]</a><span style="color: #800000;">'</span><span style="color: #800000;">s password:</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cebca1a1ba8ea0a8bdfeff">[email&#160;protected]</a> tmp]<span style="color: #008000;">#</span><span style="color: #008000;"> ll</span>
+total 8
+-rw-r--r-- 1 root root  357 Oct 11 16:21<span style="color: #000000;"> hosts
+drwxr</span>-xr-x 3 root root 4096 Oct 11 16:20 tmp</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">说明：</span></p>
+<blockquote>
+<p>/tmp&nbsp;&nbsp; --表示将tmp目录本身及目录下的内容进行传输</p>
+<p>/tmp/&nbsp; --表示只传输tmp目录下面的内容信息</p>
+</blockquote>
+<h2><span style="courier new"4courier new";background: yellow;">2.2 </span><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new"; background: yellow;">守护进程方式同步数据</span></h2>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a8dac7c7dce8c4c7cbc9c4c0c7dbdc">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> uname -a</span>
+Linux 2.6.32-696.el6.x86_64 <span style="color: #008000;">#</span><span style="color: #008000;">1 SMP Tue Mar 21 19:29:05 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux</span>
+<span style="color: #000000;">Access via rsync daemon:
+Pull: rsync [OPTION...] [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d28781978092">[email&#160;protected]</a>]HOST::SRC... [DEST]
+      rsync [OPTION...] rsync:</span>//[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c89d9b8d9a88">[email&#160;protected]</a>]HOST[:PORT]/<span style="color: #000000;">SRC... [DEST]
+Push: rsync [OPTION...] SRC... [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1a4f495f485a">[email&#160;protected]</a>]HOST::DEST
+      rsync [OPTION...] SRC... rsync:</span>//[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f3a6a0b6a1b3">[email&#160;protected]</a>]HOST[:PORT]/DEST</pre>
+</div>
+<h3>2.2.1 <span style="font-family: '微软雅黑',sans-serif;">配置</span>rsync<span style="font-family: '微软雅黑',sans-serif;">守护进程方式（需要有服务端与客户端）</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: lime;">规划：</span></p>
+<blockquote>
+<p>&nbsp; &nbsp;1、backup服务器作为rsync服务端</p>
+<p>&nbsp;&nbsp;&nbsp; 2、以rysnc客户端作为参照物，将数据推到rsync服务器上</p>
+</blockquote>
+<h3>2.2.2 <span style="font-family: '微软雅黑',sans-serif;">配置</span>rsync<span style="font-family: '微软雅黑',sans-serif;">服务端（将服务端配置到</span> backup <span style="font-family: '微软雅黑',sans-serif;">服务器上）</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">第一个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">软件是否存在</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b8cad7d7ccf8dad9dbd3cdc8">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rpm -qa |grep rsync</span>
+rsync-3.0.6-12.el6.x86_64</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第二个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">进行软件服务配置</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="02706d6d7642606361697772">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> vim /etc/rsyncd.conf</span>
+uid =<span style="color: #000000;"> rsync
+gid </span>=<span style="color: #000000;"> rsync
+use chroot </span>=<span style="color: #000000;"> no
+max connections </span>= 200<span style="color: #000000;">
+timeout </span>= 300<span style="color: #000000;">
+pid file </span>= /var/run/<span style="color: #000000;">rsyncd.pid
+lock file </span>= /var/run/<span style="color: #000000;">rsync.lock
+log file </span>= /var/log/<span style="color: #000000;">rsyncd.log
+ignore errors
+read only </span>=<span style="color: #000000;"> false
+list </span>=<span style="color: #000000;"> false
+hosts allow </span>= 172.16.1.0/24<span style="color: #000000;">
+hosts deny </span>= 0.0.0.0/32<span style="color: #000000;">
+auth users </span>=<span style="color: #000000;"> rsync_backup
+secrets file </span>= /etc/<span style="color: #000000;">rsync.password
+[backup]
+comment </span>= <span style="color: #800000;">"</span><span style="color: #800000;">backup dir by clsn</span><span style="color: #800000;">"</span><span style="color: #000000;">
+path </span>= /backup</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第三个里程：创建</span>rsync<span style="font-family: '微软雅黑',sans-serif;">用户</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1c6e7373685c7e7d7f77696c">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> id rsync</span>
+<span style="color: #000000;">id: rsync: No such user
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="aedcc1c1daeecccfcdc5dbde">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> useradd -s /sbin/nologin -M rsync</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第四个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">创建数据备份储存目录</span>,<span style="font-family: '微软雅黑',sans-serif;">目录修改属主</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="493b26263d092b282a223c39">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> mkdir /backup/</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="50223f3f24103231333b2520">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> chown -R rsync.rsync /backup/</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第五个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">创建认证用户密码文件</span></p>
+<div class="cnblogs_code">
+<pre>echo <span style="color: #800000;">"</span><span style="color: #800000;">rsync_backup:clsn123</span><span style="color: #800000;">"</span> >>/etc/<span style="color: #000000;">rsync.password
+chmod </span>600 /etc/rsync.password</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第六个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">启动</span>rsync<span style="font-family: '微软雅黑',sans-serif;">服</span></p>
+<div class="cnblogs_code">
+<pre>rsync --daemon</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">至此服务端配置完成</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="40322f2f34002221232b3530">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ps -ef |grep rsync</span>
+root       2076      1  0 17:05 ?        00:00:00 rsync --<span style="color: #000000;">daemon
+root       </span>2163   1817  0 17:38 pts/1    00:00:00 grep --color=<span style="color: #000000;">auto rsync
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="82f0ededf6c2e0e3e1e9f7f2">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> netstat -lntup |grep rsync</span>
+tcp        0      0 0.0.0.0:873                 0.0.0.0:*                   LISTEN      2076/<span style="color: #000000;">rsync         
+tcp        0      0 :::</span>873                      :::*                        LISTEN      2076/rsync   </pre>
+</div>
+<h3>2.2.3 <span style="font-family: '微软雅黑',sans-serif;">配置</span>rsync<span style="font-family: '微软雅黑',sans-serif;">客户端（其他服务器为客户端）</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">第一个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">软件是否存在</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="55273a3a21153b33266564">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rpm -qa |grep rsync</span>
+rsync-3.0.6-12.el6.x86_64</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第二个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">创建认证文件</span></p>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">客户端的认证文件只需要有密码即可</span></p>
+<div class="cnblogs_code">
+<pre>echo <span style="color: #800000;">"</span><span style="color: #800000;">clsn123</span><span style="color: #800000;">"</span> >>/etc/<span style="color: #000000;">rsync.password
+chmod </span>600 /etc/rsync.password</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第三个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">实现数据传输</span></p>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p><span style="font-family: '微软雅黑',sans-serif;">交互式</span></p>
+</div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="186a77776c58767e6b2829">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avzP /etc/hosts <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6d1f1e14030e320f0c0e06181d2d5c5a5f435c5b435c43595c">[email&#160;protected]</a>::backup</span>
+<span style="color: #000000;">Password:
+sending incremental file list
+hosts
+         </span>357 100%    0.00kB/s    0:00:00 (xfer<span style="color: #008000;">#</span><span style="color: #008000;">1, to-check=0/1)</span>
+<span style="color: #000000;"> 
+sent </span>63 bytes  received 33 bytes  9.14 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 357  speedup <span style="color: #0000ff;">is</span> 3.72</pre>
+</div>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p><span style="font-family: '微软雅黑',sans-serif;">免交互式</span></p>
+</div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ec9e838398ac828a9fdcdd">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avzP /etc/hosts <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2654555f4845794447454d5356661711140817100817081217">[email&#160;protected]</a>::backup --password-file=/etc/rsync.password</span>
+<span style="color: #000000;">sending incremental file list
+hosts
+         </span>357 100%    0.00kB/s    0:00:00 (xfer<span style="color: #008000;">#</span><span style="color: #008000;">1, to-check=0/1)</span>
+<span style="color: #000000;"> 
+sent </span>199 bytes  received 27 bytes  150.67 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 357  speedup <span style="color: #0000ff;">is</span> 1.58</pre>
+</div>
+<h2>2.3 rsync<span style="font-family: '微软雅黑',sans-serif;">守护进程传输数据原理</span></h2>
+<p style="text-align: center;"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180207105650013-767401738.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="rsync 服务部署详解" alt="" /></p>
+
+<h2>2.4 rsync <span style="font-family: '微软雅黑',sans-serif;">命令同步参数选项</span>&<span style="font-family: '微软雅黑',sans-serif;">特殊参数</span></h2>
+<table style="border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 176.95pt; border-width: 1pt; border-style: solid; border-color: windowtext; background: gray; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif;">目录参数</span></strong></p>
+</td>
+<td style="width: 12cm; border-top: 1pt solid windowtext; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: none; background: gray; padding: 0cm 5.4pt;" width="454">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif;">参数说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">-v ,--verbose</p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">详细模式输出，传输时的信息</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">-z,--compress</p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">传输时进行压缩以提高传输效率</span></p>
+<p style="text-align: justify; text-justify: inter-ideograph;">--compress-level=NUM <span style="font-family: '微软雅黑',sans-serif;">可按级别压缩</span></p>
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">局域网可以不用压缩</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">-a,--archive <span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: red;">（主要）</span></p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">归档模式，表示以递归方式传输文件，并保持文件属性。等于</span> <span style="color: red;">-rtopgDl</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">-r,--recursive <strong>&nbsp;</strong><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";   color: #00B050;">归档于</span><span style="color: #00b050;">-a</span></strong></p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">对子目录以递归模式，即目录下的所有目录都同样传输。小写</span>r</p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">-t,--times&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";   color: #00B050;">归档于</span><span style="color: #00b050;">-a</span></strong></p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">保持文件时间信息</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">-o,--owner&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";   color: #00B050;">归档于</span><span style="color: #00b050;">-a</span></strong></p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">保持文件属主信息</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">-p,--perms&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";   color: #00B050;">归档于</span><span style="color: #00b050;">-a</span></strong></p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">保持文件权限</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">-g,--group&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";   color: #00B050;">归档于</span><span style="color: #00b050;">-a</span></strong></p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">保持文件属组信息</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">-P<span style="font-family: '微软雅黑',sans-serif;">，</span>--progress</p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">显示同步的过程及传输时的进度等信息（大</span>P<span style="font-family: '微软雅黑',sans-serif;">）</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">-D,--devices&nbsp;&nbsp;&nbsp; <strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";   color: #00B050;">归档于</span><span style="color: #00b050;">-a</span></strong></p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">保持设备文件信息</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">-l,--links&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";   color: #00B050;">归档于</span><span style="color: #00b050;">-a</span></strong></p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">保留软连接（小写字母</span>l<span style="font-family: '微软雅黑',sans-serif;">）</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">-e<span style="font-family: '微软雅黑',sans-serif;">，</span>--rsh=COMMAND</p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">使用的信道协议（</span>remote shell<span style="font-family: '微软雅黑',sans-serif;">），指定替代</span>rsh<span style="font-family: '微软雅黑',sans-serif;">的</span>shell<span style="font-family: '微软雅黑',sans-serif;">程序。</span></p>
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">例如</span> ssh</p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">--exclude=<em><span style="text-decoration: underline;">PATTERN</span></em></p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">指定排除不需要传输的文件信息</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">--exclude-from=<em><span style="text-decoration: underline;">file</span></em></p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">文件名所在目录文件，即可以实现排除多个文件</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">--bwlimit=RATE</p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">限速功能</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="236">
+<p style="text-align: justify; text-justify: inter-ideograph;">--delete</p>
+</td>
+<td style="width: 12.0cm; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="454">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">让目标目录</span>SRC<span style="font-family: '微软雅黑',sans-serif;">和源目录数据</span>DST<span style="font-family: '微软雅黑',sans-serif;">一致，即无差异数据同步</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 517.15pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; background: #92d050; padding: 0cm 5.4pt;" colspan="2" width="690">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif;">保持同步目录及文件属性：</span></strong></p>
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">这里的</span>-avzP<span style="font-family: '微软雅黑',sans-serif;">相当于</span> -vzetopdDlP<span style="font-family: '微软雅黑',sans-serif;">，生产环境常用的参数为</span> -avzP</p>
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">在脚本中可以报</span>-vP<span style="font-family: '微软雅黑',sans-serif;">去掉</span></p>
+<p style="text-align: justify; text-justify: inter-ideograph;">--progress<span style="font-family: '微软雅黑',sans-serif;">可以用</span>-P<span style="font-family: '微软雅黑',sans-serif;">代替</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 517.15pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; background: #92cddc; padding: 0cm 5.4pt;" colspan="2" width="690">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>daemon</strong><strong><span style="font-family: '微软雅黑',sans-serif;">启动扩展参数</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="236">
+<p>--daemon</p>
+</td>
+<td style="width: 12cm; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="454">
+<p>daemon<span style="font-family: '微软雅黑',sans-serif;">表示以守护进程的方式启动</span>rsync<span style="font-family: '微软雅黑',sans-serif;">服务。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="236">
+<p>--address</p>
+</td>
+<td style="width: 12cm; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="454">
+<p><span style="font-family: '微软雅黑',sans-serif;">绑定指定</span>IP<span style="font-family: '微软雅黑',sans-serif;">地址提供服务。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="236">
+<p>--config=FILE</p>
+</td>
+<td style="width: 12cm; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="454">
+<p><span style="font-family: '微软雅黑',sans-serif;">更改配置文件路径，而不是默认的</span>/etc/rsyncd.conf</p>
+</td>
+</tr>
+<tr>
+<td style="width: 176.95pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="236">
+<p>--port=PORT</p>
+</td>
+<td style="width: 12cm; border-top: none; border-left: none; border-bottom: 1pt solid windowtext; border-right: 1pt solid windowtext; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt;" valign="top" width="454">
+<p><span style="font-family: '微软雅黑',sans-serif;">更改其它端口提供服务，而不是缺省的</span>873<span style="font-family: '微软雅黑',sans-serif;">端口</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>2.4.1 <span style="font-family: '微软雅黑',sans-serif;">特殊参数实践</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: lime;">指定</span><span style="background: lime;">ip</span><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: lime;">：</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="75071a1a01351714161e0005">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync --daemon --address=172.16.1.41</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="96e4f9f9e2d6f4f7f5fde3e6">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> netstat -lntup |grep 873</span>
+tcp     0   0 172.16.1.41:873     0.0.0.0:*        LISTEN      2583/<span style="color: #000000;">rsync      
+参数测试：
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="41332e2e35012f27327170">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avzP /etc/services <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5a282923343905383b39312f2a1a6b6d68746b6c746b746e6b">[email&#160;protected]</a>::backup --password-file=/etc/rsync.password</span>
+<span style="color: #000000;">sending incremental file list
+services
+      </span>641020 100%   19.34MB/s    0:00:00 (xfer<span style="color: #008000;">#</span><span style="color: #008000;">1, to-check=0/1)</span>
+<span style="color: #000000;"> 
+sent </span>127417 bytes  received 27 bytes  254888.00 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 641020  speedup <span style="color: #0000ff;">is</span> 5.03</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: lime;">指定配置文件路径</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d6a4b9b9a296b4b7b5bda3a6">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync --daemon --config=/etc/rsyncd.conf</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="592b36362d19373f2a6968">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avzP /etc/services <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b0c2c3c9ded3efd2d1d3dbc5c0f08187829e81869e819e8481">[email&#160;protected]</a>::backup --password-file=/etc/rsync.password</span>
+<span style="color: #000000;">sending incremental file list
+sent </span>29 bytes  received 8 bytes  74.00 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 641020  speedup <span style="color: #0000ff;">is</span> 17324.86</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: lime;">服务端指定服务端口：</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f684999982b69497959d8386">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync --daemon --port=5222</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="41332e2e35012320222a3431">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> netstat -lntup|grep rsync</span>
+tcp        0      0 0.0.0.0:5222      0.0.0.0:*           LISTEN      2598/<span style="color: #000000;">rsync         
+tcp        0      0 :::</span>5222            :::*                 LISTEN      2598/rsync      </pre>
+</div>
+<h1>第3章 rsycn<span style="font-family: '微软雅黑',sans-serif;">配置文件详解</span> rsyncd.conf</h1>
+<h2>3.1 <span style="font-family: '微软雅黑',sans-serif;">部分知识补充</span></h2>
+<h3>3.1.1 <span style="font-family: '微软雅黑',sans-serif;">配置文件内容<span style="color: #4f81bd;">参考资料</span></span></h3>
+<div class="cnblogs_code">
+<pre>man rsyncd.conf</pre>
+</div>
+<h3>3.1.2 <span style="font-family: '微软雅黑',sans-serif;">配置文件内容总结</span></h3>
+<p>&nbsp;&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">模块之上内容为<span style="background: yellow;">全局</span>变量信息</span></p>
+<p>&nbsp;&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">模块之下内容为<span style="background: yellow;">局部</span>变量信息</span></p>
+<p><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: red;">说明：</span></strong></p>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p style="text-indent: 21pt; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;"><span style="font-family: '微软雅黑',sans-serif;">无论是全局变量发生变化，还是局部变量发生变化，都建议重启</span>rsync<span style="font-family: '微软雅黑',sans-serif;">服务使配置生效。</span></p>
+</div>
+<h2>3.2 <span style="font-family: '微软雅黑',sans-serif;">利用</span>/etc/init.d/<span style="font-family: '微软雅黑',sans-serif;">启动</span>rsync<span style="font-family: '微软雅黑',sans-serif;">服务方式</span></h2>
+<h3>3.2.1 <span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: lime;">可以实现方式：</span></h3>
+<div class="cnblogs_code">
+<pre>a. 编写rsync启动脚本（有一定的shell能力 <span style="color: #0000ff;">if</span><span style="color: #000000;"> case）
+b. 利用xinetd服务，管理启动rsync服务</span></pre>
+</div>
+<h3>3.2.2 <span style="font-family: '微软雅黑',sans-serif;">利用</span> xinetd<span style="font-family: '微软雅黑',sans-serif;">服务</span> <span style="font-family: '微软雅黑',sans-serif;">管理</span>rsync</h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">第一个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">安装</span>xinetd<span style="font-family: '微软雅黑',sans-serif;">软件</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3745585843775556545c4247">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> yum install -y xinetd</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f3819c9c87b3919290988683">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rpm -qa |grep xin</span>
+xinetd-2.3.14-40.el6.x86_64</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第二个里程碑：编辑配置文件</span></p>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">修改</span>disable = yes <span style="font-family: '微软雅黑',sans-serif;">改为</span>disable = no</p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="eb9984849fab898a88809e9b">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> vim /etc/xinetd.d/rsync</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> default: off</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> description: The rsync server is a good addition to an ftp server, as it \</span><span style="color: #008000;">
+#</span><span style="color: #008000;">   allows crc checksumming etc.</span>
+<span style="color: #000000;">service rsync
+{
+disable   </span>=<span style="color: #000000;"> no
+flags     </span>=<span style="color: #000000;"> IPv6
+socket_type     </span>=<span style="color: #000000;"> stream
+wait            </span>=<span style="color: #000000;"> no
+user            </span>=<span style="color: #000000;"> root
+server          </span>= /usr/bin/<span style="color: #000000;">rsync
+server_args     </span>= --<span style="color: #000000;">daemon
+log_on_failure  </span>+=<span style="color: #000000;"> USERID
+}</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第三个里程碑：重启</span>xinetd<span style="font-family: '微软雅黑',sans-serif;">服务</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0674696972466467656d7376">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> /etc/init.d/xinetd restart</span>
+<span style="color: #000000;">Stopping xinetd:                                           [  OK  ]
+Starting xinetd:                                           [  OK  ]</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">传输测试</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9ceef3f3e8dcf2faefacad">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avzP /etc/services <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bdcfcec4d3dee2dfdcded6c8cdfd8c8a8f938c8b938c93898c">[email&#160;protected]</a>::backup --password-file=/etc/rsync.password</span>
+<span style="color: #000000;">sending incremental file list
+sent </span>29 bytes  received 8 bytes  74.00 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 641020  speedup <span style="color: #0000ff;">is</span> 17324.86</pre>
+</div>
+<h2>3.3 <span style="font-family: '微软雅黑',sans-serif;">定义变量信息实现免秘钥交互</span></h2>
+<h3>3.3.1 <span style="font-family: '微软雅黑',sans-serif;">通过</span>man<span style="font-family: '微软雅黑',sans-serif;">手册获得方法</span></h3>
+<div class="cnblogs_code">
+<pre>Some  modules  on the remote daemon may require authentication. If so, you will receive a password prompt when you connect.  You  can avoid  the  password  prompt  by  setting the environment variable RSYNC_PASSWORD to the password  you  want  to  use  <span style="color: #0000ff;">or</span>  using  the --password-<span style="color: #000000;">file option. This may be useful when scripting rsync.
+WARNING:  On some systems environment variables are visible to all users. On those systems using </span>--password-file <span style="color: #0000ff;">is</span> recommended.</pre>
+</div>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p><span style="font-family: '微软雅黑',sans-serif;">在远程进程的一些模块可能需要认证。如果是这样的话，你将得到一个密码提示当您连接。你可以通过设置环境变量</span><span style="background: yellow;">rsync_password</span><span style="font-family: '微软雅黑',sans-serif;">要使用或使用密码文件选项密码避免密码提示。这可能是有用的脚本文件。</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">警告：在一些系统环境变量，对所有用户都是可见的。在这些系统中使用的密码文件的建议。</span></p>
+</div>
+<h3>3.3.2 <span style="font-family: '微软雅黑',sans-serif;">使用</span> RSYNC_PASSWORD <span style="font-family: '微软雅黑',sans-serif;">变量实现免交互</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">未设置变量之前</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cebca1a1ba8ea0a8bdfeff">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avzP /etc/services <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b6c4c5cfd8d5e9d4d7d5ddc3c6f68781849887809887988287">[email&#160;protected]</a>::backup</span>
+Password:</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">添加上环境变量</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b1c3dedec5f1dfd7c28180">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> export RSYNC_PASSWORD=clsn123</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">测试</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="86f4e9e9f2c6e8e0f5b6b7">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avzP /etc/services <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b9cbcac0d7dae6dbd8dad2ccc9f9888e8b97888f9788978d88">[email&#160;protected]</a>::backup</span>
+<span style="color: #000000;">sending incremental file list
+sent </span>29 bytes  received 8 bytes  24.67 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 641020  speedup <span style="color: #0000ff;">is</span> 17324.86</pre>
+</div>
+<h2>3.4 <span style="font-family: '微软雅黑',sans-serif;">守护进程多模块功能配置</span></h2>
+<p><span style="font-family: '微软雅黑',sans-serif;">第一个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">编写配置信息创建多模块</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cdbfa2a2b98dafacaea6b8bd">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> vim /etc/rsyncd.conf</span>
+<span style="color: #000000;">&hellip;&hellip;
+[nfsdata]
+comment </span>= <span style="color: #800000;">"</span><span style="color: #800000;">nfsdata dir by clsn</span><span style="color: #800000;">"</span><span style="color: #000000;">
+path </span>= /backup/<span style="color: #000000;">nfsdata
+[nfsbackup]
+comment </span>= <span style="color: #800000;">"</span><span style="color: #800000;">nfsbackup dir by clsn</span><span style="color: #800000;">"</span><span style="color: #000000;">
+path </span>= /backup/nfsbackup&nbsp;</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第二个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">创建多模块指定的目录</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 创建目录，并修改目录的权限</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="34465b5b40745655575f4144">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> mkdir /backup/nfs{data,backup} -p</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="02706d6d7642606361697772">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> chown rsync.rsync  /backup/nfs{data,backup}</span></pre>
+</div>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;">查看：</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1d6f7272695d7f7c7e76686d">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ll /backup/nfs{data,backup} -d</span>
+drwxr-xr-x 2 rsync rsync 4096 Oct 12 10:05 /backup/<span style="color: #000000;">nfsbackup
+drwxr</span>-xr-x 2 rsync rsync 4096 Oct 12 10:05 /backup/nfsdata</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第三里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">利用</span>rsync<span style="font-family: '微软雅黑',sans-serif;">客户端进行测试</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="74061b1b00341a12074445">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avz /data/ <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="84f6f7fdeae7dbe6e5e7eff1f4c4b5b3b6aab5b2aab5aab0b5">[email&#160;protected]</a>::nfsdata --password-file=/etc/rsync.passsword</span>
+<span style="color: #000000;">sending incremental file list
+.</span>/<span style="color: #000000;">
+nfs.data
+sent </span>78 bytes  received 30 bytes  216.00 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 0  speedup <span style="color: #0000ff;">is</span> 0.00</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">说明：</span></p>
+<blockquote>
+<p>rsyncd.conf配置文件中，添加多模块信息，可以不用重启rsync服务，即时生效~</p>
+<p>全局变量参数针对所有模块生效；局部变量参数只针对指定模块生效</p>
+<p>read only参数默认配置为ture，即为只读模式</p>
+<p>全局变量发生变化，不用重启rsync服务；局部变量发生变化，需要重启rsync服务</p>
+</blockquote>
+<p><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">注意：修改配置文件就重启</span><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">&darr;</span></strong></p>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p style="text-indent: 21pt; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;"><span style="font-family: '微软雅黑',sans-serif;">无论是全局变量发生变化，还是局部变量发生变化，都建议重启</span>rsync<span style="font-family: '微软雅黑',sans-serif;">服务使配置生效</span></p>
+</div>
+<h2>3.5 <span style="font-family: '微软雅黑',sans-serif;">守护进程的排除功能实践</span></h2>
+<h3>3.5.1 <span style="font-family: '微软雅黑',sans-serif;">排除的方式</span></h3>
+<p style="text-indent: 21.0pt;">a<span style="font-family: '微软雅黑',sans-serif;">）</span> --exclude=<span style="font-family: '微软雅黑',sans-serif;">要配置的目录或文件名称</span></p>
+<p>&nbsp;&nbsp;&nbsp; b<span style="font-family: '微软雅黑',sans-serif;">）</span> --exclude-from=<span style="font-family: '微软雅黑',sans-serif;">要排除多个目录或文件汇总文件名称</span></p>
+<p>&nbsp;&nbsp;&nbsp; c<span style="font-family: '微软雅黑',sans-serif;">）</span> <span style="font-family: '微软雅黑',sans-serif;">在配置文件中进行修改，指定要排除的信息</span></p>
+<h3>3.5.2 <span style="font-family: '微软雅黑',sans-serif;">排除测试</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">第一个里程碑</span>: <span style="font-family: '微软雅黑',sans-serif;">创建模拟测试环境</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="72001d1d06321c14014243">[email&#160;protected]</a> data]<span style="color: #008000;">#</span><span style="color: #008000;"> mkdir {a..d}</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8dffe2e2f9cde3ebfebdbc">[email&#160;protected]</a> data]<span style="color: #008000;">#</span><span style="color: #008000;"> touch {a..d}/{1..3}.txt</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f1839e9e85b19f9782c1c0">[email&#160;protected]</a> data]<span style="color: #008000;">#</span><span style="color: #008000;"> tree</span>
+<span style="color: #000000;">.
+├── a
+│   ├── </span>1<span style="color: #000000;">.txt
+│   ├── </span>2<span style="color: #000000;">.txt
+│   └── </span>3<span style="color: #000000;">.txt
+├── b
+│   ├── </span>1<span style="color: #000000;">.txt
+│   ├── </span>2<span style="color: #000000;">.txt
+│   └── </span>3<span style="color: #000000;">.txt
+├── c
+│   ├── </span>1<span style="color: #000000;">.txt
+│   ├── </span>2<span style="color: #000000;">.txt
+│   └── </span>3<span style="color: #000000;">.txt
+└── d
+    ├── </span>1<span style="color: #000000;">.txt
+    ├── </span>2<span style="color: #000000;">.txt
+    └── </span>3<span style="color: #000000;">.txt
+</span>4 directories, 12 files</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第二个里程碑</span> <span style="font-family: '微软雅黑',sans-serif;">利用</span> --exclude<span style="font-family: '微软雅黑',sans-serif;">参数测试排除功能</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 需求：不要a目录中3.txt 不要b、c目录</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5f2d30302b1f31392c6f6e">[email&#160;protected]</a> data]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avz /data/ --exclude=a/3.txt --exclude=b --exclude=c <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b3c1c0caddd0ecd1d2d0d8c6c3f38284819d82859d829d8782">[email&#160;protected]</a>::nfsdata</span>
+<span style="color: #000000;">sending incremental file list
+.</span>/<span style="color: #000000;">
+a</span>/<span style="color: #000000;">
+a</span>/1<span style="color: #000000;">.txt
+a</span>/2<span style="color: #000000;">.txt
+d</span>/<span style="color: #000000;">
+d</span>/1<span style="color: #000000;">.txt
+d</span>/2<span style="color: #000000;">.txt
+d</span>/3<span style="color: #000000;">.txt
+sent </span>300 bytes  received 114 bytes  828.00 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 0  speedup <span style="color: #0000ff;">is</span> 0.00</pre>
+</div>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p><span style="font-family: '微软雅黑',sans-serif; background: yellow;">精简方式排除</span></p>
+</div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6715080813270901145756">[email&#160;protected]</a> data]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avz /data/ --exclude=a/3.txt --exclude={b,c} <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f587868c9b96aa9794969e8085b5c4c2c7dbc4c3dbc4dbc1c4">[email&#160;protected]</a>::nfsdata</span>
+<span style="color: #000000;">sending incremental file list
+.</span>/<span style="color: #000000;">
+a</span>/<span style="color: #000000;">
+a</span>/1<span style="color: #000000;">.txt
+a</span>/2<span style="color: #000000;">.txt
+d</span>/<span style="color: #000000;">
+d</span>/1<span style="color: #000000;">.txt
+d</span>/2<span style="color: #000000;">.txt
+d</span>/3<span style="color: #000000;">.txt
+sent </span>300 bytes  received 114 bytes  828.00 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 0  speedup <span style="color: #0000ff;">is</span> 0.00</pre>
+</div>
+<h3>3.5.3 <span style="font-family: '微软雅黑',sans-serif;">利用</span>--exclude-from <span style="font-family: '微软雅黑',sans-serif;">方式进行排除</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">第一个里程碑</span>: <span style="font-family: '微软雅黑',sans-serif;">创建模拟测试环境</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f5879a9a81b59b9386c5c4">[email&#160;protected]</a> data]<span style="color: #008000;">#</span><span style="color: #008000;"> mkdir {a..d}</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c1b3aeaeb581afa7b2f1f0">[email&#160;protected]</a> data]<span style="color: #008000;">#</span><span style="color: #008000;"> touch {a..d}/{1..3}.txt</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第二个里程碑：利用</span>--exlude-from<span style="font-family: '微软雅黑',sans-serif;">参数，测试排除功能</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cbb9a4a4bf8ba5adb8fbfa">[email&#160;protected]</a> data]<span style="color: #008000;">#</span><span style="color: #008000;"> vim /tmp/paichu.txt</span>
+a/3<span style="color: #000000;">.txt
+b
+c</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第三个里程碑：进行排除</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4e3c21213a0e20283d7e7f">[email&#160;protected]</a> data]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avz /data/ --exclude-from=/tmp/paichu.txt <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="710302081f122e1310121a0401314046435f40475f405f4540">[email&#160;protected]</a>::nfsdata</span>
+<span style="color: #000000;">sending incremental file list
+.</span>/<span style="color: #000000;">
+a</span>/<span style="color: #000000;">
+a</span>/1<span style="color: #000000;">.txt
+a</span>/2<span style="color: #000000;">.txt
+d</span>/<span style="color: #000000;">
+d</span>/1<span style="color: #000000;">.txt
+d</span>/2<span style="color: #000000;">.txt
+d</span>/3<span style="color: #000000;">.txt
+sent </span>300 bytes  received 114 bytes  828.00 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 0  speedup <span style="color: #0000ff;">is</span> 0.00</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">说明：</span></p>
+<blockquote>
+<p>01.&nbsp;排除文件中，需要利用相对路径指定排除信息（不能利用绝对路径）</p>
+<p>02.&nbsp;相对路径指的是相对同步的目录信息而言，是对rsync -avz /data/&nbsp;后面的data目录进行相对</p>
+</blockquote>
+<h3>3.5.4 <span style="font-family: '微软雅黑',sans-serif;">在配置文件中修改要排除的文件</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">第一个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">编写修改服务端配置文件</span></p>
+<div class="cnblogs_code">
+<pre>vim /etc/<span style="color: #000000;">rsyncd.conf
+[nfsdata]
+comment </span>= <span style="color: #800000;">"</span><span style="color: #800000;">nfsdata dir by clsn</span><span style="color: #800000;">"</span><span style="color: #000000;">
+path </span>= /backup/<span style="color: #000000;">nfsdata
+exclude</span>=a/3.txt b c</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第二个里程碑：重启</span>rsync<span style="font-family: '微软雅黑',sans-serif;">服务</span></p>
+<div class="cnblogs_code">
+<pre>killall rsync && sleep 1 && rsync --daemon</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第三里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">进行测试</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c1b3aeaeb581afa7b2f1f0">[email&#160;protected]</a> data]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avz /data/  <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8ffdfcf6e1ecd0edeeece4faffcfbeb8bda1beb9a1bea1bbbe">[email&#160;protected]</a>::nfsdata</span>
+<span style="color: #000000;">sending incremental file list
+.</span>/<span style="color: #000000;">
+a</span>/<span style="color: #000000;">
+a</span>/1<span style="color: #000000;">.txt
+a</span>/2<span style="color: #000000;">.txt
+skipping daemon</span>-excluded file <span style="color: #800000;">"</span><span style="color: #800000;">a/3.txt</span><span style="color: #800000;">"</span><span style="color: #000000;">
+skipping daemon</span>-excluded directory <span style="color: #800000;">"</span><span style="color: #800000;">b</span><span style="color: #800000;">"</span>
+*** Skipping any contents <span style="color: #0000ff;">from</span> this failed directory ***<span style="color: #000000;">
+skipping daemon</span>-excluded directory <span style="color: #800000;">"</span><span style="color: #800000;">c</span><span style="color: #800000;">"</span>
+*** Skipping any contents <span style="color: #0000ff;">from</span> this failed directory ***<span style="color: #000000;">
+d</span>/<span style="color: #000000;">
+d</span>/1<span style="color: #000000;">.txt
+d</span>/2<span style="color: #000000;">.txt
+d</span>/3<span style="color: #000000;">.txt
+sent </span>407 bytes  received 116 bytes  1046.00 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 0  speedup <span style="color: #0000ff;">is</span> 0.00<span style="color: #000000;">
+rsync error: some files</span>/attrs were <span style="color: #0000ff;">not</span> transferred (see previous errors) (code 23) at main.c(1039) [sender=3.0.6]</pre>
+</div>
+<h2>3.6 <span style="font-family: '微软雅黑',sans-serif;">守护进程来创建备份目录</span></h2>
+<p><span style="font-family: '微软雅黑',sans-serif;">通过客户端命令创建服务端备份目录中子目录</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 推送/etc/services文件到 服务器/backup/sda/目录</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a9dbc6c6dde9c7cfda9998">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avzP /etc/services <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b5c7c6ccdbd6ead7d4d6dec0c5f58482879b84839b849b8184">[email&#160;protected]</a>::backup/dba/</span>
+<span style="color: #000000;">sending incremental file list
+created directory dba
+services
+      </span>641020 100%   19.34MB/s    0:00:00 (xfer<span style="color: #008000;">#</span><span style="color: #008000;">1, to-check=0/1)</span></pre>
+</div>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 推送/etc/services文件到 服务器/backup/sa/目录</span>
+sent 127417 bytes  received 27 bytes  254888.00 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 641020  speedup <span style="color: #0000ff;">is</span> 5.03<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7a0815150e3a141c094a4b">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avzP /etc/services <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="afdddcd6c1ccf0cdceccc4dadfef9e989d819e99819e819b9e">[email&#160;protected]</a>::backup/sa/</span>
+<span style="color: #000000;">sending incremental file list
+created directory sa
+services
+      </span>641020 100%   19.34MB/s    0:00:00 (xfer<span style="color: #008000;">#</span><span style="color: #008000;">1, to-check=0/1)</span></pre>
+</div>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 推送/etc/services文件到 服务器/backup/dev/目录</span>
+sent 127417 bytes  received 27 bytes  254888.00 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 641020  speedup <span style="color: #0000ff;">is</span> 5.03<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="51233e3e25113f37226160">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avzP /etc/services <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3745444e5954685556545c4247770600051906011906190306">[email&#160;protected]</a>::backup/dev/</span>
+<span style="color: #000000;">sending incremental file list
+created directory dev
+services
+      </span>641020 100%   18.71MB/s    0:00:00 (xfer<span style="color: #008000;">#</span><span style="color: #008000;">1, to-check=0/1)</span>
+<span style="color: #000000;"> 
+sent </span>127417 bytes  received 27 bytes  254888.00 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 641020  speedup <span style="color: #0000ff;">is</span> 5.03</pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">检查结果：</span></strong></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7d0f1212093d1f1c1e16080d">[email&#160;protected]</a> backup]<span style="color: #008000;">#</span><span style="color: #008000;"> tree</span>
+<span style="color: #000000;">.
+├── dba
+│   └── services
+├── dev
+│   └── services
+└── sa
+    └── services</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: yellow; background: darkgreen;">说明：</span></p>
+<blockquote>
+<p>a&nbsp;目标目录名称后要加上&nbsp;"/",&nbsp;表示创建目录，否则变为修改传输文件名称了</p>
+<p>b&nbsp;利用客户端创建服务备份子目录时，只能创建一级子目录。</p>
+</blockquote>
+<h2>3.7 <span style="font-family: '微软雅黑',sans-serif;">守护进程的访问控制配置</span></h2>
+<p><span style="font-family: '微软雅黑',sans-serif;">第一个里程碑：在服务端配置文件，编写白名单策略或黑名单策略（只能取其一）</span></p>
+<div class="cnblogs_code">
+<pre>    vim /etc/<span style="color: #000000;">rsyncd.conf
+    hosts allow </span>= 172.16.1.0/24
+    <span style="color: #008000;">#</span><span style="color: #008000;">hosts deny = 0.0.0.0/32</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">关于访问控制的说明：</span></p>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p style="text-indent: 21pt; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">01. <span style="font-family: '微软雅黑',sans-serif;">白名单和黑名单<span style="background: lime;">同时存在</span>时，默认控制策略为<span style="background: lime;">不匹配</span>的传输数据信息<span style="background: lime;">全部放行</span></span></p>
+<p>&nbsp;&nbsp;&nbsp; 02. <span style="font-family: '微软雅黑',sans-serif; background: yellow;">白名单单一存在</span><span style="font-family: '微软雅黑',sans-serif;">时，默认控制策略为<span style="background: yellow;">不匹配</span>的传输数据信息<span style="background: yellow;">全部禁止</span></span></p>
+<p>&nbsp;&nbsp;&nbsp; 03. <span style="font-family: '微软雅黑',sans-serif; background: lime;">黑名单单一存在</span><span style="font-family: '微软雅黑',sans-serif;">时，默认控制策略为<span style="background: lime;">不匹配</span>的传输数据信息<span style="background: lime;">全部放行</span></span></p>
+</div>
+<p><strong><span style="color: red;">&nbsp; &nbsp;</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: red;">全局变量修改控制策略信息，</span><span style="color: red;">rsync</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: red;">服务必须重启</span></strong></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">第二个里程碑：客户端进行测试</span></p>
+<div class="cnblogs_code">
+<pre>    [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0775686873476961743736">[email&#160;protected]</a> backup]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avz /etc/services <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e89a9b91868bb78a898b839d98a8d9d8c6d8c6d8c6dcd9">[email&#160;protected]</a>::data</span>
+    @ERROR: Unknown module <span style="color: #800000;">'</span><span style="color: #800000;">data</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    rsync error: error starting client</span>-server protocol (code 5) at main.c(1503) [sender=3.0.6<span style="color: #000000;">]
+</span>--------------------------------------------------------------------------------<span style="color: #000000;">
+    [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="03716c6c77436d65703332">[email&#160;protected]</a> backup]</span><span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avz /etc/services <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c0b3b9aea39fa2a1a3abb5b080f1f7f2eef1f6eef1eef4f1">[email&#160;protected]</a>::data</span>
+<span style="color: #000000;">    sending incremental file list
+    sent </span>29 bytes  received 8 bytes  74.00 bytes/<span style="color: #000000;">sec
+    total size </span><span style="color: #0000ff;">is</span> 641020  speedup <span style="color: #0000ff;">is</span> 17324.86</pre>
+</div>
+<h2>3.8 <span style="font-family: '微软雅黑',sans-serif;">守护进程无差异同步配置</span></h2>
+<h3>3.8.1 <span style="font-family: '微软雅黑',sans-serif;">什么是无差异：</span></h3>
+<p>&nbsp;&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">推模式：我有什么，你就有什么；我没有，你也不能有</span></p>
+<p>&nbsp;&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">拉模式：你有什么，我就有什么；你没有，我也不能有</span></p>
+<p>&nbsp;&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">总结：<strong><span style="color: red;">服务端客户端数据完全一致（一模一样）</span></strong></span></p>
+<h3>3.8.2 <span style="font-family: '微软雅黑',sans-serif;">实现无差异同步方法</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">第一个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">创建实验环境</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b5c7dadac1f5dbd3c68584">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ll /data/</span>
+total 16<span style="color: #000000;">
+drwxr</span>-xr-x 2 root root 4096 Oct 12 10:29<span style="color: #000000;"> a
+drwxr</span>-xr-x 2 root root 4096 Oct 12 10:40<span style="color: #000000;"> b
+drwxr</span>-xr-x 2 root root 4096 Oct 12 10:29<span style="color: #000000;"> c
+drwxr</span>-xr-x 2 root root 4096 Oct 12 10:29 d</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第二个里程：进行第一次数据同步</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="384a57574c78565e4b0809">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avz --delete  /data/ <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c2b0b1bbaca19da0a3a1a9b7b282f3f5f0ecf3f4ecf3ecf6f3">[email&#160;protected]</a>::backup/</span>
+<span style="color: #000000;">sending incremental file list
+.</span>/<span style="color: #000000;">
+a</span>/<span style="color: #000000;">
+a</span>/1<span style="color: #000000;">.txt
+a</span>/2<span style="color: #000000;">.txt
+a</span>/3<span style="color: #000000;">.txt
+b</span>/<span style="color: #000000;">
+b</span>/1<span style="color: #000000;">.txt
+b</span>/2<span style="color: #000000;">.txt
+b</span>/3<span style="color: #000000;">.txt
+c</span>/<span style="color: #000000;">
+c</span>/1<span style="color: #000000;">.txt
+c</span>/2<span style="color: #000000;">.txt
+c</span>/3<span style="color: #000000;">.txt
+d</span>/<span style="color: #000000;">
+d</span>/1<span style="color: #000000;">.txt
+d</span>/2<span style="color: #000000;">.txt
+d</span>/3<span style="color: #000000;">.txt
+sent </span>669 bytes  received 255 bytes  1848.00 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 0  speedup <span style="color: #0000ff;">is</span> 0.00</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第三个里程：删除指定目录，并添加指定文件，测试无差异功能</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> 删除客户端中的 a/ 目录，再进行无差异传输</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d3a1bcbca793bdb5a0e3e2">[email&#160;protected]</a> data]<span style="color: #008000;">#</span><span style="color: #008000;"> rm a/ -rf</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="acdec3c3d8ecc2cadf9c9d">[email&#160;protected]</a> data]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avz --delete  /data/ <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4735343e2924182526242c3237077670756976716976697376">[email&#160;protected]</a>::backup/</span>
+<span style="color: #000000;">sending incremental file list
+.</span>/<span style="color: #000000;">
+deleting a</span>/3<span style="color: #000000;">.txt
+deleting a</span>/2<span style="color: #000000;">.txt
+deleting a</span>/1<span style="color: #000000;">.txt
+deleting a</span>/<span style="color: #000000;">
+sent </span>181 bytes  received 14 bytes  390.00 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 0  speedup <span style="color: #0000ff;">is</span> 0.00</pre>
+</div>
+<h3>3.8.3 <span style="font-family: '微软雅黑',sans-serif;">【<span style="background: yellow;">注意</span>】无差异同步方法的应用</span></h3>
+<p>01. <span style="font-family: '微软雅黑',sans-serif;">实现储存数据与备份数据完全一致（<strong><span style="color: red;">慎用</span></strong>）</span></p>
+<div class="cnblogs_code">
+<pre>  rsync -avz --delete  /data/ <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4537363c2b261a2724262e3035057472776b74736b746b7174">[email&#160;protected]</a>::backup /</pre>
+</div>
+<p>02. <span style="font-family: '微软雅黑',sans-serif; courier new"4courier new"; background: yellow;">快速删除大文件数据</span></p>
+<div class="cnblogs_code">
+<pre>  1.mkdir /null      --<span style="color: #000000;">创建出一个空目录。
+  </span>2.rsync -avz --delete /null/ /bigdata/
+  <span style="color: #008000;">#</span><span style="color: #008000;"> 删除效率高于 rm -rf /bigdata</span></pre>
+</div>
+<h2>3.9 <span style="font-family: '微软雅黑',sans-serif;">守护进程的列表功能配置</span></h2>
+<p><span style="font-family: '微软雅黑',sans-serif;">第一个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">在服务端配置文件中开启</span>list<span style="font-family: '微软雅黑',sans-serif;">列表功能</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="394b56564d795b585a524c49">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> vim /etc/rsyncd.conf</span>
+list = true</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第二个里程碑：重启</span>rsync<span style="font-family: '微软雅黑',sans-serif;">服务</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="384a57574c785a595b534d48">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> killall rsync && sleep 1 && rsync --daemon</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第三个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">客户端查看服务端模块信息</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a4d6cbcbd0e4cac2d79495">[email&#160;protected]</a> data]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ed9f9e94838eb28f8c8e86989daddcdadfc3dcdbc3dcc3d9dc">[email&#160;protected]</a>::</span>
+backup         <span style="color: #800000;">"</span><span style="color: #800000;">backup dir by clsn</span><span style="color: #800000;">"</span><span style="color: #000000;">
+nfsdata        </span><span style="color: #800000;">"</span><span style="color: #800000;">nfsdata dir by clsn</span><span style="color: #800000;">"</span><span style="color: #000000;">
+nfsbackup      </span><span style="color: #800000;">"</span><span style="color: #800000;">nfsbackup dir by clsn</span><span style="color: #800000;">"</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: lime;">说明：</span></p>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p style="text-indent: 21pt; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;"><span style="font-family: '微软雅黑',sans-serif;">为了提升备份服务器安全性，<span style="background: lime;">建议关闭</span></span>list<span style="font-family: '微软雅黑',sans-serif;">列表功能</span></p>
+</div>
+<h1>第4章 <span style="font-family: '微软雅黑',sans-serif;">常见问题</span></h1>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9fedf0f0ebdff1f9ecafae">[email&#160;protected]</a> tmp]<span style="color: #008000;">#</span><span style="color: #008000;"> rsync -avz /etc/hosts  <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="99ebeae0f7fac6fbf8faf2ece9d9a8aeabb7a8afb7a8b7ada8">[email&#160;protected]</a>::backup</span>
+<span style="color: #000000;">Password:
+sending incremental file list
+hosts
+rsync: mkstemp </span><span style="color: #800000;">"</span><span style="color: #800000;">.hosts.U5OCyR</span><span style="color: #800000;">"</span> (<span style="color: #0000ff;">in</span> backup) failed: Permission denied (13<span style="color: #000000;">)
+sent </span>200 bytes  received 27 bytes  13.76 bytes/<span style="color: #000000;">sec
+total size </span><span style="color: #0000ff;">is</span> 371  speedup <span style="color: #0000ff;">is</span> 1.63<span style="color: #000000;">
+rsync error: some files</span>/attrs were <span style="color: #0000ff;">not</span> transferred (see previous errors) (code 23) at main.c(1039) [sender=3.0.6]</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">说明：备份目录权限设置不正确</span></p>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p><span style="font-family: '微软雅黑',sans-serif;">解决办法：</span></p>
+<p>&nbsp;&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">将服务端的备份存放目录（</span>path<span style="font-family: '微软雅黑',sans-serif;">值），属主和属组修改为</span>rsync<span style="font-family: '微软雅黑',sans-serif;">。</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">&nbsp;　　<span class="cnblogs_code">[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e2908d8d96a2808381899792">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> chown -R rsync.rsync /backup/</span></span>&nbsp;</span></p>
+</div>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="920" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/" rel="category tag">存储</a> <a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/" rel="category tag">自动化</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2017年10月14日<i class="i-time">11:40:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 17569 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx920.html" tppabs="http://clsn.io/clsn/lx920.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx920.html">rsync 服务部署详解 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/13.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx922.html" tppabs="http://clsn.io/clsn/lx922.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>windows 上rsync客户端使用方法</span></a><a href="lx919.html" tppabs="http://clsn.io/clsn/lx919.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>计算机专用英语词汇1695个词汇表</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx922.html" tppabs="http://clsn.io/clsn/lx922.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx919.html" tppabs="http://clsn.io/clsn/lx919.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx920.html#respond" tppabs="http://clsn.io/clsn/lx920.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='920' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx983.html" tppabs="http://clsn.io/clsn/lx983.html" rel="bookmark">linux中的权限</a></li> <li><a href="lx900.html" tppabs="http://clsn.io/clsn/lx900.html" rel="bookmark">SSH服务详解</a></li> <li><a href="lx287.html" tppabs="http://clsn.io/clsn/lx287.html" rel="bookmark">MySQL 优化实施方案</a></li> <li><a href="lx31.html" tppabs="http://clsn.io/clsn/lx31.html" rel="bookmark">Docker 容器入门</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx520.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx520.html'" tppabs="http://clsn.io/clsn/lx520.html" rel="bookmark">Shell编程基础篇-上</a></li> <li><a href="lx999.html" tppabs="http://clsn.io/clsn/lx999.html" rel="bookmark">Linux系统安装_Centos6.9</a></li> <li><a href="lx768.html" tppabs="http://clsn.io/clsn/lx768.html" rel="bookmark">在windows上搭建镜像yum站的方法（附bat脚本）</a></li> <li><a href="lx906.html" tppabs="http://clsn.io/clsn/lx906.html" rel="bookmark">sersync实现数据实时同步</a></li> <li><a href="lx1038.html" tppabs="http://clsn.io/clsn/lx1038.html" rel="bookmark">Linux企业运维人员最常用150个命令汇总</a></li> <li><a href="lx863.html" tppabs="http://clsn.io/clsn/lx863.html" rel="bookmark">zabbix 2.2.20 安装详解(Centos6.9)</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx920.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx920.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx920.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

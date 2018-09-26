@@ -1,0 +1,487 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>keepalived实现服务高可用 | 惨绿少年</title><meta name="description" content="　　Keepalived软件起初是专为LVS负载均衡软件设计的，用来管理并监控LVS集群系统中各个服务节点的状态，后来又加入了可以实现高可用的VRRP功能。因此，Keepalived除了能够管理LVS软件外，还可以作为其他服务（例如：Nginx、Haproxy、MySQL等）的高可用解决方案软件。" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx427.html" tppabs="http://clsn.io/clsn/lx427.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-427 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><i class="be be-arrowright"></i><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/" rel="category tag">Web应用</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/" rel="category tag">安全</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><i class="be be-arrowright"></i><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/" rel="category tag">自动化</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>keepalived实现服务高可用 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-427" class="post-427 post type-post status-publish format-standard hentry category-linux category-web-app category-acl category-automation category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">keepalived实现服务高可用</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2017年12月17日<i class="i-time">09:21:00</i></span><span class="comment"><a href="lx427.html#respond" tppabs="http://clsn.io/clsn/lx427.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="javascript:if(confirm('http://clsn.io/clsn/lx427.html?wpzmaction=add&postid=427  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx427.html?wpzmaction=add&postid=427'" tppabs="http://clsn.io/clsn/lx427.html?wpzmaction=add&postid=427" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h1>第1章 keepalived服务说明</h1>
+<h2>1.1 keepalived是什么？</h2>
+<p>　　<span style="text-decoration: underline;">Keepalived</span><span style="text-decoration: underline;">软件起初是专为LVS</span><span style="text-decoration: underline;">负载均衡软件设计的，用来管理并监控LVS</span><span style="text-decoration: underline;">集群系统中各个服务节点的状态，后来又加入了可以实现高可用的VRRP</span><span style="text-decoration: underline;">功能。</span>因此，Keepalived除了能够管理LVS软件外，还可以作为其他服务（例如：Nginx、Haproxy、MySQL等）的高可用解决方案软件。</p>
+<p>　　Keepalived软件主要是通过VRRP协议实现高可用功能的。VRRP是Virtual Router RedundancyProtocol(虚拟路由器冗余协议）的缩写，VRRP出现的目的就是为了解决静态路由单点故障问题的，它能够保证当个别节点宕机时，整个网络可以不间断地运行。</p>
+<p>　　<span style="background-color: #ffff00;">所以，Keepalived 一方面具有配置管理LVS的功能，同时还具有对LVS下面节点进行健康检查的功能，另一方面也可实现系统网络服务的高可用功能。</span></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; keepalived官网<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.keepalived.org  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.keepalived.org'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.keepalived.org"  target="_blank">http://www.keepalived.org</a></p>
+<h2>1.2 keepalived服务的三个重要功能</h2>
+<p>　　管理LVS负载均衡软件</p>
+<p>　　实现LVS集群节点的健康检查中</p>
+<p>　　作为系统网络服务的高可用性（failover）</p>
+<h2>1.3 Keepalived高可用故障切换转移原理</h2>
+<p>　　Keepalived高可用服务对之间的故障切换转移，是通过 VRRP (Virtual Router Redundancy Protocol ,虚拟路由器冗余协议）来实现的。</p>
+<p>　　在 Keepalived服务正常工作时，主 Master节点会不断地向备节点发送（多播的方式）心跳消息，用以告诉备Backup节点自己还活看，当主 Master节点发生故障时，就无法发送心跳消息，备节点也就因此无法继续检测到来自主 Master节点的心跳了，于是调用自身的接管程序，接管主Master节点的 IP资源及服务。而当主 Master节点恢复时，备Backup节点又会释放主节点故障时自身接管的IP资源及服务，恢复到原来的备用角色。</p>
+<p>　　那么，什么是VRRP呢？</p>
+<p>　　VRRP ,全 称 Virtual Router Redundancy Protocol ,中文名为虚拟路由冗余协议 ，VRRP的出现就是为了解决静态踣甶的单点故障问题，VRRP是通过一种竞选机制来将路由的任务交给某台VRRP路由器的。</p>
+<h2>1.4 keepalived 原理</h2>
+<h3>1.4.1keepalived高可用架构示意图</h3>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171217170645561-1428317110.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="keepalived实现服务高可用" alt="" /></p>
+
+<h3>1.4.2 文字，表述</h3>
+<p>Keepalived的工作原理：</p>
+<p>　　Keepalived高可用对之间是通过VRRP通信的，因此，我们从 VRRP开始了解起：</p>
+<p>　　　　1) VRRP,全称 Virtual Router Redundancy Protocol,中文名为虚拟路由冗余协议，VRRP的出现是为了解决静态路由的单点故障。</p>
+<p>　　　　2) VRRP是通过一种竟选协议机制来将路由任务交给某台 VRRP路由器的。</p>
+<p>　　　　3) VRRP用 IP多播的方式（默认多播地址（224.0_0.18))实现高可用对之间通信。</p>
+<p>　　　　4) 工作时主节点发包，备节点接包，当备节点接收不到主节点发的数据包的时候，就启动接管程序接管主节点的开源。备节点可以有多个，通过优先级竞选，但一般 Keepalived系统运维工作中都是一对。</p>
+<p>　　　　5) VRRP使用了加密协议加密数据，但Keepalived官方目前还是推荐用明文的方式配置认证类型和密码。</p>
+<p>　　介绍完 VRRP,接下来我再介绍一下 Keepalived服务的工作原理：</p>
+<p>　　Keepalived高可用对之间是通过 VRRP进行通信的， VRRP是遑过竞选机制来确定主备的，主的优先级高于备，因此，工作时主会优先获得所有的资源，备节点处于等待状态，当主挂了的时候，备节点就会接管主节点的资源，然后顶替主节点对外提供服务。</p>
+<p>　　在 Keepalived服务对之间，只有作为主的服务器会一直发送 VRRP广播包,告诉备它还活着，此时备不会枪占主，当主不可用时，即备监听不到主发送的广播包时，就会启动相关服务接管资源，保证业务的连续性.接管速度最快可以小于1秒。</p>
+<h1>第2章 keepalived软件使用</h1>
+<h2>2.1 软件的部署</h2>
+<h3>2.1.1 第一个里程碑 keepalived软件安装</h3>
+<div>
+<p class="a1">&nbsp;<span class="cnblogs_code"><span style="color: #0000ff;">yum</span> <span style="color: #0000ff;">install</span> keepalived -y</span>&nbsp;</p>
+</div>
+<div>
+<div class="cnblogs_code">
+<pre>/etc/<span style="color: #000000;">keepalived
+</span>/etc/keepalived/<span style="color: #000000;">keepalived.conf     #keepalived服务主配置文件
+</span>/etc/rc.d/init.d/<span style="color: #000000;">keepalived         #服务启动脚本
+</span>/etc/sysconfig/<span style="color: #000000;">keepalived
+</span>/usr/bin/<span style="color: #000000;">genhash
+</span>/usr/libexec/<span style="color: #000000;">keepalived
+</span>/usr/sbin/keepalived</pre>
+</div>
+</div>
+<p>第二个里程碑： 进行默认配置测试</p>
+<h3>2.1.2 配置文件说明</h3>
+<p>1-13行表示全局配置</p>
+<div>
+<div class="cnblogs_code">
+<pre> global_defs {    <span style="color: #008000;">#</span><span style="color: #008000;">全局配置</span>
+<span style="color: #000000;">    notification_email {   定义报警邮件地址
+      <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a6c7c5c7d5d5c3c8e6c0cfd4c3d1c7caca88cac9c5">[email&#160;protected]</a>
+      <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bddbdcd4d1d2cbd8cffddbd4cfd8cadcd1d193d1d2de">[email&#160;protected]</a>
+      <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0a7973796b6e6763644a6c63786f7d6b666624666569">[email&#160;protected]</a>
+    } 
+    notification_email_from <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8fcee3eaf7eee1ebfdeaa1cceefcfceae1cfe9e6fdeaf8eee3e3a1e3e0ec">[email&#160;protected]</a>  </span><span style="color: #008000;">#</span><span style="color: #008000;">定义发送邮件的地址</span>
+    smtp_server 192.168.200.1   <span style="color: #008000;">#</span><span style="color: #008000;">邮箱服务器 </span>
+    smtp_connect_timeout 30      <span style="color: #008000;">#</span><span style="color: #008000;">定义超时时间</span>
+    router_id LVS_DEVEL        <span style="color: #008000;">#</span><span style="color: #008000;">定义路由标识信息，相同局域网唯一</span>
+ }  </pre>
+</div>
+</div>
+<p>15-30行 虚拟ip配置 brrp</p>
+<div>
+<div class="cnblogs_code">
+<pre>vrrp_instance VI_1 {   <span style="color: #008000;">#</span><span style="color: #008000;">定义实例</span>
+    state MASTER         <span style="color: #008000;">#</span><span style="color: #008000;">状态参数 master/backup 只是说明</span>
+    interface eth0       <span style="color: #008000;">#</span><span style="color: #008000;">虚IP地址放置的网卡位置</span>
+    virtual_router_id 51 <span style="color: #008000;">#</span><span style="color: #008000;">同一家族要一直，同一个集群id一致</span>
+    priority 100         <span style="color: #008000;">#</span><span style="color: #008000;"> 优先级决定是主还是备    越大越优先</span>
+    advert_int 1        <span style="color: #008000;">#</span><span style="color: #008000;">主备通讯时间间隔</span>
+    authentication {     <span style="color: #008000;">#</span><span style="color: #008000;"> &darr;</span>
+        auth_type PASS    <span style="color: #008000;">#</span><span style="color: #008000;">&darr;</span>
+        auth_pass 1111    <span style="color: #008000;">#</span><span style="color: #008000;">认证</span>
+    }                        <span style="color: #008000;">#</span><span style="color: #008000;">&uarr; </span>
+    virtual_ipaddress {  <span style="color: #008000;">#</span><span style="color: #008000;">&darr;</span>
+        192.168.200.16<span style="color: #000000;">    设备之间使用的虚拟ip地址
+        </span>192.168.200.17
+        192.168.200.18<span style="color: #000000;">
+    }
+}</span></pre>
+</div>
+</div>
+<p>配置管理LVS</p>
+<div>
+<p class="a1">　　关于 LVS 详情参考<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=%20http://www.cnblogs.com/clsn/p/7920637.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=%20http://www.cnblogs.com/clsn/p/7920637.html#_label7'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=%20http://www.cnblogs.com/clsn/p/7920637.html#_label7"  target="_blank"> http://www.cnblogs.com/clsn/p/7920637.html#_label7</a></p>
+</div>
+<h3>2.1.3 最终配置文件</h3>
+<p><strong>主负载均衡服务器配置</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1a6875756e5a76782a2b">[email&#160;protected]</a> conf]<span style="color: #008000;">#</span><span style="color: #008000;"> cat  /etc/keepalived/keepalived.conf </span>
+! Configuration File <span style="color: #0000ff;">for</span><span style="color: #000000;"> keepalived
+
+global_defs {
+   router_id lb01
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    virtual_router_id </span>51<span style="color: #000000;">
+    priority </span>150<span style="color: #000000;">
+    advert_int </span>1<span style="color: #000000;">
+    authentication {
+        auth_type PASS
+        auth_pass </span>1111<span style="color: #000000;">
+    }
+    virtual_ipaddress {
+        </span>10.0.0.3<span style="color: #000000;">
+    }
+}</span></pre>
+</div>
+</div>
+<p><strong>备负载均衡服务器配置</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b2c0ddddc6f2ded08280">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat /etc/keepalived/keepalived.conf </span>
+! Configuration File <span style="color: #0000ff;">for</span><span style="color: #000000;"> keepalived
+
+global_defs {
+   router_id lb02
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth0
+    virtual_router_id </span>51<span style="color: #000000;">
+    priority </span>100<span style="color: #000000;">
+    advert_int </span>1<span style="color: #000000;">
+    authentication {
+        auth_type PASS
+        auth_pass </span>1111<span style="color: #000000;">
+    }
+    virtual_ipaddress {
+     </span>10.0.0.3<span style="color: #000000;">
+    }
+}</span></pre>
+</div>
+</div>
+<h3>2.1.4 启动keepalived</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="11637e7e65517d732123">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> /etc/init.d/keepalived start</span>
+Starting keepalived:                                       [  OK  ]</pre>
+</div>
+</div>
+<h3>2.1.5 【说明】在进行访问测试之前要保证后端的节点都能够单独的访问。</h3>
+<p>测试连通性.&nbsp; &nbsp;&nbsp;后端节点</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9ae8f5f5eedaf6f8aaab">[email&#160;protected]</a> conf]<span style="color: #008000;">#</span><span style="color: #008000;"> curl -H host:www.etiantian.org  10.0.0.8</span>
+<span style="color: #000000;">web01 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f2809d9d86b29e90c2c3">[email&#160;protected]</a> conf]</span><span style="color: #008000;">#</span><span style="color: #008000;"> curl -H host:www.etiantian.org  10.0.0.7</span>
+<span style="color: #000000;">web02 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d0a2bfbfa490bcb2e0e1">[email&#160;protected]</a> conf]</span><span style="color: #008000;">#</span><span style="color: #008000;"> curl -H host:www.etiantian.org  10.0.0.9</span>
+<span style="color: #000000;">web03 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d2a0bdbda692beb0e2e3">[email&#160;protected]</a> conf]</span><span style="color: #008000;">#</span><span style="color: #008000;"> curl -H host:bbs.etiantian.org  10.0.0.9</span>
+<span style="color: #000000;">web03 bbs
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="14667b7b605478762425">[email&#160;protected]</a> conf]</span><span style="color: #008000;">#</span><span style="color: #008000;"> curl -H host:bbs.etiantian.org  10.0.0.8</span>
+<span style="color: #000000;">web01 bbs
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c1b3aeaeb581ada3f1f0">[email&#160;protected]</a> conf]</span><span style="color: #008000;">#</span><span style="color: #008000;"> curl -H host:bbs.etiantian.org  10.0.0.7</span>
+web02 bbs</pre>
+</div>
+</div>
+<h3>2.1.6 查看虚拟ip状态</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="32405d5d46725e500203">[email&#160;protected]</a> conf]<span style="color: #008000;">#</span><span style="color: #008000;"> ip a</span>
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536<span style="color: #000000;"> qdisc noqueue state UNKNOWN 
+    link</span>/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00<span style="color: #000000;">
+    inet </span>127.0.0.1/8<span style="color: #000000;"> scope host lo
+    inet6 ::</span>1/128<span style="color: #000000;"> scope host 
+       valid_lft forever preferred_lft forever
+</span>2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000<span style="color: #000000;">
+    link</span>/ether 00:0c:29:90<span style="color: #000000;">:7f:0d brd ff:ff:ff:ff:ff:ff
+    inet </span>10.0.0.5/24 brd 10.0.0.255 scope <span style="color: #0000ff;">global</span><span style="color: #000000;"> eth0
+   <span style="background-color: #ffff00;"> inet </span></span><span style="background-color: #ffff00;">10.0.0.3/24 scope <span style="color: #0000ff;">global</span> secondary eth0:1</span><span style="color: #000000;">
+    inet6 fe80::20c:29ff:fe90:7f0d</span>/64<span style="color: #000000;"> scope link 
+       valid_lft forever preferred_lft forever
+</span>3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000<span style="color: #000000;">
+    link</span>/ether 00:0c:29:90:7f:17<span style="color: #000000;"> brd ff:ff:ff:ff:ff:ff
+    inet </span>172.16.1.5/24 brd 172.16.1.255 scope <span style="color: #0000ff;">global</span><span style="color: #000000;"> eth1
+    inet6 fe80::20c:29ff:fe90:7f17</span>/64<span style="color: #000000;"> scope link 
+       valid_lft forever preferred_lft forever</span></pre>
+</div>
+</div>
+<h3>2.1.7 【总结】配置文件修改</h3>
+<p>　　Keepalived主备配置文件区别：</p>
+<p>　　　　01. router_id 信息不一致</p>
+<p>　　　　02. state 状态描述信息不一致</p>
+<p>　　　　03. priority 主备竞选优先级数值不一致</p>
+<h2>2.2 脑裂</h2>
+<p>&nbsp;&nbsp;&nbsp; 　　在高可用（HA）系统中，当联系2个节点的&ldquo;心跳线&rdquo;断开时，本来为一整体、动作协调的HA系统，就分裂成为2个独立的个体。由于相互失去了联系，都以为是对方出了故障。两个节点上的HA软件像&ldquo;裂脑人&rdquo;一样，争抢&ldquo;共享资源&rdquo;、争起&ldquo;应用服务&rdquo;，就会发生严重后果&mdash;&mdash;或者共享资源被瓜分、2边&ldquo;服务&rdquo;都起不来了；或者2边&ldquo;服务&rdquo;都起来了，但同时读写&ldquo;共享存储&rdquo;，导致数据损坏（常见如数据库轮询着的联机日志出错）。</p>
+<p>&nbsp;　　对付HA系统&ldquo;裂脑&rdquo;的对策，目前达成共识的的大概有以下几条：</p>
+<p>　　　　1）添加冗余的心跳线，例如：双线条线（心跳线也HA），尽量减少&ldquo;裂脑&rdquo;发生几率；</p>
+<p>　　　　2）启用磁盘锁。正在服务一方锁住共享磁盘，&ldquo;裂脑&rdquo;发生时，让对方完全&ldquo;抢不走&rdquo;共享磁盘资源。但使用锁磁盘也会有一个不小的问题，如果占用共享盘的一方不主动&ldquo;解锁&rdquo;，另一方就永远得不到共享磁盘。现实中假如服务节点突然死机或崩溃，就不可能执行解锁命令。后备节点也就接管不了共享资源和应用服务。于是有人在HA中设计了&ldquo;智能&rdquo;锁。即：正在服务的一方只在发现心跳线全部断开（察觉不到对端）时才启用磁盘锁。平时就不上锁了。</p>
+<p>　　　　3）设置仲裁机制。例如设置参考IP（如网关IP），当心跳线完全断开时，2个节点都各自ping一下参考IP，不通则表明断点就出在本端。不仅&ldquo;心跳&rdquo;、还兼对外&ldquo;服务&rdquo;的本端网络链路断了，即使启动（或继续）应用服务也没有用了，那就主动放弃竞争，让能够ping通参考IP的一端去起服务。更保险一些，ping不通参考IP的一方干脆就自我重启，以彻底释放有可能还占用着的那些共享资源。</p>
+<h3>2.2.1 脑裂产生的原因</h3>
+<p>　　一般来说，裂脑的发生，有以下几种原因：</p>
+<p>　　　　? 高可用服务器对之间心跳线链路发生故障，导致无法正常通信。</p>
+<p>　　　　　　　　因心跳线坏了（包括断了，老化）。</p>
+<p>　　　　　　　　因网卡及相关驱动坏了，ip配置及冲突问题（网卡直连）。</p>
+<p>　　　　　　　　因心跳线间连接的设备故障（网卡及交换机）。</p>
+<p>　　　　　　　　因仲裁的机器出问题（采用仲裁的方案）。</p>
+<p>　　　　?&nbsp;&nbsp;高可用服务器上开启了 iptables防火墙阻挡了心跳消息传输。</p>
+<p>　　　　?&nbsp;高可用服务器上心跳网卡地址等信息配置不正确，导致发送心跳失败。</p>
+<p>　　　　?&nbsp;其他服务配置不当等原因，如心跳方式不同，心跳广插冲突、软件Bug等。</p>
+<div>
+<p class="a">　　　　<span style="background-color: #ffff00;"><strong>提示：</strong></span> Keepalived配置里同一 VRRP实例如果 virtual_router_id两端参数配置不一致也会导致裂脑问题发生。</p>
+</div>
+<p>&nbsp;</p>
+<h3>2.2.2 常见的解决方案</h3>
+<p>　　在实际生产环境中，我们可以从以下几个方面来防止裂脑问题的发生：</p>
+<p>　　? 同时使用串行电缆和以太网电缆连接，同时用两条心跳线路，这样一条线路坏了，另一个还是好的，依然能传送心跳消息。</p>
+<p>　　?&nbsp;当检测到裂脑时强行关闭一个心跳节点（这个功能需特殊设备支持，如Stonith、feyce）。相当于备节点接收不到心跳消患，通过单独的线路发送关机命令关闭主节点的电源。</p>
+<p>　　?&nbsp; 做好对裂脑的监控报警（如邮件及手机短信等或值班）.在问题发生时人为第一时间介入仲裁，降低损失。例如，百度的监控报警短倍就有上行和下行的区别。报警消息发送到管理员手机上，管理员可以通过手机回复对应数字或简单的字符串操作返回给服务器.让服务器根据指令自动处理相应故障，这样解决故障的时间更短.</p>
+<p>　　当然，在实施高可用方案时，要根据业务实际需求确定是否能容忍这样的损失。对于一般的网站常规业务.这个损失是可容忍的。</p>
+<h2>2.3 如何进行脑裂情况监控</h2>
+<h3>2.3.1 在什么服务器上进行监控？</h3>
+<p>　　在备服务器上进行监控，可以使用zabbix监控，参考<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/7885990.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/7885990.html'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/7885990.html"  target="_blank">http://www.cnblogs.com/clsn/p/7885990.html</a></p>
+<h3>2.3.2 监控什么信息？</h3>
+<p><em>　　备上面出现vip</em><em>情况：</em></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 　　1）脑裂情况出现</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 　　2）正常主备切换也会出现</p>
+<h3>2.3.3 编写监控脑裂脚本</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f785989883b79b95c7c5">[email&#160;protected]</a> scripts]<span style="color: #008000;">#</span><span style="color: #008000;"> vim check_keepalived.sh</span><span style="color: #008000;">
+#</span><span style="color: #008000;">!/bin/bash</span>
+
+<span style="color: #0000ff;">while</span><span style="color: #000000;"> true
+do
+</span><span style="color: #0000ff;">if</span> [ `ip a show eth0 |grep 10.0.0.3|wc -l` -<span style="color: #000000;">ne 0 ]
+then
+    echo </span><span style="color: #800000;">"</span><span style="color: #800000;">keepalived is error!</span><span style="color: #800000;">"</span>
+<span style="color: #0000ff;">else</span><span style="color: #000000;">
+    echo </span><span style="color: #800000;">"</span><span style="color: #800000;">keepalived is OK !</span><span style="color: #800000;">"</span><span style="color: #000000;">
+fi
+done</span></pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="background-color: #ffff00;">编写完脚本后要给脚本赋予执行权限</span></p>
+<h3>2.3.4 测试 确保两台负载均衡能够正常负载</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c8baa7a7bc88a4aaf8f9">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl -H Host:www.etiantian.org 10.0.0.5</span>
+<span style="color: #000000;">web01 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f3819c9c87b39f91c3c2">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl -H Host:www.etiantian.org 10.0.0.6</span>
+<span style="color: #000000;">web01 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3745585843775b550706">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl -H Host:bbs.etiantian.org 10.0.0.6</span>
+<span style="color: #000000;">web02 bbs
+ [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7a0815150e3a16184a4b">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl -H Host:www.etiantian.org 10.0.0.5</span>
+web03 www&nbsp;</pre>
+</div>
+</div>
+<h2>2.4 排错过程</h2>
+<p>　　1）利用负载均衡服务器，在服务器上curl所有的节点信息（web服务器配置有问题）</p>
+<p>　　2）curl 负载均衡服务器地址，可以实现负载均衡</p>
+<p>　　3）windows上绑定虚拟IP，浏览器上进行测试</p>
+<p><strong>　　　　<span style="background-color: #ffff00;">keepalived</span></strong><span style="background-color: #ffff00;"><strong>日志文件位置 /var/log/messages</strong></span></p>
+<h2>2.5 更改nginx反向代理配置 只监听vip地址</h2>
+<p>修改nginx监听参数&nbsp;&nbsp;<span class="cnblogs_code">listen 10.0.0.3:80;</span>&nbsp;</p>
+<p>修改内核参数，实现监听本地不存在的ip</p>
+<div>
+<div class="cnblogs_code">
+<pre>echo <span style="color: #800000;">'</span><span style="color: #800000;">net.ipv4.ip_nonlocal_bind = 1</span><span style="color: #800000;">'</span> >>/etc/<span style="color: #000000;">sysctl.conf
+sysctl </span>-<span style="color: #000000;">p
+
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f98b96968db9959bc9cb">[email&#160;protected]</a> conf]</span><span style="color: #008000;">#</span><span style="color: #008000;"> cat /proc/sys/net/ipv4/ip_nonlocal_bind</span>
+&nbsp;</pre>
+</div>
+</div>
+<h2>2.6 让keepalived监控nginx</h2>
+<div>
+<div class="cnblogs_code">
+<pre>ps -ef |grep nginx |grep -v grep |wc -l</pre>
+</div>
+</div>
+<p>　　编写执行脚本</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;">!/bin/bash</span>
+
+<span style="color: #0000ff;">while</span><span style="color: #000000;"> true
+do
+</span><span style="color: #0000ff;">if</span> [ `ps -ef |grep nginx |grep -v grep |wc -l` -lt 2<span style="color: #000000;"> ]
+then
+   </span>/etc/init.d/<span style="color: #000000;">keepalived stop
+   exit
+fi
+done</span></pre>
+</div>
+</div>
+<div>
+<p class="a"><strong>注意脚本的授权</strong></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="691b06061d29050b5958">[email&#160;protected]</a> scripts]<span style="color: #008000;">#</span><span style="color: #008000;"> chmod +x check_www.sh</span></pre>
+</div>
+</div>
+<h3>2.6.1 使用keepalived的监控脚本</h3>
+<p>　　<span style="background-color: #00ff00;">说明 执行的脚本名称尽量不要和服务名称相同或相似</span></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="82f0ededf6c2eee0b2b3">[email&#160;protected]</a> scripts]<span style="color: #008000;">#</span><span style="color: #008000;"> cat /etc/keepalived/keepalived.conf</span>
+! Configuration File <span style="color: #0000ff;">for</span><span style="color: #000000;"> keepalived
+
+global_defs {
+   router_id lb01
+}
+
+vrrp_script check {     </span><span style="color: #008000;">#</span><span style="color: #008000;">定义脚本</span>
+   script <span style="color: #800000;">"</span><span style="color: #800000;">&ldquo;/server/scripts/check_web.sh</span><span style="color: #800000;">"</span>  ---<span style="color: #000000;"> 表示将一个脚本信息赋值给变量check_web
+   interval </span>2    ---<span style="color: #000000;"> 执行监控脚本的间隔时间
+   weight </span>2  ---<span style="color: #000000;">利用权重值和优先级进行运算，从而降低主服务优先级使之变为备服务器（建议先忽略）
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    virtual_router_id </span>51<span style="color: #000000;">
+    priority </span>150<span style="color: #000000;">
+    advert_int </span>1<span style="color: #000000;">
+    authentication {
+        auth_type PASS
+        auth_pass </span>1111<span style="color: #000000;">
+    }
+    virtual_ipaddress {
+        </span>10.0.0.3/24 dev eth0 label eth0:1<span style="color: #000000;">
+    }
+    track_script {     </span><span style="color: #008000;">#</span><span style="color: #008000;">调用脚本</span>
+<span style="color: #000000;">       check
+    }
+}</span></pre>
+</div>
+</div>
+<h2>2.7 多实例的配置</h2>
+<h3>2.7.1 lb01的keepalived配置文件</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="22504d4d56624e401213">[email&#160;protected]</a> scripts]<span style="color: #008000;">#</span><span style="color: #008000;"> cat  /etc/keepalived/keepalived.conf </span>
+! Configuration File <span style="color: #0000ff;">for</span><span style="color: #000000;"> keepalived
+
+global_defs {
+   router_id lb01
+}
+
+vrrp_script check {
+   script </span><span style="color: #800000;">"</span><span style="color: #800000;">/server/scripts/check_www.sh</span><span style="color: #800000;">"</span><span style="color: #000000;">
+   interval </span>2<span style="color: #000000;"> 
+   weight </span>2<span style="color: #000000;">
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    virtual_router_id </span>51<span style="color: #000000;">
+    priority </span>150<span style="color: #000000;">
+    advert_int </span>1<span style="color: #000000;">
+    authentication {
+        auth_type PASS
+        auth_pass </span>1111<span style="color: #000000;">
+    }
+    virtual_ipaddress {
+        </span>10.0.0.3/24 dev eth0 label eth0:1<span style="color: #000000;">
+    }
+    track_script {
+       check
+    }
+}
+vrrp_instance VI_2 {
+    state BACKUP
+    interface eth0
+    virtual_router_id </span>52<span style="color: #000000;">
+    priority </span>100<span style="color: #000000;">
+    advert_int </span>1<span style="color: #000000;">
+    authentication {
+        auth_type PASS
+        auth_pass </span>1111<span style="color: #000000;">
+    }
+    virtual_ipaddress {
+        </span>10.0.0.4/24 dev eth0 label eth0:2<span style="color: #000000;">
+    }
+}</span></pre>
+</div>
+</div>
+<h3>2.7.2 修改lb02的keepalived配置文件</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="32405d5d46725e500200">[email&#160;protected]</a> conf]<span style="color: #008000;">#</span><span style="color: #008000;"> cat /etc/keepalived/keepalived.conf </span>
+! Configuration File <span style="color: #0000ff;">for</span><span style="color: #000000;"> keepalived
+
+global_defs {
+   router_id lb02
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth0
+    virtual_router_id </span>51<span style="color: #000000;">
+    priority </span>100<span style="color: #000000;">
+    advert_int </span>1<span style="color: #000000;">
+    authentication {
+        auth_type PASS
+        auth_pass </span>1111<span style="color: #000000;">
+    }
+    virtual_ipaddress {
+     </span>10.0.0.3 dev eth0 label eth0:1<span style="color: #000000;">
+    }
+}
+vrrp_instance VI_2 {
+    state MASTER
+    interface eth0
+    virtual_router_id </span>52<span style="color: #000000;">
+    priority </span>150<span style="color: #000000;">
+    advert_int </span>1<span style="color: #000000;">
+    authentication {
+        auth_type PASS
+        auth_pass </span>1111<span style="color: #000000;">
+    }
+    virtual_ipaddress {
+     </span>10.0.0.4 dev eth0 label eth0:2<span style="color: #000000;">
+    }
+}</span></pre>
+</div>
+</div>
+<p>修改nginx配置文件，让bbs 与www分别监听不同的ip地址</p>
+<div>
+<div class="cnblogs_code">
+<pre>worker_processes  1<span style="color: #000000;">;
+events {
+    worker_connections  </span>1024<span style="color: #000000;">;
+}
+http {
+    include       mime.types;
+    default_type  application</span>/octet-<span style="color: #000000;">stream;
+    sendfile        on;
+    keepalive_timeout  </span>65<span style="color: #000000;">;                           
+    upstream server_pools {
+      server </span>10.0.0.7:80<span style="color: #000000;">;
+      server </span>10.0.0.8:80<span style="color: #000000;">;
+      server </span>10.0.0.9:80<span style="color: #000000;">;
+    }
+    server {
+        listen </span>10.0.0.3:80<span style="color: #000000;">;
+        server_name www.etiantian.org;
+        location </span>/<span style="color: #000000;"> {
+            proxy_pass http:</span>//<span style="color: #000000;">server_pools;
+            proxy_set_header Host $host;
+            proxy_set_header X</span>-Forwarded-<span style="color: #000000;">For $remote_addr;
+        }
+    } 
+    server {
+        listen </span>10.0.0.4:80<span style="color: #000000;">;
+        server_name bbs.etiantian.org;
+        location </span>/<span style="color: #000000;"> {
+            proxy_pass http:</span>//<span style="color: #000000;">server_pools;
+            proxy_set_header Host $host;
+            proxy_set_header X</span>-Forwarded-<span style="color: #000000;">For $remote_addr;
+        }
+    } 
+}</span></pre>
+</div>
+</div>
+<p>lb01</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="20524f4f54604c421011">[email&#160;protected]</a> scripts]<span style="color: #008000;">#</span><span style="color: #008000;"> netstat -lntup |grep nginx</span>
+tcp        0      0 10.0.0.3:80                 0.0.0.0:*                   LISTEN      84907/<span style="color: #000000;">nginx         
+tcp        0      0 </span>10.0.0.4:80                 0.0.0.0:*                   LISTEN      84907/nginx         </pre>
+</div>
+</div>
+<p>lb02</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6614090912260a045654">[email&#160;protected]</a> conf]<span style="color: #008000;">#</span><span style="color: #008000;"> netstat -lntup |grep nginx</span>
+tcp        0      0 10.0.0.3:80                 0.0.0.0:*                   LISTEN      12258/<span style="color: #000000;">nginx         
+tcp        0      0 </span>10.0.0.4:80                 0.0.0.0:*                   LISTEN      12258/nginx  </pre>
+</div>
+</div>
+<h2 style="text-align: left;">&nbsp;2.8 keepalived双主模式示意图&nbsp;</h2>
+<p>&nbsp;</p>
+<p style="text-align: right;">&nbsp;<strong>本文出自&ldquo;惨绿少年&rdquo;，欢迎转载，转载请注明出处！http://blog.nmtui.com</strong></p>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="427" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/" rel="category tag">Web应用</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/" rel="category tag">安全</a> <a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/" rel="category tag">自动化</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2017年12月17日<i class="i-time">09:21:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 9490 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx427.html" tppabs="http://clsn.io/clsn/lx427.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx427.html">keepalived实现服务高可用 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/11.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx429.html" tppabs="http://clsn.io/clsn/lx429.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>Nginx的反向代理与负载均衡</span></a><a href="javascript:if(confirm('http://clsn.io/clsn/lx403.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx403.html'" tppabs="http://clsn.io/clsn/lx403.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>MySQL-Select语句高级应用</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx429.html" tppabs="http://clsn.io/clsn/lx429.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="javascript:if(confirm('http://clsn.io/clsn/lx403.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx403.html'" tppabs="http://clsn.io/clsn/lx403.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx427.html#respond" tppabs="http://clsn.io/clsn/lx427.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='427' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx287.html" tppabs="http://clsn.io/clsn/lx287.html" rel="bookmark">MySQL 优化实施方案</a></li> <li><a href="lx957.html" tppabs="http://clsn.io/clsn/lx957.html" rel="bookmark">交换机 路由器 OSI7层模型</a></li> <li><a href="lx899.html" tppabs="http://clsn.io/clsn/lx899.html" rel="bookmark">NTP时间服务器 搭建</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx965.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx965.html'" tppabs="http://clsn.io/clsn/lx965.html" rel="bookmark">定时任务的使用-crond</a></li> <li><a href="lx1105.html" tppabs="http://clsn.io/clsn/lx1105.html" rel="bookmark">OpenSUSE 服务器系统部署</a></li> <li><a href="lx891.html" tppabs="http://clsn.io/clsn/lx891.html" rel="bookmark">FPM定制RPM包实践</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx889.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx889.html'" tppabs="http://clsn.io/clsn/lx889.html" rel="bookmark">定制rpm包-Yum环境搭建</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx993.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx993.html'" tppabs="http://clsn.io/clsn/lx993.html" rel="bookmark">Linux系统优化</a></li> <li><a href="lx268.html" tppabs="http://clsn.io/clsn/lx268.html" rel="bookmark">MongoDB 入门篇</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx996.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx996.html'" tppabs="http://clsn.io/clsn/lx996.html" rel="bookmark">文件的管理</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx427.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx427.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx427.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

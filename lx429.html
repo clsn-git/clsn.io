@@ -1,0 +1,989 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>Nginx的反向代理与负载均衡 | 惨绿少年</title><meta name="description" content="　　简单地说，集群就是指一组（若干个）相互独立的计算机，利用高速通信网络组成的一个较大的计算机服务系统，每个集群节点（即集群中的每台计算机）都是运行各自服务的独立服器。这些服务器之间可以彼此通信，协同向用户提供应用程序、系统资源和数据，并以单一系统的模式加以管理。当用户客户机请求集群系统时，集群给用户的感觉就是一个单一独立的服务器，而实际上用户请求的是一组集群服务器。" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx429.html" tppabs="http://clsn.io/clsn/lx429.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-429 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><i class="be be-arrowright"></i><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/" rel="category tag">Web应用</a><i class="be be-arrowright"></i><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/" rel="category tag">玩转Linux</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>Nginx的反向代理与负载均衡 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-429" class="post-429 post type-post status-publish format-standard hentry category-linux category-web-app category-play-linux category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">Nginx的反向代理与负载均衡</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2017年12月17日<i class="i-time">02:40:00</i></span><span class="comment"><a href="lx429.html#respond" tppabs="http://clsn.io/clsn/lx429.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="javascript:if(confirm('http://clsn.io/clsn/lx429.html?wpzmaction=add&postid=429  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx429.html?wpzmaction=add&postid=429'" tppabs="http://clsn.io/clsn/lx429.html?wpzmaction=add&postid=429" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h2>1.1 集群是什么</h2>
+<p>　　简单地说，集群就是指一组（若干个）相互独立的计算机，利用高速通信网络组成的一个较大的计算机服务系统，每个集群节点（即集群中的每台计算机）都是运行各自服务的独立服器。这些服务器之间可以彼此通信，协同向用户提供应用程序、系统资源和数据，并以单一系统的模式加以管理。当用户客户机请求集群系统时，集群给用户的感觉就是一个单一独立的服务器，而实际上用户请求的是一组集群服务器。</p>
+<p>　　打开谷歌、百度的页面，看起来好简单，也许你觉得用几分钟就可以制作出相似的网页，而实际上，这个页面的背后是由成千上万台服务器集群协同工作的结果。而这么多的服务器维护和管理，以及相互协调工作也许就是读者你未来的工作职责了。</p>
+<p>　　若要用一句话描述集群，即一堆服务器合作做同一件事，这些机器可能需要整个技术团队架构、设计和统一协调管理，这些机器可以分布在一个机房，也可以分布在全国全球各个地区的多个机房。</p>
+<h2>1.2 为什么要有集群</h2>
+<div>
+<p class="a">　　高性能、价格有效性、可伸缩性、高可用性</p>
+<p class="a">　　透明性、可管理性、可编辑性</p>
+</div>
+<h3>1.2.1 集群种类</h3>
+<p><strong>　　负载均衡集群 LB </strong><strong>解决调度问题</strong></p>
+<p><strong>　　高可用集群&nbsp; HA </strong><strong>解决单点故障问题（keeplived</strong><strong>）</strong></p>
+<p>　　高性能计算集群&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; HP 、网络计算集群 GC</p>
+<h3>1.2.2 硬件设备</h3>
+<div>
+<p class="a">　　F5 设备&nbsp; &nbsp;A10</p>
+</div>
+<h3>1.2.3 软件</h3>
+<div>
+<p class="a">　　nginx （7层&nbsp; 1.9版本之后支持4层）、LVS （4层）、HAproxy （4层 7层）</p>
+</div>
+<h3>1.2.4 负载均衡概念说明</h3>
+<p>　　对用户的访问请求进行调度管理</p>
+<p>　　对用户的访问请求进行压力分担</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171217102011343-1991514696.jpg" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Nginx的反向代理与负载均衡" alt="" /></p>
+
+<h3>1.2.5 反向代理</h3>
+<p>　　接收用户请求代替用户向后端访问</p>
+<p>　　反向代理与数据转发的区别</p>
+<h3>1.2.6 压力测试的方式</h3>
+<p>　　ab （apache里的命令）&nbsp;</p>
+<p>　　通过&nbsp;&nbsp;&nbsp;<span class="cnblogs_code"><span style="color: #0000ff;">yum</span> <span style="color: #0000ff;">install</span> httpd-tools</span>&nbsp;&nbsp; 获得</p>
+<h2>1.3 nginx反向代理实践</h2>
+<h3>1.3.1 地址规划说明</h3>
+<div align="center">
+<div align="center">
+<table class="MsoTableGrid" style="border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 174.25pt; border-width: 1pt; border-color: windowtext; background: #a6a6a6; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">HOSTNAME</span></strong></p>
+</td>
+<td style="width: 174.25pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: windowtext; border-right-color: windowtext; border-bottom-color: windowtext; border-left: none; background: #a6a6a6; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">IP</span></strong></p>
+</td>
+<td style="width: 174.3pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: windowtext; border-right-color: windowtext; border-bottom-color: windowtext; border-left: none; background: #a6a6a6; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 174.25pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">lb01</span></p>
+</td>
+<td style="width: 174.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">10.0.0.5</span></p>
+</td>
+<td style="width: 174.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">Nginx </span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">主负载服务器</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 174.25pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">lb02</span></p>
+</td>
+<td style="width: 174.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">10.0.0.6</span></p>
+</td>
+<td style="width: 174.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">nginx </span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">辅负载服务器</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 174.25pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">web01</span></p>
+</td>
+<td style="width: 174.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">10.0.0.8</span></p>
+</td>
+<td style="width: 174.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">web01</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">服务器</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 174.25pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">web02</span></p>
+</td>
+<td style="width: 174.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">10.0.0.7</span></p>
+</td>
+<td style="width: 174.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">web02</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">服务器</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 174.25pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">web03</span></p>
+</td>
+<td style="width: 174.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">10.0.0.9</span></p>
+</td>
+<td style="width: 174.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">web03</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">服务器</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 522.8pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; background: #92d050; padding: 0cm 5.4pt;" colspan="3" width="697">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">说明：</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">以上为实际生产架构负载实现规划内容</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div>
+<p class="a"><strong>ip</strong><strong>命令说明</strong></p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">ip address show  查看ip地址
+ip route show  查看路由信息</span></pre>
+</div>
+</div>
+<h3>1.3.2 反向代理与数据转发的区别</h3>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171217102349374-1087598674.jpg" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Nginx的反向代理与负载均衡" alt="" />&nbsp;</p>
+
+<h3>1.3.3 安装部署nginx过程（安装命令集）</h3>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">yum</span> <span style="color: #0000ff;">install</span> -y pcre-devel openssl-<span style="color: #000000;">devel
+</span><span style="color: #0000ff;">mkdir</span> -p /server/<span style="color: #000000;">tools
+cd </span>/server/<span style="color: #000000;">tools
+</span><span style="color: #0000ff;">wget</span> -q http:<span style="color: #008000;">//</span><span style="color: #008000;">nginx.org/download/nginx-1.10.3.tar.gz</span>
+<span style="color: #0000ff;">ls</span> -l nginx-<span style="color: #800080;">1.10</span>.<span style="color: #800080;">3</span>.<span style="color: #0000ff;">tar</span><span style="color: #000000;">.gz
+useradd www </span>-s /sbin/nologin -<span style="color: #000000;">M
+</span><span style="color: #0000ff;">tar</span> xf nginx-<span style="color: #800080;">1.10</span>.<span style="color: #800080;">3</span>.<span style="color: #0000ff;">tar</span><span style="color: #000000;">.gz
+cd nginx</span>-<span style="color: #800080;">1.10</span>.<span style="color: #800080;">3</span><span style="color: #000000;">
+.</span>/configure  --user=nginx --group=nginx --prefix=/application/nginx-<span style="color: #800080;">1.10</span>.<span style="color: #800080;">3</span> --with-http_stub_status_module  --with-<span style="color: #000000;">http_ssl_module
+</span><span style="color: #0000ff;">make</span>
+<span style="color: #0000ff;">make</span> <span style="color: #0000ff;">install</span>
+<span style="color: #0000ff;">ln</span> -s /application/nginx-<span style="color: #800080;">1.10</span>.<span style="color: #800080;">3</span> /application/ngin</pre>
+</div>
+</div>
+<h3>1.3.4 编写nginx配置文件（统一web服务器配置）</h3>
+<div>
+<div class="cnblogs_code">
+<pre>worker_processes  <span style="color: #800080;">1</span><span style="color: #000000;">;
+events {
+    worker_connections  </span><span style="color: #800080;">1024</span><span style="color: #000000;">;
+}
+http {
+    include       mime.types;
+    default_type  application</span>/octet-<span style="color: #000000;">stream;
+    sendfile        on;
+    keepalive_timeout  </span><span style="color: #800080;">65</span><span style="color: #000000;">;
+    log_format  main  </span><span style="color: #800000;">'</span><span style="color: #800000;">$remote_addr - $remote_user [$time_local] "$request" </span><span style="color: #800000;">'</span>
+                      <span style="color: #800000;">'</span><span style="color: #800000;">$status $body_bytes_sent "$http_referer" </span><span style="color: #800000;">'</span>
+                      <span style="color: #800000;">'</span><span style="color: #800000;">"$http_user_agent" "$http_x_forwarded_for"</span><span style="color: #800000;">'</span><span style="color: #000000;">;
+    server {
+        listen       </span><span style="color: #800080;">80</span><span style="color: #000000;">;
+        server_name  bbs.etiantian.org;
+        location </span>/<span style="color: #000000;"> {
+            root   html</span>/<span style="color: #000000;">bbs;
+            index  index.html index.htm;
+        }
+      access_log  logs</span>/<span style="color: #000000;">access_bbs.log  main;
+    }        
+    server {
+        listen       </span><span style="color: #800080;">80</span><span style="color: #000000;">;
+        server_name  www.etiantian.org;
+        location </span>/<span style="color: #000000;"> {
+            root   html</span>/<span style="color: #000000;">www;
+            index  index.html index.htm;
+        }
+        access_log  logs</span>/<span style="color: #000000;">access_www.log  main;
+    }
+}</span></pre>
+</div>
+</div>
+<h3>1.3.5 统一nginx测试环境 （web文件）</h3>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">mkdir</span> -p /application/nginx/html/<span style="color: #000000;">{www,bbs}
+</span><span style="color: #0000ff;">for</span> name <span style="color: #0000ff;">in</span> www bbs; <span style="color: #0000ff;">do</span> <span style="color: #0000ff;">echo</span> $name `<span style="color: #0000ff;">hostname</span>` >/application/nginx/html/$name/xiaoxinxin.html;<span style="color: #0000ff;">done</span>
+<span style="color: #0000ff;">for</span> name <span style="color: #0000ff;">in</span> www bbs; <span style="color: #0000ff;">do</span> <span style="color: #0000ff;">cat</span> /application/nginx/html/$name/xiaoxinxin.html;<span style="color: #0000ff;">done</span></pre>
+</div>
+</div>
+<h3>1.3.6 测试</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e4968b8b90a48886d4d5">[email&#160;protected]</a> ~]# curl -H host:bbs.etiantian.org  <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.8</span>/<span style="color: #000000;">xiaoxinxin.html
+bbs web01
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1e6c71716a5e727c2e2f">[email&#160;protected]</a> </span>~]# curl -H host:bbs.etiantian.org  <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.7</span>/<span style="color: #000000;">xiaoxinxin.html
+bbs web02
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="86f4e9e9f2c6eae4b6b7">[email&#160;protected]</a> </span>~]# curl -H host:bbs.etiantian.org  <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.9</span>/<span style="color: #000000;">xiaoxinxin.html
+bbs web03
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a9dbc6c6dde9c5cb9998">[email&#160;protected]</a> </span>~]# curl -H host:www.etiantian.org  <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.8</span>/<span style="color: #000000;">xiaoxinxin.html
+www web01
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="483a27273c08242a7879">[email&#160;protected]</a> </span>~]# curl -H host:www.etiantian.org  <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.7</span>/<span style="color: #000000;">xiaoxinxin.html
+www web02
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2d5f4242596d414f1d1c">[email&#160;protected]</a> </span>~]# curl -H host:www.etiantian.org  <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.9</span>/<span style="color: #000000;">xiaoxinxin.html
+www web03</span></pre>
+</div>
+</div>
+<h3>1.3.7 配置负载服务文件</h3>
+<div>
+<div class="cnblogs_code">
+<pre>worker_processes  <span style="color: #800080;">1</span><span style="color: #000000;">;
+events {
+    worker_connections  </span><span style="color: #800080;">1024</span><span style="color: #000000;">;
+}
+http {
+    include       mime.types;
+    default_type  application</span>/octet-<span style="color: #000000;">stream;
+    sendfile        on;
+    keepalive_timeout  </span><span style="color: #800080;">65</span><span style="color: #000000;">;                                  
+    upstream server_pools {
+        server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.7</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+        server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.8</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+        server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.9</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+    } 
+    server {
+        listen </span><span style="color: #800080;">80</span><span style="color: #000000;">;
+        server_name bbs.etiantian.org;
+        location </span>/<span style="color: #000000;"> {
+            proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">server_pools;</span>
+<span style="color: #000000;">        }
+    }</span></pre>
+</div>
+</div>
+<h3>1.3.8 测试访问</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6614090912260a045657">[email&#160;protected]</a> conf]# curl -H host:bbs.etiantian.org <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span>/<span style="color: #000000;">xiaoxinxin.html
+bbs web03
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="53213c3c27133f316362">[email&#160;protected]</a> conf]# curl </span>-H host:bbs.etiantian.org <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span>/<span style="color: #000000;">xiaoxinxin.html
+bbs web02
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bcced3d3c8fcd0de8c8d">[email&#160;protected]</a> conf]# curl </span>-H host:bbs.etiantian.org <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span>/<span style="color: #000000;">xiaoxinxin.html
+bbs web01</span></pre>
+</div>
+</div>
+<h2>1.4 nginx中常用模块说明</h2>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">ngx_http_status_module
+ngx_http_ssl_module
+ngx_http_log_module
+ngx_http_upstream_module
+ngx_http_proxy_module</span></pre>
+</div>
+</div>
+<h3>1.4.1 模块调度算法</h3>
+<div>
+<p class="a">&nbsp;　　&nbsp;&nbsp; ①. 定义轮询调度算法-rr-默认调度算法</p>
+<p class="a">　　&nbsp;&nbsp;&nbsp; ②. 定义权重调度算法-wrr</p>
+<p class="a">&nbsp;&nbsp;　　&nbsp; ③. 定义静态调度算法-ip_hash</p>
+<p class="a">&nbsp;&nbsp;　　&nbsp; ④. 定义最小的连接数-least_conn</p>
+</div>
+<h3>1.4.2 nginx反向代理相关两个模块</h3>
+<p>　　　　upstream 模块 类似与一个池塘，将nginx节点放置到池塘中</p>
+<p>　　　　proxy模块&nbsp; 用池塘里面的nginx节点，利用pr oxy进行调用</p>
+<h3>1.4.3 upstream模块核心参数简介</h3>
+<p>　　　　weight 权重</p>
+<p>　　　　max_fails 抛得次数</p>
+<p>　　　　fail_timeout 失败的超时时间</p>
+<p>　　　　backup&nbsp; 备份</p>
+<h3>1.4.4 weight 参数实践 （权重）</h3>
+<p>　　upstream 模块只能在http区块里</p>
+<div>
+<div class="cnblogs_code">
+<pre>worker_processes  <span style="color: #800080;">1</span><span style="color: #000000;">;
+events {
+    worker_connections  </span><span style="color: #800080;">1024</span><span style="color: #000000;">;
+}
+http {
+    include       mime.types;
+    default_type  application</span>/octet-<span style="color: #000000;">stream;
+    sendfile        on;
+    keepalive_timeout  </span><span style="color: #800080;">65</span><span style="color: #000000;">;
+    upstream server_pools{
+         server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.7</span>:<span style="color: #800080;">80</span> weight=<span style="color: #800080;">1</span><span style="color: #000000;">;
+         server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.8</span>:<span style="color: #800080;">80</span> weight=<span style="color: #800080;">2</span><span style="color: #000000;">;
+    }
+    server{
+       listen </span><span style="color: #800080;">80</span><span style="color: #000000;">;
+       server_name bbs.etiantian.org;
+       location </span>/<span style="color: #000000;"> {
+          proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">server_pools;</span>
+<span style="color: #000000;">       }
+    }
+}</span></pre>
+</div>
+</div>
+<p>测试</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="81f3eeeef5c1f5e4f2f5">[email&#160;protected]</a> tools]# curl <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span><span style="color: #000000;">
+web01 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="05776a6a714571607671">[email&#160;protected]</a> tools]# curl </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span><span style="color: #000000;">
+web01 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cdbfa2a2b98db9a8beb9">[email&#160;protected]</a> tools]# curl </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span><span style="color: #000000;">
+web02 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1b6974746f5b6f7e686f">[email&#160;protected]</a> tools]# curl </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span><span style="color: #000000;">
+web01 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f785989883b783928483">[email&#160;protected]</a> tools]# curl </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span><span style="color: #000000;">
+web01 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9deff2f2e9dde9f8eee9">[email&#160;protected]</a> tools]# curl </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span><span style="color: #000000;">
+web02 www</span></pre>
+</div>
+</div>
+<h3>1.4.5 其他的参数说明</h3>
+<p>　　max_fails&nbsp;&nbsp;&nbsp; 失败的尝试次数</p>
+<p>　　fail_timeout 失败后的再次尝试时间</p>
+<p>　　backup 备份节点：所有的节点都挂掉后数据才会请求web01</p>
+<div>
+<div class="cnblogs_code">
+<pre>server <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.7</span>:<span style="color: #800080;">80</span> weight=<span style="color: #800080;">1</span> max_fails=<span style="color: #800080;">3</span> fail_timeout=<span style="color: #800080;">10</span><span style="color: #000000;"> ;
+server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.8</span>:<span style="color: #800080;">80</span> weight=<span style="color: #800080;">2</span> max_fails=<span style="color: #800080;">3</span> fail_timeout=<span style="color: #800080;">10</span> backup;</pre>
+</div>
+</div>
+<p>测试，将web02停掉</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ed9f828299ad99889e99">[email&#160;protected]</a> tools]# curl <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span><span style="color: #000000;">
+web02 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0b7964647f4b7f6e787f">[email&#160;protected]</a> tools]# curl </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span><span style="color: #000000;">
+web02 www</span></pre>
+</div>
+</div>
+<p>停掉web02后</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5f2d30302b1f2b3a2c2b">[email&#160;protected]</a> tools]# curl <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span><span style="color: #000000;">
+web01 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1f6d70706b5f6b7a6c6b">[email&#160;protected]</a> tools]# curl </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span><span style="color: #000000;">
+web01 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="02706d6d764276677176">[email&#160;protected]</a> tools]# curl </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span></pre>
+</div>
+</div>
+<h3>1.4.6 访问抓包</h3>
+<p>用户请求报文</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171217102759389-1917826599.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Nginx的反向代理与负载均衡" alt="" />&nbsp;</p>
+
+<p>负载均衡请求报文</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171217102839827-407799546.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Nginx的反向代理与负载均衡" alt="" /></p>
+
+<div>
+<p class="a">说明：</p>
+<p class="a">&nbsp;&nbsp;&nbsp; hosts 主机头不同，未配置proxy_set_header Host $host 参数，在负载均衡访问的时候会不带hosts信息。</p>
+</div>
+<h3>1.4.7 upsrteam参数详细说明</h3>
+<table class="MsoTable15Grid4Accent5" style="width: 100%; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 11.8%; border-top-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-top-color: #4472c4; border-bottom-color: #4472c4; border-left-color: #4472c4; border-right: none; background: #4472c4; padding: 0cm 5.4pt;" valign="top" width="11%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 5;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体; color: white; mso-themecolor: background1;" lang="EN-US">upstream</span></strong><strong><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman'; color: white; mso-themecolor: background1;">模块内参数</span></strong></p>
+</td>
+<td style="width: 88.2%; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: #4472c4; border-right-color: #4472c4; border-bottom-color: #4472c4; border-left: none; background: #4472c4; padding: 0cm 5.4pt;" valign="top" width="88%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 1;"><strong><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman'; color: white; mso-themecolor: background1;">参数说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 11.8%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #8eaadb; border-bottom-color: #8eaadb; border-left-color: #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="11%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 68;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">server 10.0.10.8:80</span></strong></p>
+</td>
+<td style="width: 88.2%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="88%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 64;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">负载均衡后面的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">RS</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">配置，可以是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">IP</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">或域名，如果端口不写，默认是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">80</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">端口。</span></p>
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 64;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">高并发场景下，</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US"> IP</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">可换成域名，通过</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US"> DNS</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">做负载均衡。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 11.8%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #8eaadb; border-bottom-color: #8eaadb; border-left-color: #8eaadb; border-top: none; padding: 0cm 5.4pt;" valign="top" width="11%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 4;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">weigth=1</span></strong></p>
+</td>
+<td style="width: 88.2%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; padding: 0cm 5.4pt;" valign="top" width="88%">
+<p class="MsoNormal" style="margin-bottom: .0001pt;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">代表服务器的权重，默认值是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">1</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">。权重数字越大表示接受的请求比例越大。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 11.8%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #8eaadb; border-bottom-color: #8eaadb; border-left-color: #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="11%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 68;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">max_fails=3</span></strong></p>
+</td>
+<td style="width: 88.2%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="88%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 64;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">Nginx</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">尝试连接后端主机失败的次数，这个值是配合</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US"> proxy_next_upstream</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">、</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">fastcgi_next_upstream</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">和</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">memcached_next_upstream </span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">这三个参数来使用的。当</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">nginx</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">接收后端服务器返回这三个参数定义的状态码时，会将这个请求转发给正常工作的后端服务器，例如</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">404</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">、</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">502</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">、</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">503</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">、</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US"> Max_fails</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">的默认值是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">1 ; </span></p>
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 64;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">企业场景下建议</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">2-3</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">次。如京东</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">1</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">次，蓝汛</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">10</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">次，根据业务需求去配置</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 11.8%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #8eaadb; border-bottom-color: #8eaadb; border-left-color: #8eaadb; border-top: none; padding: 0cm 5.4pt;" valign="top" width="11%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 4;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">fail_timeout=10s</span></strong></p>
+</td>
+<td style="width: 88.2%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; padding: 0cm 5.4pt;" valign="top" width="88%">
+<p class="MsoNormal" style="margin-bottom: .0001pt;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">在</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">max_fails</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">定义的失败次数后，距离下次检查的间隔时间，默认是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">10s ;</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">如果</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">max_fails</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">5 ,</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">它就检测</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">5</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">次，如果</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">5</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">次都是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">502,</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">那么，它就会根据</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">fail_timeout</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">的值，等待</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">10s</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">再去检查，还是只检查一次，如果持续</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">502,</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">在不重新加载</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US"> Nginx</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">配置的情况下，每隔</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">10s</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">都只检查一次。常规业务</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">2~3</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">秒比较合理，比如京东</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">3</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">秒，蓝汛</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">3</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">秒，可根据业务需求去配置。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 11.8%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #8eaadb; border-bottom-color: #8eaadb; border-left-color: #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="11%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 68;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">backup</span></strong></p>
+</td>
+<td style="width: 88.2%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="88%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 64;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">热备配置（</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">RS</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">节点的高可用），当前面激活的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">RS</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">都失败后会自动启用热备</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">RS</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">这标志看这个服务器作为备份服务器，若主服务器全部宕机了，就会向它转发请求。</span></p>
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 64;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">注意：当负载调度算法为</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">ip_hash</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">时，后端服务器在负载均衡调度中的状态不能是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">weight</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">和</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">backup</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 11.8%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #8eaadb; border-bottom-color: #8eaadb; border-left-color: #8eaadb; border-top: none; padding: 0cm 5.4pt;" valign="top" width="11%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 4;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">down</span></strong></p>
+</td>
+<td style="width: 88.2%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; padding: 0cm 5.4pt;" valign="top" width="88%">
+<p class="MsoNormal" style="margin-bottom: .0001pt;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">这标志着服务器永远不可用，这个参数可配合</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">ip_hash</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">使用；类似与注释。</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3><span style="font-size: 14px;">　　weight :调节服务器的请求分配权重。</span>1.4.8 上述命令的说明如下：</h3>
+<p>　　　　?check :开启对该服务器健康检查。</p>
+<p>　　　　?inter:设置连续两次的健康检查间隔时间，单位毫秒，默认值2000。</p>
+<p>　　　　?rise :指定多少次连续成功的健康检查后，即可认定该服务器处于可用状态。</p>
+<p>　　　　?fall :指定多少次不成功的健康检查后，即认为服务器为宕机状态，默认值3。</p>
+<p>　　　　? maxconn :指定可被发送到该服务器的最大并发连接数。</p>
+<div>
+<div style="mso-element: para-border-div; border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; mso-border-shadow: yes; background: #F2F2F2; mso-shading: windowtext; mso-pattern: gray-5 auto; margin-left: 38.95pt; margin-right: 76.8pt;">
+<p class="a" style="margin: 1pt 0cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 宋体; mso-hansi-font-family: 宋体;">虽然</span><span lang="EN-US">Nginx</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 宋体; mso-hansi-font-family: 宋体;">本身不支持一致性</span><span lang="EN-US">hash</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 宋体; mso-hansi-font-family: 宋体;">算法，但</span><span lang="EN-US">Nginx</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 宋体; mso-hansi-font-family: 宋体;">的分支</span><span lang="EN-US">Tengine</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 宋体; mso-hansi-font-family: 宋体;">支持。详细可见</span><span lang="EN-US">http://tengine.taobao.org/document_cn/http_upstream_consistent_hash_cn.html</span></p>
+</div>
+</div>
+<h3>1.4.9 ip_hash 参数实践</h3>
+<p>　　每个访问的用户都会生成一个hash值。</p>
+<p>&nbsp;&nbsp;&nbsp; &nbsp; 每个请求按客户端 IP的 hash结果分配，当新的请求到达时，先将其客户端 IP通过哈希算法哈希出一个值，在随后的客户端请求中，客户IP的咍希值只要相同，就会被分配至同一台服务器，该调度算法可以解决动态网页的session共享问题，但有时会导致请求分配不均，即无法保证1:1的负载均衡，因为在国内大多数公司都是NAT上网横式，多个客户端会对应_个外部IP ,所以，这些客户端都会被分配到同一节点服务器，从而导致请求分配不均。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; LVS负载均衡的-p参数、Keepalived配置里的 persistence jimeout 50参数都类似这个 Nginx里的ip_hash参数，其功能都可以解决动态网页的session共享问题。</p>
+<div>
+<div class="cnblogs_code">
+<pre>worker_processes  <span style="color: #800080;">1</span><span style="color: #000000;">;
+events {
+    worker_connections  </span><span style="color: #800080;">1024</span><span style="color: #000000;">;
+}
+http {
+    include       mime.types;
+    default_type  application</span>/octet-<span style="color: #000000;">stream;
+    sendfile        on;
+    keepalive_timeout  </span><span style="color: #800080;">65</span><span style="color: #000000;">;
+    upstream server_pools{
+            ip_hash;
+         server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.7</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+         server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.8</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+    }
+    server{
+       listen </span><span style="color: #800080;">80</span><span style="color: #000000;">;
+       server_name bbs.etiantian.org;
+       location </span>/<span style="color: #000000;"> {
+          proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">server_pools;</span>
+<span style="color: #000000;">       }
+    }
+}</span></pre>
+</div>
+</div>
+<h3>1.4.10 least_conn 参数</h3>
+<p>　　看谁闲，谁闲发送给谁</p>
+<p>　　least_conn算法会根据后端节点的连接数来决定分配情况，哪个机器连接数少就分发。</p>
+<h3>1.4.11 fair 参数</h3>
+<p>　　看谁响应的快</p>
+<p>　　此算法会根据后端节点服务器的响应时间来分配请求,响应时间短的优先分配。这是更加智能的调度算法。此种算法可以依据页面大小和加载时间长短智能地进行负载均衝，也就是根据后端服务器的响应时间来分配请求，响应时间短的优先分配。Nginx本身不支持fair调度算法，如果需要使用这种调度算法，必须下载Nginx的相关模块upstream_fair。</p>
+<p>示例如下：</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">upstream name {
+server </span><span style="color: #800080;">192.168</span>.<span style="color: #800080;">1.1</span><span style="color: #000000;">;
+server </span><span style="color: #800080;">192.168</span>.<span style="color: #800080;">1.2</span><span style="color: #000000;">;
+fair;
+}</span></pre>
+</div>
+<p>　　除了上面这些算法外，还有一些第三方调度算法，例如：url_hash、一致性hash算法等.</p>
+</div>
+<h3>1.4.12 调度算法</h3>
+<p>　　定义轮询调度算法 rr 默认调度算法&nbsp;&nbsp; 平均分配</p>
+<p>　　定义权重调度算法 wrr</p>
+<p>　　定义静态调度算法 ip-hash</p>
+<p>　　定义最小的连接数-least_conn</p>
+<h3>1.4.13 nginx负载均衡相关重要参数</h3>
+<table class="MsoTableGrid" style="width: 100%; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 24.66%; border-width: 1pt; border-color: windowtext; background: #a6a6a6; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">Nginx</span></strong><strong><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">反向代理重要参敎</span></strong></p>
+</td>
+<td style="width: 75.34%; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: windowtext; border-right-color: windowtext; border-bottom-color: windowtext; border-left: none; background: #a6a6a6; padding: 0cm 5.4pt;" width="75%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">解释说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.66%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy.pass http://server_pools;&nbsp; </span></p>
+</td>
+<td style="width: 75.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="75%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">通过</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy_pass</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">功能把用户的清求转向到反向代理定义的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">upstream</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">服务器池</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.66%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy_set_header Host $host</span></p>
+</td>
+<td style="width: 75.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="75%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">在代理向后端服务器发送的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US"> http</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">请求头中加入</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US"> host</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">字段信息，用于当后端服务器配置有多个虚拟主机时，可以识别代理的是哪个虚拟主机。这是节点服务器多虚拟主机时的关键配置</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.66%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy_set_header X-ForwardedFor</span></p>
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">$remote_addr;</span></p>
+</td>
+<td style="width: 75.34%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="75%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">在代理向后端服务器发送的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US"> http</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">请求头中加入</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US"> X-Forward-For</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">字段信息，用于后端服务器程序、日志等接收记录真实用户的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US"> IP ,</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">而不是代理服务器的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US"> IP</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">这是反向代理时，节点服务器获取用户真实</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US"> IP</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">的必要功能配置</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>1.4.14 反向代理排错思路</h3>
+<p><span style="font-size: 14px;">　　01.先在lb01上访问后端节点进行测试</span></p>
+<p>　　02.在lb01上访问本地地址进行测试</p>
+<p>　　03.在浏览器上进行测试</p>
+<p>&nbsp;&nbsp;&nbsp;　　&nbsp;&nbsp;&nbsp;&nbsp; 缓存、域名解析</p>
+<h3>1.4.15 proxy_next_uptream 参数</h3>
+<p>　　当nginx接收后端服务器返回proxy_next_upstream 参数定义的状态码时，会将这个请求转发给正常工作的后端服务器，例如500，502，503，504，此参数可以提升用户的访问体验。</p>
+<h2>1.5 定义多个虚拟主机标签信息</h2>
+<h3>1.5.1 proxy_set_header 参数</h3>
+<p><strong>配置文件</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2755484853674b451716">[email&#160;protected]</a> conf]# <span style="color: #0000ff;">cat</span><span style="color: #000000;"> nginx.conf
+worker_processes  </span><span style="color: #800080;">1</span><span style="color: #000000;">;
+events {
+    worker_connections  </span><span style="color: #800080;">1024</span><span style="color: #000000;">;
+}
+http {
+    include       mime.types;
+    default_type  application</span>/octet-<span style="color: #000000;">stream;
+    sendfile        on;
+    keepalive_timeout  </span><span style="color: #800080;">65</span><span style="color: #000000;">;
+    upstream server_pools{
+         server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.7</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+         server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.8</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+    }
+    server{
+       listen </span><span style="color: #800080;">80</span><span style="color: #000000;">;
+       server_name bbs.etiantian.org;
+       location </span>/<span style="color: #000000;"> {
+          proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">server_pools;</span>
+<span style="color: #000000;">              proxy_set_header Host $host;
+       }
+    }
+    server{
+       listen </span><span style="color: #800080;">80</span><span style="color: #000000;">;
+       server_name www.etiantian.org;
+       location </span>/<span style="color: #000000;"> {
+          proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">server_pools;</span>
+<span style="color: #000000;">               proxy_set_header Host $host;
+       }
+    }
+
+}</span></pre>
+</div>
+</div>
+<p><strong>访问抓包</strong></p>
+<div>
+<p class="a">&nbsp;&nbsp;&nbsp; 该参数在负载服务器在访问后端服务器的时候 会带上hosts信息。</p>
+</div>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171217103232155-575135425.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Nginx的反向代理与负载均衡" alt="" />&nbsp;</p>
+
+<h3>1.5.2 X-Forwarded-For 参数</h3>
+<p>　　<span style="background-color: #00ff00;">proxy_set_header X-Forwarded-For $remote_addr;</span></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 代理的啥时候在后面显示真实的IP地址</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="13617c7c67537f712322">[email&#160;protected]</a> conf]# <span style="color: #0000ff;">cat</span><span style="color: #000000;"> nginx.conf
+worker_processes  </span><span style="color: #800080;">1</span><span style="color: #000000;">;
+events {
+    worker_connections  </span><span style="color: #800080;">1024</span><span style="color: #000000;">;
+}
+http {
+    include       mime.types;
+    default_type  application</span>/octet-<span style="color: #000000;">stream;
+    sendfile        on;
+    keepalive_timeout  </span><span style="color: #800080;">65</span><span style="color: #000000;">;
+    upstream server_pools{
+         server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.8</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+         server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.7</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+         server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.9</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+    }
+    server{
+       listen </span><span style="color: #800080;">80</span><span style="color: #000000;">;
+       server_name bbs.etiantian.org;
+       location </span>/<span style="color: #000000;"> {
+          proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">server_pools;</span>
+<span style="color: #000000;">             proxy_set_header Host $host; 
+          proxy_set_header X</span>-Forwarded-<span style="color: #000000;">For $remote_addr;
+       }
+    }
+    server{
+       listen </span><span style="color: #800080;">80</span><span style="color: #000000;">;
+       server_name www.etiantian.org;
+       location </span>/<span style="color: #000000;"> {
+          proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">server_pools;</span>
+<span style="color: #000000;">             proxy_set_header Host $host;
+             proxy_set_header X</span>-Forwarded-<span style="color: #000000;">For $remote_addr;
+       }
+    }
+    server{
+       listen </span><span style="color: #800080;">80</span><span style="color: #000000;">;
+       server_name blog.etiantian.org;
+       location </span>/<span style="color: #000000;"> {
+          proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">server_pools;</span>
+<span style="color: #000000;">             proxy_set_header Host $host;
+             proxy_set_header X</span>-Forwarded-<span style="color: #000000;">For $remote_addr;
+       }
+    }
+
+}</span></pre>
+</div>
+</div>
+<p><strong>参看日志信息</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #008080;">1</span> <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span> - - [<span style="color: #800080;">30</span>/Oct/<span style="color: #800080;">2017</span>:<span style="color: #800080;">12</span>:<span style="color: #800080;">36</span>:<span style="color: #800080;">10</span> +<span style="color: #800080;">0800</span>] <span style="color: #800000;">"</span><span style="color: #800000;">GET / HTTP/1.0</span><span style="color: #800000;">"</span> <span style="color: #800080;">200</span> <span style="color: #800080;">10</span> <span style="color: #800000;">"</span><span style="color: #800000;">-</span><span style="color: #800000;">"</span> <span style="color: #800000;">"</span><span style="color: #800000;">Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36</span><span style="color: #800000;">"</span> <span style="color: #800000;">"</span><span style="color: #800000;">10.0.0.1</span><span style="color: #800000;">"</span>
+<span style="color: #008080;">2</span> <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span> - - [<span style="color: #800080;">30</span>/Oct/<span style="color: #800080;">2017</span>:<span style="color: #800080;">12</span>:<span style="color: #800080;">36</span>:<span style="color: #800080;">10</span> +<span style="color: #800080;">0800</span>] <span style="color: #800000;">"</span><span style="color: #800000;">GET /favicon.ico HTTP/1.0</span><span style="color: #800000;">"</span> <span style="color: #800080;">404</span> <span style="color: #800080;">571</span> <span style="color: #800000;">"</span><span style="color: #800000;">http://www.etiantian.org/</span><span style="color: #800000;">"</span> <span style="color: #800000;">"</span><span style="color: #800000;">Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36</span><span style="color: #800000;">"</span> <span style="color: #800000;">"</span><span style="color: #800000;">10.0.0.1</span><span style="color: #800000;">"</span></pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 该参数配置，会在访问日志的后面加上真正的访问用户ip</p>
+<h3>1.5.3 http proxy 模块相关参数说明</h3>
+<table class="MsoTableGrid" style="width: 100%; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 20.04%; border-width: 1pt; border-color: windowtext; background: #a6a6a6; padding: 0cm 5.4pt;" width="20%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">http proxy </span></strong><strong><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">模块相关参数</span></strong></p>
+</td>
+<td style="width: 79.96%; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: windowtext; border-right-color: windowtext; border-bottom-color: windowtext; border-left: none; background: #a6a6a6; padding: 0cm 5.4pt;" width="79%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">&nbsp;</span></strong><strong><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 20.04%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="20%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy_set_header</span></p>
+</td>
+<td style="width: 79.96%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="79%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">设置</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">http</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">请求</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">header</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">项传给后端服务器节点，例如：可实现让代理后端的服务器节点获取访问客户端用户的真实</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">IP</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">地址</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 20.04%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="20%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">client_body_buffer_size</span></p>
+</td>
+<td style="width: 79.96%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="79%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">用于指定客户端请求主体缓冲区大小</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 20.04%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="20%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy_connect_timeout</span></p>
+</td>
+<td style="width: 79.96%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="79%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">表示反向代理后端节点服务器连接的超时时间，即发起握手等候响应的超时时间</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 20.04%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="20%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy_send_timeout</span></p>
+</td>
+<td style="width: 79.96%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="79%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">表示代理后端服务器的数据回传时间，即在规定时间内后端服务器必须传完所有数据，否则</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">nginx</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">将断开这个连接</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 20.04%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="20%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy_read_timeout</span></p>
+</td>
+<td style="width: 79.96%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="79%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">设置</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">nginx</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">从代理的后端服务器获取信息的时间，表示连接建立成功后，</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">nginx</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">等待后端服务器的响应时间，其实是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">nginx</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">已经进入后端的排队之中等候处理的时间</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 20.04%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="20%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy_buffer_size</span></p>
+</td>
+<td style="width: 79.96%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" valign="top" width="79%">
+<p class="MsoNormal" style="margin-bottom: .0001pt;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">设置缓冲区大小，默认该缓冲区大小等于指令</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy_buffers</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">设置的大小</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 20.04%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="20%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy_buffers</span></p>
+</td>
+<td style="width: 79.96%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="79%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">设置缓冲区的数量和大小，</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">nginx</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">从代理的后端服务器获取的响应信息，会设置到缓冲区</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 20.04%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="20%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy_busy_buffers_size</span></p>
+</td>
+<td style="width: 79.96%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="79%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">用于设置相同很忙时可以使用的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy_buffers</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">大小，官方推荐的大小为</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US"> proxy_buffers * 2</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 20.04%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="20%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy_trmp_file_write_size</span></p>
+</td>
+<td style="width: 79.96%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="79%">
+<p class="MsoNormal" style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">指定</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">proxy</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">缓存临时文件的大小</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2><span style="font-size: 1.17em;">1.6.1 相据URL目录地址转发的应用场景</span>1.6 基于目录（uri）进行转发--网站动静分离</h2>
+<p>　　根据HTTP的URL进行转发的应用情况，被称为第7层（应用层）的负载均衡，而LVS的负载均衡一般用于TCP等的转发，因此被称为第4层（传输层）的负载均衡。</p>
+<p>　　在企业中，有时希望只用一个域名对外提供服务，不希望使用多个域名对应同一个产品业务，此时就需要在代理服务器上通过配置规则，使得匹配不同规则的请求会交给不同的服务器池处理。这类业务有：</p>
+<p>　　? 业务的域名没有拆分或者不希望拆分，但希望实现动静分离、多业务分离，</p>
+<p>　　?&nbsp;不同的客户端设备（例如：手机和 PC端）使用同一个域名访问同一个业务网站，就需要根 据规则将不同设备的用户请求交给后端不同的服务器处理，以便得到最佳用户体验。</p>
+<p style="text-align: center;">&nbsp;&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171217103438604-1718117592.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Nginx的反向代理与负载均衡" alt="" /></p>
+
+<h3>1.6.2 第一个里程碑： 服务器规划</h3>
+<div align="center">
+<div align="center">
+<table class="MsoTable15Grid4Accent5" style="border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 139.65pt; border-top-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-top-color: #4472c4; border-bottom-color: #4472c4; border-left-color: #4472c4; border-right: none; background: #4472c4; padding: 0cm 5.4pt;" valign="top" width="186">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 5;"><strong><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman'; color: white; mso-themecolor: background1;">目录（</span></strong><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体; color: white; mso-themecolor: background1;" lang="EN-US">uri</span></strong><strong><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman'; color: white; mso-themecolor: background1;">）</span></strong></p>
+</td>
+<td style="width: 130.45pt; border-top-width: 1pt; border-top-color: #4472c4; border-left: none; border-bottom-width: 1pt; border-bottom-color: #4472c4; border-right: none; background: #4472c4; padding: 0cm 5.4pt;" valign="top" width="174">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 1;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体; color: white; mso-themecolor: background1;" lang="EN-US">ip</span></strong></p>
+</td>
+<td style="width: 126.35pt; border-top-width: 1pt; border-top-color: #4472c4; border-left: none; border-bottom-width: 1pt; border-bottom-color: #4472c4; border-right: none; background: #4472c4; padding: 0cm 5.4pt;" valign="top" width="168">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 1;"><strong><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman'; color: white; mso-themecolor: background1;">服务器目录</span></strong></p>
+</td>
+<td style="width: 126.35pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: #4472c4; border-right-color: #4472c4; border-bottom-color: #4472c4; border-left: none; background: #4472c4; padding: 0cm 5.4pt;" valign="top" width="168">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 1;"><strong><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman'; color: white; mso-themecolor: background1;">类型</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 139.65pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #8eaadb; border-bottom-color: #8eaadb; border-left-color: #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="186">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 68;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">/upload</span></strong></p>
+</td>
+<td style="width: 130.45pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="174">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 64;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">10.0.0.8:80</span></p>
+</td>
+<td style="width: 126.35pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="168">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 64;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">html/www/upload</span></p>
+</td>
+<td style="width: 126.35pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="168">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 64;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">upload</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">服务器</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 139.65pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #8eaadb; border-bottom-color: #8eaadb; border-left-color: #8eaadb; border-top: none; padding: 0cm 5.4pt;" valign="top" width="186">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 4;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">/static</span></strong></p>
+</td>
+<td style="width: 130.45pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; padding: 0cm 5.4pt;" valign="top" width="174">
+<p class="MsoNormal" style="margin-bottom: .0001pt;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">10.0.0.7:80</span></p>
+</td>
+<td style="width: 126.35pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; padding: 0cm 5.4pt;" valign="top" width="168">
+<p class="MsoNormal" style="margin-bottom: .0001pt;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">html/www/static</span></p>
+</td>
+<td style="width: 126.35pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; padding: 0cm 5.4pt;" valign="top" width="168">
+<p class="MsoNormal" style="margin-bottom: .0001pt;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">static</span><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">静态服务器</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 139.65pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #8eaadb; border-bottom-color: #8eaadb; border-left-color: #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="186">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 68;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">/</span></strong></p>
+</td>
+<td style="width: 130.45pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="174">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 64;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">10.0.0.9:80</span></p>
+</td>
+<td style="width: 126.35pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="168">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 64;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; mso-fareast-font-family: 宋体;" lang="EN-US">html/www</span></p>
+</td>
+<td style="width: 126.35pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #8eaadb; border-right-width: 1pt; border-right-color: #8eaadb; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="168">
+<p class="MsoNormal" style="margin-bottom: .0001pt; mso-yfti-cnfc: 64;"><span style="font-size: 10.0pt; font-family: 宋体; mso-ascii-font-family: 'Times New Roman'; mso-hansi-font-family: 'Times New Roman'; mso-bidi-font-family: 'Times New Roman';">默认</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3>1.6.3 第二个里程碑：创建/设置upstream负载信息</h3>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">upstream upload_pools {
+  server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.8</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+}
+upstream static_pools {
+  server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.7</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+}
+upstream default_pools {
+  server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.9</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+}</span></pre>
+</div>
+</div>
+<h3>1.6.4 第三个里程碑：如何调用upstream信息</h3>
+<div>
+<div class="cnblogs_code">
+<pre>location /static/<span style="color: #000000;"> { 
+    proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">static_pools;</span>
+<span style="color: #000000;">    proxy_set_header Host $host;
+    proxy_set_header X</span>-Forwarded-<span style="color: #000000;">For $remote_addr;
+}
+ location </span>/upload/<span style="color: #000000;"> { 
+    proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">upload_pools;</span>
+<span style="color: #000000;">    proxy_set_header Host $host;
+    proxy_set_header X</span>-Forwarded-<span style="color: #000000;">For $remote_addr;
+}
+ location </span>/<span style="color: #000000;"> { 
+    proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">default_pools;</span>
+<span style="color: #000000;">    proxy_set_header Host $host;
+    proxy_set_header X</span>-Forwarded-<span style="color: #000000;">For $remote_addr;
+}</span></pre>
+</div>
+</div>
+<h3>1.6.5 第四个里程碑： 编写配置文件lb01</h3>
+<div>
+<div class="cnblogs_code">
+<pre>worker_processes  <span style="color: #800080;">1</span><span style="color: #000000;">;
+events {
+    worker_connections  </span><span style="color: #800080;">1024</span><span style="color: #000000;">;
+}
+http {
+    include       mime.types;
+    default_type  application</span>/octet-<span style="color: #000000;">stream;
+    sendfile        on;
+    keepalive_timeout  </span><span style="color: #800080;">65</span><span style="color: #000000;">;
+    log_format  main  </span><span style="color: #800000;">'</span><span style="color: #800000;">$remote_addr - $remote_user [$time_local] "$request" </span><span style="color: #800000;">'</span>
+                      <span style="color: #800000;">'</span><span style="color: #800000;">$status $body_bytes_sent "$http_referer" </span><span style="color: #800000;">'</span>
+                      <span style="color: #800000;">'</span><span style="color: #800000;">"$http_user_agent" "$http_x_forwarded_for"</span><span style="color: #800000;">'</span><span style="color: #000000;">;                      
+    upstream upload_pools {
+      server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.8</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+    }
+
+    upstream static_pools {
+      server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.7</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+    }
+
+    upstream default_pools {
+      server </span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.9</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+    }
+
+    server {
+        listen </span><span style="color: #800080;">80</span><span style="color: #000000;">;
+        server_name www.etiantian.org;
+    location </span>/static/<span style="color: #000000;"> { 
+        proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">static_pools;</span>
+<span style="color: #000000;">        proxy_set_header Host $host;
+        proxy_set_header X</span>-Forwarded-<span style="color: #000000;">For $remote_addr;
+    }
+
+        location </span>/upload/<span style="color: #000000;"> { 
+            proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">upload_pools;</span>
+<span style="color: #000000;">        proxy_set_header Host $host;
+        proxy_set_header X</span>-Forwarded-<span style="color: #000000;">For $remote_addr;
+    }
+
+     location </span>/<span style="color: #000000;"> { 
+            proxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">default_pools;</span>
+<span style="color: #000000;">        proxy_set_header Host $host;
+        proxy_set_header X</span>-Forwarded-<span style="color: #000000;">For $remote_addr;
+    }
+         access_log  logs</span>/<span style="color: #000000;">access_www.log  main;
+    }
+}</span></pre>
+</div>
+</div>
+<h3>1.6.6 第五个里程碑： 创建环境</h3>
+<div>
+<div class="cnblogs_code">
+<pre>www.etiantian.org/<span style="color: #000000;">xxx.html
+www.etiantian.org</span>/upload/<span style="color: #000000;">xxx.html
+www.etiantian.org</span>/static/xxx.html </pre>
+</div>
+</div>
+<p>##web01</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">mkdir</span> -p /application/nginx/html/www/<span style="color: #000000;">upload
+</span><span style="color: #0000ff;">echo</span>  <span style="color: #800000;">"</span><span style="color: #800000;">web01 upload</span><span style="color: #800000;">"</span> >/application/nginx/html/www/upload/xxx.html </pre>
+</div>
+</div>
+<p>##web02</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">mkdir</span> -p /application/nginx/html/www/<span style="color: #000000;">static
+</span><span style="color: #0000ff;">echo</span>  <span style="color: #800000;">"</span><span style="color: #800000;">web02 static</span><span style="color: #800000;">"</span> >/application/nginx/html/www/static/xxx.html </pre>
+</div>
+</div>
+<p>##web03</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">echo</span>  <span style="color: #800000;">"</span><span style="color: #800000;">web03 default</span><span style="color: #800000;">"</span> >/application/nginx/html/www/xxx.html</pre>
+</div>
+</div>
+<h3>1.6.7 第六个里程碑： 进行测试</h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="394b56564d79555b0908">[email&#160;protected]</a> conf]# curl -H  host:www.etiantian.org  <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span>/upload/<span style="color: #000000;">
+web01 upload:</span>/application/nginx/html/www/<span style="color: #000000;">upload
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a2d0cdcdd6e2cec09293">[email&#160;protected]</a> conf]# curl </span>-H  host:www.etiantian.org  <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span>/static/<span style="color: #000000;">
+web02,</span>/application/nginx/html/www/<span style="color: #000000;">static
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0c7e6363784c606e3c3d">[email&#160;protected]</a> conf]# curl </span>-H  host:www.etiantian.org  <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span>/<span style="color: #000000;">
+web03 www</span></pre>
+</div>
+<p>浏览器进行访问测试</p>
+<p align="center">&nbsp;<img src="1190037-20171217103639149-1325863413.png" tppabs="http://clsn.io/wp-content/uploads/2018/03/1190037-20171217103639149-1325863413.png" alt="Nginx的反向代理与负载均衡" alt="" /><img src="1190037-20171217103643054-1900020321.png" tppabs="http://clsn.io/wp-content/uploads/2018/03/1190037-20171217103643054-1900020321.png" alt="Nginx的反向代理与负载均衡" alt="" /><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171217103646349-563920899.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Nginx的反向代理与负载均衡" alt="" />&nbsp;</p>
+
+<h2>1.7 根据客户端的设备实现转发（user_agent）</h2>
+<h3>1.7.1 user_agent的应用</h3>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171217103720922-20796782.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Nginx的反向代理与负载均衡" alt="" /></p>
+
+<h3>1.7.2 修改lb01配置文件&nbsp;</h3>
+<div>
+<div class="cnblogs_code" onclick="cnblogs_code_show('a5fab604-162f-4ee1-b327-47a219d21cc2')"><img id="code_img_closed_a5fab604-162f-4ee1-b327-47a219d21cc2" class="code_img_closed" src="ContractedBlock-7.gif" tppabs="http://clsn.io/wp-content/uploads/2018/03/ContractedBlock-7.gif" alt="Nginx的反向代理与负载均衡" alt="" /><img id="code_img_opened_a5fab604-162f-4ee1-b327-47a219d21cc2" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('a5fab604-162f-4ee1-b327-47a219d21cc2',event)" data-original="http://clsn.io/wp-content/uploads/2018/03/ExpandedBlockStart-7.gif" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Nginx的反向代理与负载均衡" alt="" /></p>
+
+<div id="cnblogs_code_open_a5fab604-162f-4ee1-b327-47a219d21cc2" class="cnblogs_code_hide">
+<pre><span style="color: #008080;"> 1</span> worker_processes  <span style="color: #800080;">1</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">events {
+</span><span style="color: #008080;"> 3</span>     worker_connections  <span style="color: #800080;">1024</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">}
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">http {
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">    include       mime.types;
+</span><span style="color: #008080;"> 7</span>     default_type  application/octet-<span style="color: #000000;">stream;
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">    sendfile        on;
+</span><span style="color: #008080;"> 9</span>     keepalive_timeout  <span style="color: #800080;">65</span><span style="color: #000000;">;
+</span><span style="color: #008080;">10</span>     log_format  main  <span style="color: #800000;">'</span><span style="color: #800000;">$remote_addr - $remote_user [$time_local] "$request" </span><span style="color: #800000;">'</span>
+<span style="color: #008080;">11</span>                       <span style="color: #800000;">'</span><span style="color: #800000;">$status $body_bytes_sent "$http_referer" </span><span style="color: #800000;">'</span>
+<span style="color: #008080;">12</span>                       <span style="color: #800000;">'</span><span style="color: #800000;">"$http_user_agent" "$http_x_forwarded_for"</span><span style="color: #800000;">'</span><span style="color: #000000;">;
+</span><span style="color: #008080;">13</span>                                     
+<span style="color: #008080;">14</span> <span style="color: #000000;">    upstream upload_pools {
+</span><span style="color: #008080;">15</span>       server <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.8</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">17</span> 
+<span style="color: #008080;">18</span> <span style="color: #000000;">    upstream static_pools {
+</span><span style="color: #008080;">19</span>       server <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.7</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">21</span> 
+<span style="color: #008080;">22</span> <span style="color: #000000;">    upstream default_pools {
+</span><span style="color: #008080;">23</span>       server <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.9</span>:<span style="color: #800080;">80</span><span style="color: #000000;">;
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">25</span> 
+<span style="color: #008080;">26</span> <span style="color: #000000;">    server {
+</span><span style="color: #008080;">27</span>         listen <span style="color: #800080;">80</span><span style="color: #000000;">;
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">        server_name www.etiantian.org;
+</span><span style="color: #008080;">29</span>         location /<span style="color: #000000;"> {
+</span><span style="color: #008080;">30</span>          <span style="color: #0000ff;">if</span> ($http_user_agent ~* <span style="color: #800000;">"</span><span style="color: #800000;">MSIE</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">          {
+</span><span style="color: #008080;">32</span>             proxy_pass http:<span style="color: #008000;">//</span><span style="color: #008000;">static_pools;</span>
+<span style="color: #008080;">33</span> <span style="color: #000000;">          }
+</span><span style="color: #008080;">34</span>          <span style="color: #0000ff;">if</span> ($http_user_agent ~* <span style="color: #800000;">"</span><span style="color: #800000;">Chrome</span><span style="color: #800000;">"</span><span style="color: #000000;">)
+</span><span style="color: #008080;">35</span> <span style="color: #000000;">          {
+</span><span style="color: #008080;">36</span>             proxy_pass http:<span style="color: #008000;">//</span><span style="color: #008000;">upload_pools;</span>
+<span style="color: #008080;">37</span> <span style="color: #000000;">          }
+</span><span style="color: #008080;">38</span>         proxy_pass http:<span style="color: #008000;">//</span><span style="color: #008000;">default_pools;</span>
+<span style="color: #008080;">39</span> <span style="color: #000000;">           proxy_set_header Host $host;
+</span><span style="color: #008080;">40</span> <span style="color: #000000;">               }
+</span><span style="color: #008080;">41</span>          access_log  logs/<span style="color: #000000;">access_www.log  main;
+</span><span style="color: #008080;">42</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">43</span> }</pre>
+</div>
+<p><span class="cnblogs_code_collapse">View Code lb01配置文件</span></div>
+</div>
+<h3>1.7.3 进行测试</h3>
+<div>
+<p class="a">　　基于上一步的操作，现在可以之间的进行访问测试</p>
+</div>
+<p>curl -A 指定访问类型</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a2d0cdcdd6e2cec09293">[email&#160;protected]</a> conf]# curl -A MSIE -H host:www.etiantian.org <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span><span style="color: #000000;">
+web02 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="24564b4b506448461415">[email&#160;protected]</a> conf]# curl </span>-A Chrome -H host:www.etiantian.org <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span><span style="color: #000000;">
+web01 www
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2e5c41415a6e424c1e1f">[email&#160;protected]</a> conf]# curl </span>-A xx -H host:www.etiantian.org <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.5</span><span style="color: #000000;">
+web03 www</span></pre>
+</div>
+</div>
+<h2>1.8 利用扩展名进行转发</h2>
+<p>利用后缀名进行转发与nginx中的基于后缀的转跳一样实现。</p>
+<div>
+<div class="cnblogs_code">
+<pre>location ~.*.(gif|ipg|jpeg|png|bmp|swf|css|<span style="color: #000000;">js)$ {
+        peoxy_pass http:</span><span style="color: #008000;">//</span><span style="color: #008000;">static_pools;</span>
+<span style="color: #000000;">           include proxy.conf
+}</span></pre>
+</div>
+<p style="text-align: right;">&nbsp;<strong>本文出自&ldquo;惨绿少年&rdquo;，欢迎转载，转载请注明出处！http://blog.znix.top</strong></p>
+</div>
+<p>&nbsp;</p>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="429" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/" rel="category tag">Web应用</a> <a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/" rel="category tag">玩转Linux</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2017年12月17日<i class="i-time">02:40:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 13585 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx429.html" tppabs="http://clsn.io/clsn/lx429.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx429.html">Nginx的反向代理与负载均衡 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/20.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx442.html" tppabs="http://clsn.io/clsn/lx442.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>MySQL用户管理及SQL语句详解</span></a><a href="lx427.html" tppabs="http://clsn.io/clsn/lx427.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>keepalived实现服务高可用</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx442.html" tppabs="http://clsn.io/clsn/lx442.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx427.html" tppabs="http://clsn.io/clsn/lx427.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx429.html#respond" tppabs="http://clsn.io/clsn/lx429.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='429' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx891.html" tppabs="http://clsn.io/clsn/lx891.html" rel="bookmark">FPM定制RPM包实践</a></li> <li><a href="lx766.html" tppabs="http://clsn.io/clsn/lx766.html" rel="bookmark">用户管理下</a></li> <li><a href="lx194.html" tppabs="http://clsn.io/clsn/lx194.html" rel="bookmark">KVM 虚拟化技术</a></li> <li><a href="lx949.html" tppabs="http://clsn.io/clsn/lx949.html" rel="bookmark">TCP/IP 协议簇 端口 三次握手 四次挥手 11种状态集</a></li> <li><a href="lx920.html" tppabs="http://clsn.io/clsn/lx920.html" rel="bookmark">rsync 服务部署详解</a></li> <li><a href="lx31.html" tppabs="http://clsn.io/clsn/lx31.html" rel="bookmark">Docker 容器入门</a></li> <li><a href="lx966.html" tppabs="http://clsn.io/clsn/lx966.html" rel="bookmark">企业架构规划及服务器优化参数</a></li> <li><a href="lx854.html" tppabs="http://clsn.io/clsn/lx854.html" rel="bookmark">全站HTTPS简单实践</a></li> <li><a href="lx46.html" tppabs="http://clsn.io/clsn/lx46.html" rel="bookmark">Redis 数据库</a></li> <li><a href="lx797.html" tppabs="http://clsn.io/clsn/lx797.html" rel="bookmark">kickstart模式实现批量安装centos7.x系统</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx429.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx429.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx429.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

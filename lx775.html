@@ -1,0 +1,495 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>使用cobbler批量安装操作系统(基于Centos7.x ) | 惨绿少年</title><meta name="description" content="　　Cobbler是一个Linux服务器安装的服务，可以通过网络启动(PXE)的方式来快速安装、重装物理服务器和虚拟机，同时还可以管理DHCP，DNS等。" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx775.html" tppabs="http://clsn.io/clsn/lx775.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-775 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/" rel="category tag">玩转Linux</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><i class="be be-arrowright"></i><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/" rel="category tag">自动化</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>使用cobbler批量安装操作系统(基于Centos7.x ) </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-775" class="post-775 post type-post status-publish format-standard hentry category-linux category-play-linux category-automation category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">使用cobbler批量安装操作系统(基于Centos7.x )</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2017年11月15日<i class="i-time">09:19:00</i></span><span class="comment"><a href="lx775.html#respond" tppabs="http://clsn.io/clsn/lx775.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="javascript:if(confirm('http://clsn.io/clsn/lx775.html?wpzmaction=add&postid=775  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx775.html?wpzmaction=add&postid=775'" tppabs="http://clsn.io/clsn/lx775.html?wpzmaction=add&postid=775" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h2>1.1 cobbler简介</h2>
+<p>　　Cobbler是一个Linux服务器安装的服务，可以通过网络启动(PXE)的方式来快速安装、重装物理服务器和虚拟机，同时还可以管理DHCP，DNS等。</p>
+<p>　　Cobbler可以使用命令行方式管理，也提供了基于Web的界面管理工具(cobbler-web)，还提供了API接口，可以方便二次开发使用。</p>
+<p>　　Cobbler是较早前的kickstart的升级版，优点是比较容易配置，还自带web界面比较易于管理。</p>
+<p>　　Cobbler内置了一个轻量级配置管理系统，但它也支持和其它配置管理系统集成，如Puppet，暂时不支持SaltStack。</p>
+<p>　　Cobbler官网<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://cobbler.github.io  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://cobbler.github.io'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://cobbler.github.io"  target="_blank">http://cobbler.github.io</a></p>
+<p>　　在使用cobbler之前需要了解kickstart的使用：&nbsp;<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/7833333.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/7833333.html'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/7833333.html"  target="_blank">http://www.cnblogs.com/clsn/p/7833333.html</a></p>
+<h3>1.1.1 cobbler集成的服务</h3>
+<p>&nbsp;　　 PXE服务支持</p>
+<p>&nbsp;　　 DHCP服务管理</p>
+<p>&nbsp;　　 DNS服务管理(可选bind,dnsmasq)</p>
+<p>&nbsp; 　　电源管理</p>
+<p>&nbsp; 　　Kickstart服务支持</p>
+<p>&nbsp; 　　YUM仓库管理</p>
+<p>&nbsp; 　　TFTP(PXE启动时需要)</p>
+<p>&nbsp; 　　Apache<strong>(</strong><strong>提供kickstart</strong><strong>的安装源，并提供定制化的kickstart</strong><strong>配置)</strong></p>
+<h2>1.2 安装cobbler</h2>
+<h3>1.2.1 环境说明</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ddafb2b2a99d9eb2bfbfb1b8af">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat /etc/redhat-release</span>
+CentOS Linux release 7.4.1708<span style="color: #000000;"> (Core)
+
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0e7c61617a4e4d616c6c626b7c">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> uname -r</span>
+3.10.0-693<span style="color: #000000;">.el7.x86_64
+
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="beccd1d1cafefdd1dcdcd2dbcc">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> getenforce</span>
+<span style="color: #000000;">Disabled
+
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="760419190236351914141a1304">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> systemctl status firewalld.service</span>
+● firewalld.service - firewalld -<span style="color: #000000;"> dynamic firewall daemon
+   Loaded: loaded (</span>/usr/lib/systemd/system/<span style="color: #000000;">firewalld.service; disabled; vendor preset: enabled)
+   Active: inactive (dead)
+     Docs: man:firewalld(</span>1<span style="color: #000000;">)
+
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="71031e1e0531321e13131d1403">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> hostname -I</span>
+10.0.0.202 172.16.1.202</pre>
+</div>
+</div>
+<p><em>yum</em><em>源说明：</em></p>
+<div>
+<div class="cnblogs_code">
+<pre>curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7<span style="color: #000000;">.repo
+curl </span>-o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo</pre>
+</div>
+</div>
+<h3>1.2.2 使用yum安装cobbler</h3>
+<div>
+<div class="cnblogs_code">
+<pre>yum -y install cobbler cobbler-web dhcp tftp-server pykickstart httpd</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; <em>说明：cobbler</em><em>是依赖与epel</em><em>源下载</em></p>
+<h3>1.2.3 cobbler语法检查前先启动http与cobbler</h3>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">systemctl start httpd.service
+systemctl start cobblerd.service
+cobbler check</span></pre>
+</div>
+</div>
+<h3>1.2.4 进行语法检查</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="63110c0c1723200c01010f0611">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cobbler check</span>
+<span style="color: #000000;">The following are potential configuration items that you may want to fix:
+
+</span>1 : The <span style="color: #800000;">'</span><span style="color: #800000;">server</span><span style="color: #800000;">'</span> field <span style="color: #0000ff;">in</span> /etc/cobbler/settings must be set to something other than localhost, <span style="color: #0000ff;">or</span> kickstarting features will <span style="color: #0000ff;">not</span> work.  This should be a resolvable hostname <span style="color: #0000ff;">or</span> IP <span style="color: #0000ff;">for</span><span style="color: #000000;"> the boot server as reachable by all machines that will use it.
+
+</span>2 : For PXE to be functional, the <span style="color: #800000;">'</span><span style="color: #800000;">next_server</span><span style="color: #800000;">'</span> field <span style="color: #0000ff;">in</span> /etc/cobbler/settings must be set to something other than 127.0.0.1, <span style="color: #0000ff;">and</span><span style="color: #000000;"> should match the IP of the boot server on the PXE network.
+
+</span>3 : change <span style="color: #800000;">'</span><span style="color: #800000;">disable</span><span style="color: #800000;">'</span> to <span style="color: #800000;">'</span><span style="color: #800000;">no</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">in</span> /etc/xinetd.d/<span style="color: #000000;">tftp
+
+</span>4 : Some network boot-loaders are missing <span style="color: #0000ff;">from</span> /var/lib/cobbler/loaders, you may run <span style="color: #800000;">'</span><span style="color: #800000;">cobbler get-loaders</span><span style="color: #800000;">'</span> to download them, <span style="color: #0000ff;">or</span>, <span style="color: #0000ff;">if</span> you only want to handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version of the syslinux package installed <span style="color: #0000ff;">and</span> can ignore this message entirely.  Files <span style="color: #0000ff;">in</span> this directory, should you want to support all architectures, should include pxelinux.0, menu.c32, elilo.efi, <span style="color: #0000ff;">and</span> yaboot. The <span style="color: #800000;">'</span><span style="color: #800000;">cobbler get-loaders</span><span style="color: #800000;">'</span> command <span style="color: #0000ff;">is</span><span style="color: #000000;"> the easiest way to resolve these requirements.
+
+</span>5 : enable <span style="color: #0000ff;">and</span><span style="color: #000000;"> start rsyncd.service with systemctl
+
+</span>6 : debmirror package <span style="color: #0000ff;">is</span> <span style="color: #0000ff;">not</span> installed, it will be required to manage debian deployments <span style="color: #0000ff;">and</span><span style="color: #000000;"> repositories
+
+</span>7 : The default password used by the sample templates <span style="color: #0000ff;">for</span> newly installed machines (default_password_crypted <span style="color: #0000ff;">in</span> /etc/cobbler/settings) <span style="color: #0000ff;">is</span> still set to <span style="color: #800000;">'</span><span style="color: #800000;">cobbler</span><span style="color: #800000;">'</span> <span style="color: #0000ff;">and</span> should be changed, <span style="color: #0000ff;">try</span>: <span style="color: #800000;">"</span><span style="color: #800000;">openssl passwd -1 -salt 'random-phrase-here' 'your-password-here'</span><span style="color: #800000;">"</span><span style="color: #000000;"> to generate new one
+
+</span>8 : fencing tools were <span style="color: #0000ff;">not</span> found, <span style="color: #0000ff;">and</span> are required to use the (optional) power management features. install cman <span style="color: #0000ff;">or</span> fence-<span style="color: #000000;">agents to use them
+
+Restart cobblerd </span><span style="color: #0000ff;">and</span> then run <span style="color: #800000;">'</span><span style="color: #800000;">cobbler sync</span><span style="color: #800000;">'</span> to apply changes.</pre>
+</div>
+</div>
+<h3>1.2.5 解决当中的报错</h3>
+<p><em><span style="text-decoration: underline;">命令集</span></em></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('4fe6c664-64d6-4fbf-af7d-f9f6cee803ba')"><img id="code_img_closed_4fe6c664-64d6-4fbf-af7d-f9f6cee803ba" class="code_img_closed" src="ContractedBlock-16.gif" tppabs="http://clsn.io/wp-content/uploads/2018/03/ContractedBlock-16.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /><img id="code_img_opened_4fe6c664-64d6-4fbf-af7d-f9f6cee803ba" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('4fe6c664-64d6-4fbf-af7d-f9f6cee803ba',event)" data-original="http://clsn.io/wp-content/uploads/2018/03/ExpandedBlockStart-16.gif" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /></p>
+
+<div id="cnblogs_code_open_4fe6c664-64d6-4fbf-af7d-f9f6cee803ba" class="cnblogs_code_hide">
+<pre>sed -i <span style="color: #800000;">'</span><span style="color: #800000;">s/server: 127.0.0.1/server: 172.16.1.202/</span><span style="color: #800000;">'</span> /etc/cobbler/<span style="color: #000000;">settings
+sed </span>-i <span style="color: #800000;">'</span><span style="color: #800000;">s/next_server: 127.0.0.1/next_server: 172.16.1.202/</span><span style="color: #800000;">'</span> /etc/cobbler/<span style="color: #000000;">settings
+sed </span>-i <span style="color: #800000;">'</span><span style="color: #800000;">s/manage_dhcp: 0/manage_dhcp: 1/</span><span style="color: #800000;">'</span> /etc/cobbler/<span style="color: #000000;">settings
+sed </span>-i <span style="color: #800000;">'</span><span style="color: #800000;">s/pxe_just_once: 0/pxe_just_once: 1/</span><span style="color: #800000;">'</span> /etc/cobbler/<span style="color: #000000;">settings
+sed </span>-ri <span style="color: #800000;">"</span><span style="color: #800000;">/default_password_crypted/s#(.*: ).*#\1\"`openssl passwd -1 -salt 'oldboy' '123456'`\"#</span><span style="color: #800000;">"</span> /etc/cobbler/<span style="color: #000000;">settings
+sed </span>-i <span style="color: #800000;">'</span><span style="color: #800000;">s#yes#no#</span><span style="color: #800000;">'</span> /etc/xinetd.d/<span style="color: #000000;">tftp
+
+systemctl start rsyncd
+systemctl enable rsyncd
+systemctl enable tftp.socket
+systemctl start tftp.socket
+systemctl restart cobblerd.service
+
+sed </span>-i.ori <span style="color: #800000;">'</span><span style="color: #800000;">s#192.168.1#172.16.1#g;22d;23d</span><span style="color: #800000;">'</span> /etc/cobbler/<span style="color: #000000;">dhcp.template
+
+cobbler sync</span></pre>
+</div>
+<p><span class="cnblogs_code_collapse">View&nbsp;<em>命令集&nbsp; 单击+打开</em></span></div>
+<p><em><span style="text-decoration: underline;">详解</span></em></p>
+<p><em>解决1</em><em>、2</em></p>
+<div>
+<div class="cnblogs_code">
+<pre>cp /etc/cobbler/<span style="color: #000000;">settings{,.ori}
+sed </span>-i <span style="color: #800000;">'</span><span style="color: #800000;">s/server: 127.0.0.1/server: 172.16.1.202/</span><span style="color: #800000;">'</span> /etc/cobbler/<span style="color: #000000;">settings
+sed </span>-i <span style="color: #800000;">'</span><span style="color: #800000;">s/next_server: 127.0.0.1/next_server: 172.16.1.202/</span><span style="color: #800000;">'</span> /etc/cobbler/settings</pre>
+</div>
+</div>
+<p><em>问题3</em></p>
+<div>
+<div class="cnblogs_code">
+<pre>sed <span style="color: #800000;">'</span><span style="color: #800000;">s#yes#no#g</span><span style="color: #800000;">'</span> /etc/xinetd.d/tftp -i</pre>
+</div>
+</div>
+<p><em>4</em><em>下载包所需的软件包</em></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="aedcc1c1daeeedc1ccccc2cbdc">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cobbler get-loaders</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fd8f929289bdbe929f9f91988f">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ls  /var/lib/cobbler/loaders</span>
+COPYING.elilo     elilo-<span style="color: #000000;">ia64.efi   menu.c32    yaboot
+COPYING.syslinux  grub</span>-<span style="color: #000000;">x86_64.efi  pxelinux.0
+COPYING.yaboot    grub</span>-x86.efi     README</pre>
+</div>
+</div>
+<p><em>5</em><em>启动rsync</em><em>服务</em></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="afddc0c0dbefecc0cdcdc3cadd">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> systemctl start rsyncd.service</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f1839e9e85b1b29e93939d9483">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> systemctl enable rsyncd.service</span></pre>
+</div>
+</div>
+<p><em>6 debian</em><em>相关无需修改</em></p>
+<p><em>7</em><em>、修改安装完成后的root</em><em>密码</em></p>
+<div>
+<div class="cnblogs_code">
+<pre>openssl passwd -1 -salt <span style="color: #800000;">'</span><span style="color: #800000;">random-phrase-here</span><span style="color: #800000;">'</span> <span style="color: #800000;">'</span><span style="color: #800000;">your-password-here</span><span style="color: #800000;">'</span><span style="color: #000000;">
+random</span>-phrase-<span style="color: #000000;">here  随机字符串
+your</span>-password-here 密码</pre>
+</div>
+</div>
+<p><em><span style="text-decoration: underline;">示例</span></em></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0a7865657e4a49656868666f78">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> openssl passwd -1 -salt 'CLSN' '123456'</span>
+$1$CLSN$LpJk4x1cplibx3q/O4O/K/</pre>
+</div>
+</div>
+<p><em>管理dhcp</em></p>
+<div>
+<div class="cnblogs_code">
+<pre>sed -i <span style="color: #800000;">'</span><span style="color: #800000;">s/manage_dhcp: 0/manage_dhcp: 1/</span><span style="color: #800000;">'</span> /etc/cobbler/settings</pre>
+</div>
+</div>
+<p><em><span style="text-decoration: underline;">防止重装</span></em></p>
+<div>
+<div class="cnblogs_code">
+<pre>sed -i <span style="color: #800000;">'</span><span style="color: #800000;">s/pxe_just_once: 0/pxe_just_once: 1/</span><span style="color: #800000;">'</span> /etc/cobbler/settings</pre>
+</div>
+</div>
+<p><em><span style="text-decoration: underline;">修改dhcp</span></em><em><span style="text-decoration: underline;">模板</span></em></p>
+<div>
+<div class="cnblogs_code">
+<pre>sed -i.ori <span style="color: #800000;">'</span><span style="color: #800000;">s#192.168.1#172.16.1#g;22d;23d</span><span style="color: #800000;">'</span> /etc/cobbler/dhcp.template</pre>
+</div>
+</div>
+<p>cobbler组配置文件位置</p>
+<div>
+<div class="cnblogs_code">
+<pre>/etc/cobbler/settings</pre>
+</div>
+</div>
+<p><strong>注意：修改完成之后要使用cobbler sync </strong><strong>进行同步，否则不生效。</strong></p>
+<h3>1.2.6 修改之后</h3>
+<p><em>再次检查语法：</em></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="770518180337341815151b1205">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cobbler check</span>
+<span style="color: #000000;">The following are potential configuration items that you may want to fix:
+
+</span>1 : debmirror package <span style="color: #0000ff;">is</span> <span style="color: #0000ff;">not</span> installed, it will be required to manage debian deployments <span style="color: #0000ff;">and</span><span style="color: #000000;"> repositories
+</span>2 : fencing tools were <span style="color: #0000ff;">not</span> found, <span style="color: #0000ff;">and</span> are required to use the (optional) power management features. install cman <span style="color: #0000ff;">or</span> fence-<span style="color: #000000;">agents to use them
+
+Restart cobblerd </span><span style="color: #0000ff;">and</span> then run <span style="color: #800000;">'</span><span style="color: #800000;">cobbler sync</span><span style="color: #800000;">'</span> to apply changes.</pre>
+</div>
+</div>
+<p>重启所有服务</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">systemctl restart httpd.service
+systemctl restart cobblerd.service
+systemctl restart dhcpd.service
+systemctl restart rsyncd.service
+systemctl restart tftp.socket</span></pre>
+</div>
+</div>
+<p><strong>到此cobbler</strong><strong>就安装完成，下面进行web</strong><strong>界面的操作。</strong></p>
+<h2>1.3 cobbler的web及界面操作</h2>
+<p>浏览器访问<strong><em>https://10.0.0.202/cobbler_web</em></strong></p>
+<p>&nbsp;&nbsp; <em>注意CentOS7</em><em>中cobbler</em><em>只支持https</em><em>访问。</em></p>
+<p><em>&nbsp;&nbsp; </em><em>账号密码默认均为</em><strong>cobbler</strong></p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171117046-397590980.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" />&nbsp;</p>
+
+<h3>1.3.1 操作说明--导入镜像</h3>
+<p>1）在虚拟机上添加上镜像</p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171127546-900178910.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" />&nbsp;</p>
+
+<p>2)挂载上镜像</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="097b66667d494a666b6b656c7b">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> mount /dev/cdrom  /mnt/</span>
+mount: /dev/sr0 <span style="color: #0000ff;">is</span> write-protected, mounting read-<span style="color: #000000;">only
+
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="50223f3f2410133f32323c3522">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> df -h |grep mnt</span>
+/dev/sr0        4.3G  4.3G     0 100% /mnt</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 3)进行导入镜像</p>
+<p>&nbsp;&nbsp; 选择<em>Import DVD</em> &nbsp;输入Prefix(文件前缀)，Arch（版本），Breed（品牌），Path(要从什么地方导入)</p>
+<p>&nbsp;&nbsp; 在导入镜像的时候要注意路径，防止循环导入。</p>
+<p>&nbsp;&nbsp; 信息配置好后，点击run，即可进行导入。</p>
+<p align="center">&nbsp;<img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171154031-1223678363.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /></p>
+
+<p><em>导入过程使用rsync</em><em>进行导入，三个进程消失表示导入完毕</em></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ccbea3a3b88c8fa3aeaea0a9be">[email&#160;protected]</a> mnt]<span style="color: #008000;">#</span><span style="color: #008000;"> ps -ef |grep rsync</span>
+root   12026      1  0 19:04 ?   00:00:00 /usr/bin/rsync --daemon --no-<span style="color: #000000;">detach
+root  </span>13554  11778 12 19:51 ?    00:00:06 rsync -a /mnt/ /var/www/cobbler/ks_mirror/CentOS7.4-x86_64 --<span style="color: #000000;">progress
+root   </span>13555  13554  0 19:51 ?     00:00:00 rsync -a /mnt/ /var/www/cobbler/ks_mirror/CentOS7.4-x86_64 --<span style="color: #000000;">progress
+root   </span>13556  13555 33 19:51 ?        00:00:17 rsync -a /mnt/ /var/www/cobbler/ks_mirror/CentOS7.4-x86_64 --<span style="color: #000000;">progress
+root   </span>13590  10759  0 19:52 pts/1    00:00:00 grep --color=auto rsync</pre>
+</div>
+</div>
+<p>查看日志可以发现右running进程</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 日志位于 <strong>Events</strong></p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171219140-820246395.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" />&nbsp;</p>
+
+<p><em>导入完成后生成的文件夹</em></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a8dac7c7dce8ebc7cacac4cdda">[email&#160;protected]</a> ks_mirror]<span style="color: #008000;">#</span><span style="color: #008000;"> pwd</span>
+/var/www/cobbler/<span style="color: #000000;">ks_mirror
+
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="31435e5e4571725e53535d5443">[email&#160;protected]</a> ks_mirror]</span><span style="color: #008000;">#</span><span style="color: #008000;"> ls</span>
+CentOS7.4-x86_64  config</pre>
+</div>
+</div>
+<h3>1.3.2 创建一台空白虚拟机，进行测试网路安装</h3>
+<p>注意：虚拟机的内存不能小于2G,网卡的配置要保证网络互通</p>
+<p><strong>启动虚拟机</strong></p>
+<p><strong>&nbsp;&nbsp; </strong>启动虚拟机即可发现会有cobbler的选择界面</p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171242656-398272156.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /></p>
+
+<p>选择CentOS7.4即可进行安装，安装过程与光盘安装一致，这里就不在复述。</p>
+<h2>1.4 定制化安装操作系统</h2>
+<h3>1.4.1 添加内核参数</h3>
+<p>1）查看导入的镜像，点击edit</p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171258015-1494072420.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" />&nbsp;</p>
+
+<p>2）在内核参数中添加net.ifnames=0 biosdevname=0</p>
+<p>&nbsp;&nbsp; 能够让显示的网卡变为eth0 ，而不是CentOS7中的ens33</p>
+<p>&nbsp;&nbsp; 修改完成后点击保存</p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171309874-60725189.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /></p>
+
+<h3>1.4.2 查看镜像属性</h3>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171319609-343797442.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" />&nbsp;</p>
+
+<h3>1.4.3 编写ks文件</h3>
+<p>1)创建新的ks文件</p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171338593-1336390307.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" />&nbsp;</p>
+
+<p>2）添加ks文件，并配置文件名</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 创建完成后点击Save进行保存</p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171346874-1039121760.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /></p>
+
+<p><em><span style="text-decoration: underline;">CentOS7 &nbsp;ks</span></em><em><span style="text-decoration: underline;">配置文件参考</span></em></p>
+<div>
+<div class="cnblogs_code" onclick="cnblogs_code_show('7b3e062f-ee05-45e1-ab6e-16bbbd318202')"><img id="code_img_closed_7b3e062f-ee05-45e1-ab6e-16bbbd318202" class="code_img_closed" src="ContractedBlock-16.gif" tppabs="http://clsn.io/wp-content/uploads/2018/03/ContractedBlock-16.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /><img id="code_img_opened_7b3e062f-ee05-45e1-ab6e-16bbbd318202" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('7b3e062f-ee05-45e1-ab6e-16bbbd318202',event)" data-original="http://clsn.io/wp-content/uploads/2018/03/ExpandedBlockStart-16.gif" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /></p>
+
+<div id="cnblogs_code_open_7b3e062f-ee05-45e1-ab6e-16bbbd318202" class="cnblogs_code_hide">
+<pre><span style="color: #008080;"> 1</span> <span style="color: #008000;">#</span><span style="color: #008000;"> Cobbler for Kickstart Configurator for CentOS 7 by clsn</span>
+<span style="color: #008080;"> 2</span> <span style="color: #000000;">install
+</span><span style="color: #008080;"> 3</span> url --url=<span style="color: #000000;">$tree
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">text
+</span><span style="color: #008080;"> 5</span> lang en_US.UTF-8
+<span style="color: #008080;"> 6</span> <span style="color: #000000;">keyboard us
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">zerombr
+</span><span style="color: #008080;"> 8</span> bootloader --location=mbr --driveorder=sda --append=<span style="color: #800000;">"</span><span style="color: #800000;">crashkernel=auto rhgb quiet</span><span style="color: #800000;">"</span>
+<span style="color: #008080;"> 9</span> <span style="color: #008000;">#</span><span style="color: #008000;">Network information</span>
+<span style="color: #008080;">10</span> $SNIPPET(<span style="color: #800000;">'</span><span style="color: #800000;">network_config</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">11</span> <span style="color: #008000;">#</span><span style="color: #008000;">network --bootproto=dhcp --device=eth0 --onboot=yes --noipv6 --hostname=CentOS7</span>
+<span style="color: #008080;">12</span> timezone --utc Asia/<span style="color: #000000;">Shanghai
+</span><span style="color: #008080;">13</span> authconfig --enableshadow --passalgo=<span style="color: #000000;">sha512
+</span><span style="color: #008080;">14</span> rootpw  --<span style="color: #000000;">iscrypted $default_password_crypted
+</span><span style="color: #008080;">15</span> clearpart --all --<span style="color: #000000;">initlabel
+</span><span style="color: #008080;">16</span> part /boot --fstype xfs --size 1024
+<span style="color: #008080;">17</span> part swap --size 1024
+<span style="color: #008080;">18</span> part / --fstype xfs --size 1 --<span style="color: #000000;">grow
+</span><span style="color: #008080;">19</span> firstboot --<span style="color: #000000;">disable
+</span><span style="color: #008080;">20</span> selinux --<span style="color: #000000;">disabled
+</span><span style="color: #008080;">21</span> firewall --<span style="color: #000000;">disabled
+</span><span style="color: #008080;">22</span> logging --level=<span style="color: #000000;">info
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">reboot
+</span><span style="color: #008080;">24</span> 
+<span style="color: #008080;">25</span> %<span style="color: #000000;">pre
+</span><span style="color: #008080;">26</span> $SNIPPET(<span style="color: #800000;">'</span><span style="color: #800000;">log_ks_pre</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">27</span> $SNIPPET(<span style="color: #800000;">'</span><span style="color: #800000;">kickstart_start</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">28</span> $SNIPPET(<span style="color: #800000;">'</span><span style="color: #800000;">pre_install_network_config</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">29</span> <span style="color: #008000;">#</span><span style="color: #008000;"> Enable installation monitoring</span>
+<span style="color: #008080;">30</span> $SNIPPET(<span style="color: #800000;">'</span><span style="color: #800000;">pre_anamon</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008080;">31</span> %<span style="color: #000000;">end
+</span><span style="color: #008080;">32</span> 
+<span style="color: #008080;">33</span> %<span style="color: #000000;">packages
+</span><span style="color: #008080;">34</span> @^<span style="color: #000000;">minimal
+</span><span style="color: #008080;">35</span> @compat-<span style="color: #000000;">libraries
+</span><span style="color: #008080;">36</span> <span style="color: #000000;">@core
+</span><span style="color: #008080;">37</span> <span style="color: #000000;">@debugging
+</span><span style="color: #008080;">38</span> <span style="color: #000000;">@development
+</span><span style="color: #008080;">39</span> bash-<span style="color: #000000;">completion
+</span><span style="color: #008080;">40</span> <span style="color: #000000;">chrony
+</span><span style="color: #008080;">41</span> <span style="color: #000000;">dos2unix
+</span><span style="color: #008080;">42</span> kexec-<span style="color: #000000;">tools
+</span><span style="color: #008080;">43</span> <span style="color: #000000;">lrzsz
+</span><span style="color: #008080;">44</span> <span style="color: #000000;">nmap
+</span><span style="color: #008080;">45</span> <span style="color: #000000;">sysstat
+</span><span style="color: #008080;">46</span> <span style="color: #000000;">telnet
+</span><span style="color: #008080;">47</span> <span style="color: #000000;">tree
+</span><span style="color: #008080;">48</span> <span style="color: #000000;">vim
+</span><span style="color: #008080;">49</span> <span style="color: #000000;">wget
+</span><span style="color: #008080;">50</span> %<span style="color: #000000;">end
+</span><span style="color: #008080;">51</span> 
+<span style="color: #008080;">52</span> %<span style="color: #000000;">post
+</span><span style="color: #008080;">53</span> <span style="color: #000000;">systemctl disable postfix.service
+</span><span style="color: #008080;">54</span> %end</pre>
+</div>
+<p><span class="cnblogs_code_collapse">View Code&nbsp; ks文件内容(centos7.x)</span></div>
+</div>
+<h3>1.4.4 自定义安装系统</h3>
+<p>1)选择systems 创建一个新的系统</p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171448749-413659574.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /></p>
+
+<p>2)定义系统信息</p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171500702-1774899020.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /></p>
+
+<p>3)配置全局网络信息</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 主机名、网关、DNS</p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171510515-1866830973.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /></p>
+
+<p>4)配置网卡信息，eth0，eth1</p>
+<p>&nbsp;&nbsp; 需要注意，选择static静态，</p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171519781-484237309.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" />&nbsp;</p>
+
+<p>&nbsp;&nbsp; <strong>以上的所有配置完成后，点击Save</strong><strong>进行保存</strong></p>
+<p><span style="background-color: #ffffff; color: #0000ff;"><strong><em>附录：</em></strong></span></p>
+<p>&nbsp;&nbsp; VMware workstation中查看虚拟机mac地址的方法。在虚拟机设置中。</p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171558437-2147316862.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" />&nbsp;</p>
+
+<p><strong>&nbsp;cobbler web 界面</strong><strong>说明</strong></p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171610484-679767567.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /></p>
+
+<h2>1.5 安装虚拟机</h2>
+<h3>1.5.1 开启虚拟机</h3>
+<p>如果之前的设置就显示安装进度</p>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171637515-1915678553.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" />&nbsp;</p>
+
+<h3>1.5.2 安装完成进行检查</h3>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171645890-120797278.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /></p>
+
+<h2>1.6 cobbler使用常见错误</h2>
+<h3>1.6.1 cobbler check报错</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="02706d6d7642416d60606e6770">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cobbler sync</span>
+<span style="color: #000000;">Traceback (most recent call last):
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/bin/cobbler</span><span style="color: #800000;">"</span>, line 36, <span style="color: #0000ff;">in</span> <module><span style="color: #000000;">
+    sys.exit(app.main())
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/lib/python2.7/site-packages/cobbler/cli.py</span><span style="color: #800000;">"</span>, line 662, <span style="color: #0000ff;">in</span><span style="color: #000000;"> main
+    rc </span>=<span style="color: #000000;"> cli.run(sys.argv)
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/lib/python2.7/site-packages/cobbler/cli.py</span><span style="color: #800000;">"</span>, line 269, <span style="color: #0000ff;">in</span><span style="color: #000000;"> run
+    self.token         </span>= self.remote.login(<span style="color: #800000;">""</span><span style="color: #000000;">, self.shared_secret)
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/lib64/python2.7/xmlrpclib.py</span><span style="color: #800000;">"</span>, line 1233, <span style="color: #0000ff;">in</span> <span style="color: #800080;">__call__</span>
+    <span style="color: #0000ff;">return</span> self.<span style="color: #800080;">__send</span>(self.<span style="color: #800080;">__name</span><span style="color: #000000;">, args)
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/lib64/python2.7/xmlrpclib.py</span><span style="color: #800000;">"</span>, line 1587, <span style="color: #0000ff;">in</span> <span style="color: #800080;">__request</span><span style="color: #000000;">
+    verbose</span>=self.<span style="color: #800080;">__verbose</span><span style="color: #000000;">
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/lib64/python2.7/xmlrpclib.py</span><span style="color: #800000;">"</span>, line 1273, <span style="color: #0000ff;">in</span><span style="color: #000000;"> request
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self.single_request(host, handler, request_body, verbose)
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/lib64/python2.7/xmlrpclib.py</span><span style="color: #800000;">"</span>, line 1306, <span style="color: #0000ff;">in</span><span style="color: #000000;"> single_request
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> self.parse_response(response)
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/lib64/python2.7/xmlrpclib.py</span><span style="color: #800000;">"</span>, line 1482, <span style="color: #0000ff;">in</span><span style="color: #000000;"> parse_response
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> u.close()
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/lib64/python2.7/xmlrpclib.py</span><span style="color: #800000;">"</span>, line 794, <span style="color: #0000ff;">in</span><span style="color: #000000;"> close
+    </span><span style="color: #0000ff;">raise</span> Fault(**<span style="color: #000000;">self._stack[0])
+xmlrpclib.Fault: </span><Fault 1: <span style="color: #800000;">"</span><span style="color: #800000;"><class 'cobbler.cexceptions.CX'>:'login failed'</span><span style="color: #800000;">"</span>></pre>
+</div>
+</div>
+<p>解决办法</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">systemctl restart httpd.service
+systemctl restart cobblerd.service
+cobbler check</span></pre>
+</div>
+</div>
+<h3>1.6.2 No space left on device</h3>
+<p align="center"><img data-original="http://images2017.cnblogs.com/blog/1190037/201711/1190037-20171115171739296-1920171628.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" />&nbsp;</p>
+
+<p>&nbsp;&nbsp; 出现这个错误的原因是虚拟机的内存不足2G，</p>
+<p>&nbsp;&nbsp; 将内存调为2G即可（这个错误只会出现在CentOS7.3之上）</p>
+<h2><span style="color: #99cc00;">1.7 附录cobbler_CentOS6.x_ks配置文件</span></h2>
+<div>
+<div class="cnblogs_code" onclick="cnblogs_code_show('ef9ba030-45ea-46b1-b5c0-4642b2fbd94e')"><img id="code_img_closed_ef9ba030-45ea-46b1-b5c0-4642b2fbd94e" class="code_img_closed" src="ContractedBlock-16.gif" tppabs="http://clsn.io/wp-content/uploads/2018/03/ContractedBlock-16.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /><img id="code_img_opened_ef9ba030-45ea-46b1-b5c0-4642b2fbd94e" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('ef9ba030-45ea-46b1-b5c0-4642b2fbd94e',event)" data-original="http://clsn.io/wp-content/uploads/2018/03/ExpandedBlockStart-16.gif" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="使用cobbler批量安装操作系统(基于Centos7.x )" alt="" /></p>
+
+<div id="cnblogs_code_open_ef9ba030-45ea-46b1-b5c0-4642b2fbd94e" class="cnblogs_code_hide">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> Cobbler for Kickstart Configurator for CentOS 6  by clsn</span>
+<span style="color: #000000;">install
+url </span>--url=<span style="color: #000000;">$tree
+text
+lang en_US.UTF</span>-8<span style="color: #000000;">
+keyboard us
+zerombr
+bootloader </span>--location=mbr --driveorder=sda --append=<span style="color: #800000;">"</span><span style="color: #800000;">crashkernel=auto rhgb quiet</span><span style="color: #800000;">"</span><span style="color: #000000;">
+$SNIPPET(</span><span style="color: #800000;">'</span><span style="color: #800000;">network_config</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+timezone </span>--utc Asia/<span style="color: #000000;">Shanghai
+authconfig </span>--enableshadow --passalgo=<span style="color: #000000;">sha512
+rootpw  </span>--<span style="color: #000000;">iscrypted $default_password_crypted
+clearpart </span>--all --<span style="color: #000000;">initlabel
+part </span>/boot --fstype=ext4 --asprimary --size=200<span style="color: #000000;">
+part swap </span>--size=1024<span style="color: #000000;">
+part </span>/ --fstype=ext4 --grow --asprimary --size=200<span style="color: #000000;">
+firstboot </span>--<span style="color: #000000;">disable
+selinux </span>--<span style="color: #000000;">disabled
+firewall </span>--<span style="color: #000000;">disabled
+logging </span>--level=<span style="color: #000000;">info
+reboot
+
+</span>%<span style="color: #000000;">pre
+$SNIPPET(</span><span style="color: #800000;">'</span><span style="color: #800000;">log_ks_pre</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+$SNIPPET(</span><span style="color: #800000;">'</span><span style="color: #800000;">kickstart_start</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+$SNIPPET(</span><span style="color: #800000;">'</span><span style="color: #800000;">pre_install_network_config</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> Enable installation monitoring</span>
+$SNIPPET(<span style="color: #800000;">'</span><span style="color: #800000;">pre_anamon</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span>%<span style="color: #000000;">end
+
+</span>%<span style="color: #000000;">packages
+@base
+@compat</span>-<span style="color: #000000;">libraries
+@debugging
+@development
+tree
+nmap
+sysstat
+lrzsz
+dos2unix
+telnet
+</span>%<span style="color: #000000;">end
+
+</span>%post --<span style="color: #000000;">nochroot
+$SNIPPET(</span><span style="color: #800000;">'</span><span style="color: #800000;">log_ks_post_nochroot</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span>%<span style="color: #000000;">end
+
+</span>%<span style="color: #000000;">post
+$SNIPPET(</span><span style="color: #800000;">'</span><span style="color: #800000;">log_ks_post</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> Start yum configuration</span>
+<span style="color: #000000;">$yum_config_stanza
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> End yum configuration</span>
+$SNIPPET(<span style="color: #800000;">'</span><span style="color: #800000;">post_install_kernel_options</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+$SNIPPET(</span><span style="color: #800000;">'</span><span style="color: #800000;">post_install_network_config</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+$SNIPPET(</span><span style="color: #800000;">'</span><span style="color: #800000;">func_register_if_enabled</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+$SNIPPET(</span><span style="color: #800000;">'</span><span style="color: #800000;">download_config_files</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+$SNIPPET(</span><span style="color: #800000;">'</span><span style="color: #800000;">koan_environment</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+$SNIPPET(</span><span style="color: #800000;">'</span><span style="color: #800000;">redhat_register</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+$SNIPPET(</span><span style="color: #800000;">'</span><span style="color: #800000;">cobbler_register</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> Enable post-install boot notification</span>
+$SNIPPET(<span style="color: #800000;">'</span><span style="color: #800000;">post_anamon</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> Start final steps</span>
+$SNIPPET(<span style="color: #800000;">'</span><span style="color: #800000;">kickstart_done</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> End final steps</span>
+%end</pre>
+</div>
+<p><span class="cnblogs_code_collapse">View ks文件参考&nbsp; centos6.x</span></div>
+</div>
+<h2>1.8 参考文档</h2>
+<p>　　http://blog.oldboyedu.com/autoinstall-cobbler/</p>
+<p>　　http://www.zyops.com/autoinstall-cobbler</p>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="775" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/" rel="category tag">玩转Linux</a> <a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/" rel="category tag">自动化</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2017年11月15日<i class="i-time">09:19:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 10109 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx775.html" tppabs="http://clsn.io/clsn/lx775.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx775.html">使用cobbler批量安装操作系统(基于Centos7.x ) | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/14.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx797.html" tppabs="http://clsn.io/clsn/lx797.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>kickstart模式实现批量安装centos7.x系统</span></a><a href="lx774.html" tppabs="http://clsn.io/clsn/lx774.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>chrony软件使用说明</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx797.html" tppabs="http://clsn.io/clsn/lx797.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx774.html" tppabs="http://clsn.io/clsn/lx774.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx775.html#respond" tppabs="http://clsn.io/clsn/lx775.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='775' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx768.html" tppabs="http://clsn.io/clsn/lx768.html" rel="bookmark">在windows上搭建镜像yum站的方法（附bat脚本）</a></li> <li><a href="lx247.html" tppabs="http://clsn.io/clsn/lx247.html" rel="bookmark">MongoDB的备份与恢复</a></li> <li><a href="lx524.html" tppabs="http://clsn.io/clsn/lx524.html" rel="bookmark">Jenkins与网站代码上线解决方案</a></li> <li><a href="lx346.html" tppabs="http://clsn.io/clsn/lx346.html" rel="bookmark">Mysql 备份恢复与xtrabackup备份</a></li> <li><a href="lx287.html" tppabs="http://clsn.io/clsn/lx287.html" rel="bookmark">MySQL 优化实施方案</a></li> <li><a href="lx243.html" tppabs="http://clsn.io/clsn/lx243.html" rel="bookmark">SVN服务实战应用指南</a></li> <li><a href="lx941.html" tppabs="http://clsn.io/clsn/lx941.html" rel="bookmark">setup 命令中防火墙配置选项无法打开</a></li> <li><a href="lx900.html" tppabs="http://clsn.io/clsn/lx900.html" rel="bookmark">SSH服务详解</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx984.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx984.html'" tppabs="http://clsn.io/clsn/lx984.html" rel="bookmark">三剑客之sed&#038;grep</a></li> <li><a href="lx959.html" tppabs="http://clsn.io/clsn/lx959.html" rel="bookmark">AWK高端功能-数组</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx775.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx775.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx775.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

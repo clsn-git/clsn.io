@@ -1,0 +1,871 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>MySQL Replication 主从复制全方位解决方案 | 惨绿少年</title><meta name="description" content="　　　　在了解主从复制之前必须要了解的就是数据库的二进制日志(binlog),主从复制架构大多基于二进制日志进行，二进制日志相关信息参考：http://www.cnblogs.com/clsn/p/8087678.html#_label6" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx300.html" tppabs="http://clsn.io/clsn/lx300.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-300 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/" rel="category tag">MySQL</a><i class="be be-arrowright"></i><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/" rel="category tag">数据库</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>MySQL Replication 主从复制全方位解决方案 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-300" class="post-300 post type-post status-publish format-standard hentry category-linux category-mysql category-databases category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">MySQL Replication 主从复制全方位解决方案</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2018年1月3日<i class="i-time">05:33:00</i></span><span class="comment"><a href="lx300.html#respond" tppabs="http://clsn.io/clsn/lx300.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="javascript:if(confirm('http://clsn.io/clsn/lx300.html?wpzmaction=add&postid=300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx300.html?wpzmaction=add&postid=300'" tppabs="http://clsn.io/clsn/lx300.html?wpzmaction=add&postid=300" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h2>1.1 主从复制基础概念</h2>
+<p>　　　　在了解主从复制之前必须要了解的就是数据库的二进制日志(binlog),主从复制架构大多基于二进制日志进行，二进制日志相关信息参考：<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/8087678.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/8087678.html#_label6'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/8087678.html#_label6"  target="_blank">http://www.cnblogs.com/clsn/p/8087678.html#_label6</a></p>
+<h3>1.1.1 二进制日志管理说明</h3>
+<p><strong>　　<span style="background-color: #00ffff;">二进制日志在哪？如何设置位置和命名？</span></strong></p>
+<div>
+<p class="a4">　　　　在my.cnf文件中使用 log-bin = 指定；命名规则为 mysql-bin.000000 （后为6位数字）</p>
+</div>
+<p>　　<span style="background-color: #00ffff;">二进制日志位置</span></p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%log_bin%</span><span style="color: #ff0000;">'</span><span style="color: #000000;"> ;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------------------+-----------------------------------------+</span>
+<span style="color: #808080;">|</span> Variable_name                   <span style="color: #808080;">|</span> Value                                   <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------------------+-----------------------------------------+</span>
+<span style="color: #808080;">|</span> log_bin                         <span style="color: #808080;">|</span> <span style="color: #0000ff;">ON</span>                                      <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_bin_basename                <span style="color: #808080;">|</span> <span style="color: #808080;">/</span>application<span style="color: #808080;">/</span>mysql<span style="color: #808080;">/</span>data<span style="color: #808080;">/</span>mysql<span style="color: #808080;">-</span>bin       <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_bin_index                   <span style="color: #808080;">|</span> <span style="color: #808080;">/</span>application<span style="color: #808080;">/</span>mysql<span style="color: #808080;">/</span>data<span style="color: #808080;">/</span>mysql<span style="color: #808080;">-</span>bin.<span style="color: #0000ff;">index</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_bin_trust_function_creators <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>                                     <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_bin_use_v1_row_events       <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>                                     <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> sql_log_bin                     <span style="color: #808080;">|</span> <span style="color: #0000ff;">ON</span>                                      <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------------------+-----------------------------------------+</span>
+<span style="color: #800000; font-weight: bold;">6</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.06</span> sec)</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 日志命名</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show <span style="color: #0000ff;">binary</span><span style="color: #000000;"> logs;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+-----------+</span>
+<span style="color: #808080;">|</span> Log_name         <span style="color: #808080;">|</span> File_size <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+-----------+</span>
+<span style="color: #808080;">|</span> mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000001</span> <span style="color: #808080;">|</span>      <span style="color: #800000; font-weight: bold;">2979</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000002</span> <span style="color: #808080;">|</span>       <span style="color: #800000; font-weight: bold;">120</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+-----------+</span>
+<span style="color: #800000; font-weight: bold;">2</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+<p>　　<span style="background-color: #00ffff;"><strong>二进制日志记录什么？</strong></span></p>
+</div>
+<div>
+<p class="a4">　　　　二进制日志中记录的是一个个完成的事件</p>
+</div>
+<p><strong>　　<span style="background-color: #00ffff;">二进制日志格式是怎样的？</span></strong></p>
+<div>
+<p class="a4">　　　　推荐使用row格式</p>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 查看当前使用的日志 格式。</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%format%</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------------+-------------------+</span>
+<span style="color: #808080;">|</span> Variable_name            <span style="color: #808080;">|</span> Value             <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------------+-------------------+</span>
+<span style="color: #808080;">|</span> binlog_format            <span style="color: #808080;">|</span> ROW               <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> date_format              <span style="color: #808080;">|</span> <span style="color: #808080;">%</span>Y<span style="color: #808080;">-%</span>m<span style="color: #808080;">-%</span>d          <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> datetime_format          <span style="color: #808080;">|</span> <span style="color: #808080;">%</span>Y<span style="color: #808080;">-%</span>m<span style="color: #808080;">-%</span>d <span style="color: #808080;">%</span>H:<span style="color: #808080;">%</span>i:<span style="color: #808080;">%</span>s <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> default_week_format      <span style="color: #808080;">|</span> <span style="color: #800000; font-weight: bold;">0</span>                 <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> innodb_file_format       <span style="color: #808080;">|</span> Antelope          <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> innodb_file_format_check <span style="color: #808080;">|</span> <span style="color: #0000ff;">ON</span>                <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> innodb_file_format_max   <span style="color: #808080;">|</span> Antelope          <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> time_format              <span style="color: #808080;">|</span> <span style="color: #808080;">%</span>H:<span style="color: #808080;">%</span>i:<span style="color: #808080;">%</span>s          <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------------+-------------------+</span>
+<span style="color: #800000; font-weight: bold;">8</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+<p>　　<span style="background-color: #00ffff;"><strong>二进制日志如何滚动？</strong></span></p>
+</div>
+<div>
+<p class="a4">　　　　每次重启都会刷新日志，也可以通过命令进行刷新 &nbsp;reset master;</p>
+</div>
+<p><strong>　　<span style="background-color: #00ffff;">二进制日志用来干嘛？</span></strong></p>
+<div>
+<p class="a4">　　　　备份恢复</p>
+<p class="a4">　　　　起始点的备份恢复</p>
+</div>
+<p><strong>　　<span style="background-color: #00ffff;">二进制日志的操作命令？</span></strong></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;　　&nbsp; 查看都有哪些二进制日志</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show <span style="color: #0000ff;">binary</span><span style="color: #000000;"> logs;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+-----------+</span>
+<span style="color: #808080;">|</span> Log_name         <span style="color: #808080;">|</span> File_size <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+-----------+</span>
+<span style="color: #808080;">|</span> mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000001</span> <span style="color: #808080;">|</span>      <span style="color: #800000; font-weight: bold;">2979</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000002</span> <span style="color: #808080;">|</span>       <span style="color: #800000; font-weight: bold;">167</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000003</span> <span style="color: #808080;">|</span>       <span style="color: #800000; font-weight: bold;">120</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+-----------+</span>
+<span style="color: #800000; font-weight: bold;">3</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+<p>　　&nbsp; &nbsp; &nbsp; &nbsp;查看当前使用的二进制日志文件</p>
+</div>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span><span style="color: #000000;"> show master status;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------+--------------+------------------+-------------------+</span>
+<span style="color: #808080;">|</span> <span style="color: #0000ff;">File</span>             <span style="color: #808080;">|</span> Position <span style="color: #808080;">|</span> Binlog_Do_DB <span style="color: #808080;">|</span> Binlog_Ignore_DB <span style="color: #808080;">|</span> Executed_Gtid_Set <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------+--------------+------------------+-------------------+</span>
+<span style="color: #808080;">|</span> mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000003</span> <span style="color: #808080;">|</span>      <span style="color: #800000; font-weight: bold;">120</span> <span style="color: #808080;">|</span>              <span style="color: #808080;">|</span>                  <span style="color: #808080;">|</span>                   <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------+--------------+------------------+-------------------+</span>
+<span style="color: #800000; font-weight: bold;">1</span> row <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+<p>　　　　<em>binlog</em><em>相关详情参照：http://www.cnblogs.com/clsn/p/8087678.html#_label6</em></p>
+</div>
+<h3>1.1.2 mysql传统备份方式和缺陷</h3>
+<p>　　1、二进制日志备份</p>
+<p>　　2、mysqldump</p>
+<div>
+<p class="a4">&nbsp;&nbsp; 　　　　a)必须有数据库服务器完成逻辑工作，需要更多地cpu周期</p>
+<p class="a4">　　　　&nbsp; &nbsp;b)逻辑备份还原速度慢：需要MySQL加载和解释语句、转化存储格式、重建引擎</p>
+</div>
+<p>　　3、xtrabackup</p>
+<div>
+<p class="a4">&nbsp;　　　　&nbsp;&nbsp;a)文件大</p>
+<p class="a4">　　　　　b)不总是可以跨平台、操作系统和MySQL版本</p>
+</div>
+<h3>1.1.3 MySQL主从复制能为我们做什么</h3>
+<p>　　　　　高可用、辅助备份、分担负载</p>
+<h2>1.2 MySQL主从复制介绍</h2>
+<h3>1.2.1 复制技术</h3>
+<p><span style="background-color: #99cc00;"><strong>作用</strong></span></p>
+<div>
+<blockquote>
+<p class="a4">　　1.保证数据安全(异机实时备份)</p>
+<p class="a4">　　2.保证服务持续运行（宕机接管）</p>
+</blockquote>
+</div>
+<p><span style="background-color: #99cc00;"><strong>主从复制实现基本原理</strong></span></p>
+<div>
+<blockquote>
+<p class="a4">　　1.自带功能，复制是 MySQL 的一项功能，允许服务器将更改从一个实例复制到另一个实例。</p>
+<p class="a4">　　2.主服务器将所有数据和结构更改记录到二进制日志中。</p>
+<p class="a4">　　3.从属服务器从主服务器请求该二进制日志并在本地应用其内容。即通过把主库的binlog传送到从库，从新解析应用到从库。</p>
+</blockquote>
+</div>
+<h3>1.2.2 复制架构</h3>
+<p>mysql复制的应用常见场景：</p>
+<div>
+<blockquote>
+<div>
+<p class="a">应用场景1：从服务器作为主服务器的实时数据备份</p>
+<p class="a">应用场景2：主从服务器实现读写分离，从服务器实现负载均衡</p>
+<p class="a">应用场景3：把多个从服务器根据业务重要性进行拆分访问</p>
+</div>
+</blockquote>
+</div>
+<h4><strong>1.2.2.1&nbsp; </strong><strong>主&ndash;从复制</strong></h4>
+<p>　　传统的 MySQL 复制提供了一种简单的主&ndash;从复制方法。 有一个主，以及一个或多个从。 主节点执行和提交事务，然后将它们（异步地）发送到从节点，以重新执行（在基于语句的复制中）或应用（在基于行的复制中）。 这是一个 shared-nothing 的系统，默认情况下所有 server 成员都有一个完整的数据副本。</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230145845570-1921897724.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<p align="center">(图)MySQL 异步复制</p>
+<p>　　还有一个半同步复制，它在协议中添加了一个同步步骤。 这意味着主节点在提交时需要等待从节点确认它已经接收到事务。只有这样，主节点才能继续提交操作。</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230145902382-366690047.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" />&nbsp;</p>
+
+<p align="center">(图)MySQL 异步复制</p>
+<p>　　在上面的两个图片中，可以看到传统异步 MySQL 复制协议（以及半同步）的图形展示。 蓝色箭头表示在不同 server 之间或者 server 与 client 应用之间的信息交互。</p>
+<h3>1.2.3 MySQL主从复制原理介绍</h3>
+<p><span style="background-color: #ffff00;"><strong>复制过程：</strong></span></p>
+<div>
+<blockquote>
+<div>
+<p class="a">1、开启binlog日志，通过把主库的binlog传送到从库，从新解析应用到从库。</p>
+<p class="a">2、复制需要3个线程（dump、io、sql）完成，5.6从库多个sql。</p>
+<p class="a">3、复制是异步的过程。主从复制是异步的逻辑的SQL语句级的复制。</p>
+</div>
+</blockquote>
+</div>
+<p><span style="background-color: #ffff00;"><strong>复制前提：</strong></span></p>
+<div>
+<blockquote>
+<div>
+<p class="a">1、主服务期一定要打开二进制日志</p>
+<p class="a">2、必须两台服务器（或者是多个实例）</p>
+<p class="a">3、从服务器需要一次<strong><em>数据初始化</em></strong></p>
+<p class="a">&nbsp; &nbsp;&nbsp;&nbsp;3.1如果主从服务器都是新搭建的话，可以不做初始化</p>
+<p class="a">&nbsp; &nbsp; &nbsp;3.2如果主服务器已经运行了很长时间了，可以通过备份将主库数据恢复到从库。</p>
+<p class="a">4、主库必须要有对从库复制请求的用户。</p>
+<p class="a">5、从库需要有relay-log设置，存放从主库传送过来的二进制日志 <em>show variables&nbsp; like '%relay%';</em></p>
+<p class="a">6、在第一次的时候，从库需要change master to 去连接主库。</p>
+<p class="a">7、change master信息需要存放到master.info中 &nbsp;<em>show variables&nbsp; like '%master_info%';</em></p>
+<p class="a">8、从库怎么知道，主库发生了新的变化?通过relay-log.info记录的已经应用过的relay-log信息。</p>
+<p class="a"><strong>9</strong><strong>、在复制过程中涉及到的线程</strong></p>
+<p class="a">&nbsp; &nbsp; &nbsp; 从库会开启一个IO thread(线程)，负责连接主库，请求binlog，接收binlog并写入relay-log。</p>
+<p class="a">&nbsp; &nbsp; &nbsp; 从库会开启一个SQL thread(线程)，负责执行relay-log中的事件。</p>
+<p class="a">&nbsp; &nbsp; &nbsp; 主库会开启一个dump thrad(线程)，负责响应从IO thread的请求。</p>
+</div>
+</blockquote>
+</div>
+<p><span style="background-color: #ffff00;"><strong>主从怎么实现的？</strong></span></p>
+<blockquote>
+<p>1、通过二进制日志</p>
+<p>2、至少两台（主、从）</p>
+<p>3、主服务器的二进制日志&ldquo;拿&rdquo;到从服务器上再运行一遍。</p>
+<p>4、通过网络连接两台机器，一般都会出现延迟的状态。也可以说是异步的。</p>
+</blockquote>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230150035101-381337558.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<h3>1.2.4 执行原理--第一次开启主从过程</h3>
+<div>
+<blockquote>
+<p class="a">1、 从库通过手工执行change master to 语句连接主库，提供了连接的用户一切条件</p>
+<p class="a"><em>（user</em><em>、password</em><em>、port</em><em>、ip</em><em>）</em></p>
+<p class="a">&nbsp;&nbsp;&nbsp; <em>并且让从库知道，二进制日志的起点位置（file</em><em>名&nbsp; position</em><em>号）</em></p>
+<p class="a">&nbsp;&nbsp;&nbsp; <em>start slave</em></p>
+<p class="a">2、从库的IO和主库的dump线程建立连接</p>
+<p class="a">3、从库根据change master to 语句提供的file名和position号，IO线程向主库发起binlog的请求</p>
+<p class="a">4、主库dump线程根据从库的请求，将本地binlog以events的方式发给从库IO线程</p>
+<p class="a">5、从库IO线程接收binlog evnets，并存放到本地relay-log中，传送过来的信息，会记录到master.info中。</p>
+<p class="a">6、从库SQL线程应用relay-log，并且把应用过的记录到relay-log.info,默认情况下，已经应用过的relay会自动被清理purge。</p>
+<p class="a"><span style="background-color: #ffff00; color: #ff0000;"><strong>到此位置，一次主从复制就完成</strong></span></p>
+</blockquote>
+</div>
+<p class="a">　　一旦主从运行起来：</p>
+<p class="a">&nbsp;&nbsp;&nbsp;&nbsp;　　　　就不需要手工执行change master to，</p>
+<p class="a">&nbsp;　　&nbsp;&nbsp;　　 因为信息都会被存放到master.info</p>
+<p class="a">　　　　　　（user、password、port、ip，上次获取过的binlog信息file和position）中</p>
+<p class="a">&nbsp;&nbsp;&nbsp;　　　　&nbsp;其他的过程都是一样的</p>
+<h4><strong>1.2.4.1&nbsp; </strong><strong>详细的mysql replication </strong><strong>过程&nbsp;&nbsp; </strong></h4>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230150155007-1749757503.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<h2>1.3 主从搭建配置</h2>
+<p>　　　　本次主从搭建使用mysql多实例进行实验。<em>多实例配置参考文档进行配置：</em><a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/8038964.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/8038964.html#_label8'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/8038964.html#_label8"  target="_blank"><em>http://www.cnblogs.com/clsn/p/8038964.html#_label8</em></a></p>
+<h3>1.3.1 多实例数据库slave配置</h3>
+<p><span style="background-color: #00ff00; color: #ffffff;"><strong><em><span style="text-decoration: underline;">系统环境说明：</span></em></strong></span></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="62100d0d162206005250">[email&#160;protected]</a> ~]# <span style="color: #0000ff;">cat</span> /etc/redhat-<span style="color: #000000;">release 
+CentOS release </span><span style="color: #800080;">6.9</span><span style="color: #000000;"> (Final)
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7c0e1313083c181e4c4e">[email&#160;protected]</a> </span>~]# <span style="color: #0000ff;">uname</span> -<span style="color: #000000;">r
+</span><span style="color: #800080;">2.6</span>.<span style="color: #800080;">32</span>-<span style="color: #800080;">696</span><span style="color: #000000;">.el6.x86_64
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="beccd1d1cafedadc8e8c">[email&#160;protected]</a> </span>~]# /etc/init.d/<span style="color: #000000;">iptables status 
+iptables: Firewall is not running.  # 注意：务必关闭防火墙（iptables  selinux）
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5a2835352e1a3e386a68">[email&#160;protected]</a> </span>~<span style="color: #000000;">]# getenforce  
+Disabled
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="11637e7e655175732123">[email&#160;protected]</a> </span>~]# mysql --<span style="color: #000000;">version
+mysql  Ver </span><span style="color: #800080;">14.14</span> Distrib <span style="color: #800080;">5.6</span>.<span style="color: #800080;">36</span>, <span style="color: #0000ff;">for</span> Linux (x86_64) using  EditLine wrapper</pre>
+</div>
+</div>
+<p><strong>1</strong><strong>、启动多实例数据库</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="16647979625672742624">[email&#160;protected]</a> ~]# /data/<span style="color: #800080;">3306</span>/<span style="color: #000000;">mysql start
+Starting MySQL...
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="51233e3e251135336163">[email&#160;protected]</a> </span>~]# /data/<span style="color: #800080;">3307</span>/<span style="color: #000000;">mysql start
+Starting MySQL...</span></pre>
+</div>
+</div>
+<p><strong>2</strong><strong>、配置文件说明：</strong></p>
+<p><span style="background-color: #ffff00;"><strong><em>master </em></strong></span><strong><em><span style="background-color: #ffff00;">配置文件说明</span>：</em></strong></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="45372a2a310521277577">[email&#160;protected]</a> ~]# <span style="color: #0000ff;">cat</span> /data/<span style="color: #800080;">3306</span>/<span style="color: #000000;">my.cnf 
+[client]
+port            </span>= <span style="color: #800080;">3306</span><span style="color: #000000;">
+socket          </span>= /data/<span style="color: #800080;">3306</span>/<span style="color: #000000;">mysql.sock
+
+[mysqld]
+user    </span>=<span style="color: #000000;"> mysql
+port    </span>= <span style="color: #800080;">3306</span><span style="color: #000000;">
+socket  </span>= /data/<span style="color: #800080;">3306</span>/<span style="color: #000000;">mysql.sock
+basedir </span>= /application/<span style="color: #000000;">mysql
+datadir </span>= /data/<span style="color: #800080;">3306</span>/<span style="color: #000000;">data
+log</span>-bin = /data/<span style="color: #800080;">3306</span>/mysql-<span style="color: #000000;">bin
+server</span>-<span style="color: #0000ff;">id</span> = <span style="color: #800080;">6</span>  # server <span style="color: #0000ff;">id</span><span style="color: #000000;"> 不能相同
+skip_name_resolve </span>= <span style="color: #800080;">0</span><span style="color: #000000;"> # 跳过域名解析参数
+
+
+[mysqld_safe]
+log</span>-error=/data/<span style="color: #800080;">3306</span>/<span style="color: #000000;">mysql_3306.err
+pid</span>-<span style="color: #0000ff;">file</span>=/data/<span style="color: #800080;">3306</span>/mysqld.pid</pre>
+</div>
+</div>
+<p><span style="background-color: #ffff00;"><strong><em>slave </em></strong><strong><em>配置文件说明：</em></strong></span></p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="790b16160d391d1b494b">[email&#160;protected]</a> ~]# <span style="color: #0000ff;">cat</span> /data/<span style="color: #800080;">3307</span>/<span style="color: #000000;">my.cnf 
+[client]
+port            </span>= <span style="color: #800080;">3307</span><span style="color: #000000;">
+socket          </span>= /data/<span style="color: #800080;">3307</span>/<span style="color: #000000;">mysql.sock
+
+[mysqld]
+user    </span>=<span style="color: #000000;"> mysql
+port    </span>= <span style="color: #800080;">3307</span><span style="color: #000000;">
+socket  </span>= /data/<span style="color: #800080;">3307</span>/<span style="color: #000000;">mysql.sock
+basedir </span>= /application/<span style="color: #000000;">mysql
+datadir </span>= /data/<span style="color: #800080;">3307</span>/<span style="color: #000000;">data
+log</span>-bin = /data/<span style="color: #800080;">3307</span>/mysql-<span style="color: #000000;">bin
+server</span>-<span style="color: #0000ff;">id</span> = <span style="color: #800080;">7</span>  # server <span style="color: #0000ff;">id</span><span style="color: #000000;"> 不能相同
+skip_name_resolve </span>= <span style="color: #800080;">0</span><span style="color: #000000;">  # 跳过域名解析参数
+read_only </span>= <span style="color: #800080;">1</span><span style="color: #000000;">  # 从库只读 （非root用户 ）
+
+[mysqld_safe]
+log</span>-error=/data/<span style="color: #800080;">3307</span>/<span style="color: #000000;">mysql_3307.err
+pid</span>-<span style="color: #0000ff;">file</span>=/data/<span style="color: #800080;">3307</span>/mysqld.pid</pre>
+</div>
+</div>
+<p><strong>3</strong><strong>、在主库创建复制用户</strong></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 登陆到主数据库中：</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>p123 <span style="color: #808080;">-</span>S <span style="color: #808080;">/</span>data<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">3306</span><span style="color: #808080;">/</span>mysql.sock</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 创建授权用户，注意是slave用户。</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">grant</span> <span style="color: #0000ff;">replication</span> slave  <span style="color: #0000ff;">on</span> <span style="color: #808080;">*</span>.<span style="color: #808080;">*</span> <span style="color: #0000ff;">to</span> <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ea988f9a86aa">[email&#160;protected]</a><span style="color: #ff0000;">'</span><span style="color: #ff0000;">10.0.0.%</span><span style="color: #ff0000;">'</span> identified <span style="color: #0000ff;">by</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">123</span><span style="color: #ff0000;">'</span>;</pre>
+</div>
+</div>
+<p><strong>4</strong><strong>、初始化从库数据</strong></p>
+<p><span style="background-color: #ffff00;">备份主库当前数据</span></p>
+<div>
+<div class="cnblogs_code">
+<pre> mysqldump <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>p123 <span style="color: #808080;">-</span>A <span style="color: #808080;">-</span>B <span style="color: #808080;">-</span>F <span style="color: #008080;">--</span><span style="color: #008080;">master-data=2  -S /data/3306/mysql.sock >/tmp/full.sql</span></pre>
+</div>
+</div>
+<p><em><span style="text-decoration: underline;">&nbsp;部分</span></em><em><span style="text-decoration: underline;">参数说明：（详细参照<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/8138015.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/8138015.html#_label2'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/8138015.html#_label2"  target="_blank">http://www.cnblogs.com/clsn/p/8138015.html#_label2</a>）</span></em></p>
+<p>　　　　-F 刷新二进制日志</p>
+<p>　　　　--master-data [=＃]这会导致二进制日志的位置和文件名被追加到输出中。</p>
+<p>　　　　如果等于1，则将其打印为CHANGE MASTER命令; 如果等于2，那么该命令将以注释符号为前缀。</p>
+<p><span style="background-color: #ffff00;">到从库进行恢复</span></p>
+<div>
+<div class="cnblogs_code">
+<pre> mysql <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>p123 <span style="color: #808080;">-</span>S <span style="color: #808080;">/</span>data<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">3307</span><span style="color: #808080;">/</span>mysql.sock</pre>
+</div>
+<p class="ad"># 恢复备份的数据</p>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">set</span> sql_log_bin<span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">0</span><span style="color: #000000;">;
+source </span><span style="color: #808080;">/</span>tmp<span style="color: #808080;">/</span><span style="color: #0000ff;">full</span>.sql</pre>
+</div>
+</div>
+<p><strong>5</strong><strong>、开启从库复制</strong></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 查看备份的当前使用的文件及POS号</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span><span style="color: #000000;"> show master status;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------+--------------+------------------+-------------------+</span>
+<span style="color: #808080;">|</span> <span style="color: #0000ff;">File</span>             <span style="color: #808080;">|</span> Position <span style="color: #808080;">|</span> Binlog_Do_DB <span style="color: #808080;">|</span> Binlog_Ignore_DB <span style="color: #808080;">|</span> Executed_Gtid_Set <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------+--------------+------------------+-------------------+</span>
+<span style="color: #808080;">|</span> mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000012</span> <span style="color: #808080;">|</span>      <span style="color: #800000; font-weight: bold;">120</span> <span style="color: #808080;">|</span>              <span style="color: #808080;">|</span>                  <span style="color: #808080;">|</span>                   <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------+--------------+------------------+-------------------+</span>
+<span style="color: #800000; font-weight: bold;">1</span> row <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 登入数据库，进行slave配置。</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>p123 <span style="color: #808080;">-</span>S <span style="color: #808080;">/</span>data<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">3307</span><span style="color: #808080;">/</span><span style="color: #000000;">mysql.sock 
+CHANGE MASTER </span><span style="color: #0000ff;">TO</span><span style="color: #000000;">
+  MASTER_HOST</span><span style="color: #808080;">=</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">10.0.0.52</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  MASTER_USER</span><span style="color: #808080;">=</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">repl</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  MASTER_PASSWORD</span><span style="color: #808080;">=</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">123</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  MASTER_PORT</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">3306</span><span style="color: #000000;">,
+  MASTER_LOG_FILE</span><span style="color: #808080;">=</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">mysql-bin.000012</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  MASTER_LOG_POS</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">120</span><span style="color: #000000;">;
+start  slave;  # 启动从库复制</span></pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 该配置想关说明可以通过 help 获得。</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> help CHANGE MASTER <span style="color: #0000ff;">TO</span><span style="color: #000000;">
+CHANGE MASTER </span><span style="color: #0000ff;">TO</span><span style="color: #000000;">
+  MASTER_HOST</span><span style="color: #808080;">=</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">master2.mycompany.com</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  MASTER_USER</span><span style="color: #808080;">=</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">replication</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  MASTER_PASSWORD</span><span style="color: #808080;">=</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">bigs3cret</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  MASTER_PORT</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">3306</span><span style="color: #000000;">,
+  MASTER_LOG_FILE</span><span style="color: #808080;">=</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">master2-bin.001</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  MASTER_LOG_POS</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">4</span><span style="color: #000000;">,
+  MASTER_CONNECT_RETRY</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">10</span>;</pre>
+</div>
+</div>
+<h3>1.3.2 测试主从同步</h3>
+<p>查看slave库的状态</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 主要查看&nbsp;&nbsp; Slave_IO_Running 与 Slave_SQL_Running 是否都为Yes</p>
+<div>
+<div class="cnblogs_code" onclick="cnblogs_code_show('1936e928-1ef2-4118-b99c-8ac93940265b')"><img id="code_img_closed_1936e928-1ef2-4118-b99c-8ac93940265b" class="code_img_closed" src="ContractedBlock-5.gif" tppabs="http://clsn.io/wp-content/uploads/2018/03/ContractedBlock-5.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /><img id="code_img_opened_1936e928-1ef2-4118-b99c-8ac93940265b" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('1936e928-1ef2-4118-b99c-8ac93940265b',event)" data-original="http://clsn.io/wp-content/uploads/2018/03/ExpandedBlockStart-5.gif" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<div id="cnblogs_code_open_1936e928-1ef2-4118-b99c-8ac93940265b" class="cnblogs_code_hide">
+<pre><span style="color: #008080;"> 1</span> mysql<span style="color: #808080;">></span><span style="color: #000000;"> show slave status\G
+</span><span style="color: #008080;"> 2</span> <span style="color: #808080;">***************************</span> <span style="color: #800000; font-weight: bold;">1</span>. row <span style="color: #808080;">***************************</span>
+<span style="color: #008080;"> 3</span>                Slave_IO_State: Waiting <span style="color: #0000ff;">for</span> master <span style="color: #0000ff;">to</span><span style="color: #000000;"> send event
+</span><span style="color: #008080;"> 4</span>                   Master_Host: <span style="color: #800000; font-weight: bold;">10.0</span>.<span style="color: #800000; font-weight: bold;">0.52</span>
+<span style="color: #008080;"> 5</span> <span style="color: #000000;">                  Master_User: repl
+</span><span style="color: #008080;"> 6</span>                   Master_Port: <span style="color: #800000; font-weight: bold;">3306</span>
+<span style="color: #008080;"> 7</span>                 Connect_Retry: <span style="color: #800000; font-weight: bold;">60</span>
+<span style="color: #008080;"> 8</span>               Master_Log_File: mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000010</span>
+<span style="color: #008080;"> 9</span>           Read_Master_Log_Pos: <span style="color: #800000; font-weight: bold;">842</span>
+<span style="color: #008080;">10</span>                Relay_Log_File: <span style="color: #800000; font-weight: bold;">3307</span><span style="color: #808080;">-</span>relay<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000018</span>
+<span style="color: #008080;">11</span>                 Relay_Log_Pos: <span style="color: #800000; font-weight: bold;">283</span>
+<span style="color: #008080;">12</span>         Relay_Master_Log_File: mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000010</span>
+<span style="color: #008080;">13</span> <span style="color: #000000;">             Slave_IO_Running: Yes
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">            Slave_SQL_Running: Yes
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">              Replicate_Do_DB: 
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">          Replicate_Ignore_DB: 
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">           Replicate_Do_Table: 
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">       Replicate_Ignore_Table: 
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">      Replicate_Wild_Do_Table: 
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">  Replicate_Wild_Ignore_Table: 
+</span><span style="color: #008080;">21</span>                    Last_Errno: <span style="color: #800000; font-weight: bold;">0</span>
+<span style="color: #008080;">22</span> <span style="color: #000000;">                   Last_Error: 
+</span><span style="color: #008080;">23</span>                  Skip_Counter: <span style="color: #800000; font-weight: bold;">0</span>
+<span style="color: #008080;">24</span>           Exec_Master_Log_Pos: <span style="color: #800000; font-weight: bold;">842</span>
+<span style="color: #008080;">25</span>               Relay_Log_Space: <span style="color: #800000; font-weight: bold;">455</span>
+<span style="color: #008080;">26</span> <span style="color: #000000;">              Until_Condition: None
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">               Until_Log_File: 
+</span><span style="color: #008080;">28</span>                 Until_Log_Pos: <span style="color: #800000; font-weight: bold;">0</span>
+<span style="color: #008080;">29</span> <span style="color: #000000;">           Master_SSL_Allowed: No
+</span><span style="color: #008080;">30</span> <span style="color: #000000;">           Master_SSL_CA_File: 
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">           Master_SSL_CA_Path: 
+</span><span style="color: #008080;">32</span> <span style="color: #000000;">              Master_SSL_Cert: 
+</span><span style="color: #008080;">33</span> <span style="color: #000000;">            Master_SSL_Cipher: 
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">               Master_SSL_Key: 
+</span><span style="color: #008080;">35</span>         Seconds_Behind_Master: <span style="color: #800000; font-weight: bold;">0</span>
+<span style="color: #008080;">36</span> <span style="color: #000000;">Master_SSL_Verify_Server_Cert: No
+</span><span style="color: #008080;">37</span>                 Last_IO_Errno: <span style="color: #800000; font-weight: bold;">0</span>
+<span style="color: #008080;">38</span> <span style="color: #000000;">                Last_IO_Error: 
+</span><span style="color: #008080;">39</span>                Last_SQL_Errno: <span style="color: #800000; font-weight: bold;">0</span>
+<span style="color: #008080;">40</span> <span style="color: #000000;">               Last_SQL_Error: 
+</span><span style="color: #008080;">41</span> <span style="color: #000000;">  Replicate_Ignore_Server_Ids: 
+</span><span style="color: #008080;">42</span>              Master_Server_Id: <span style="color: #800000; font-weight: bold;">6</span>
+<span style="color: #008080;">43</span>                   Master_UUID: 4f344556<span style="color: #808080;">-</span>e0ab<span style="color: #808080;">-</span>11e7<span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">9138</span><span style="color: #808080;">-</span><span style="color: #000000;">000c29d60ab3
+</span><span style="color: #008080;">44</span>              Master_Info_File: <span style="color: #808080;">/</span>data<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">3307</span><span style="color: #808080;">/</span>data<span style="color: #808080;">/</span><span style="color: #000000;">master.info
+</span><span style="color: #008080;">45</span>                     SQL_Delay: <span style="color: #800000; font-weight: bold;">0</span>
+<span style="color: #008080;">46</span>           SQL_Remaining_Delay: <span style="color: #0000ff;">NULL</span>
+<span style="color: #008080;">47</span>       Slave_SQL_Running_State: Slave has <span style="color: #0000ff;">read</span> <span style="color: #808080;">all</span> relay <span style="color: #ff00ff;">log</span>; waiting <span style="color: #0000ff;">for</span> the slave I<span style="color: #808080;">/</span>O thread <span style="color: #0000ff;">to</span> <span style="color: #0000ff;">update</span><span style="color: #000000;"> it
+</span><span style="color: #008080;">48</span>            Master_Retry_Count: <span style="color: #800000; font-weight: bold;">86400</span>
+<span style="color: #008080;">49</span> <span style="color: #000000;">                  Master_Bind: 
+</span><span style="color: #008080;">50</span> <span style="color: #000000;">      Last_IO_Error_Timestamp: 
+</span><span style="color: #008080;">51</span> <span style="color: #000000;">     Last_SQL_Error_Timestamp: 
+</span><span style="color: #008080;">52</span> <span style="color: #000000;">               Master_SSL_Crl: 
+</span><span style="color: #008080;">53</span> <span style="color: #000000;">           Master_SSL_Crlpath: 
+</span><span style="color: #008080;">54</span> <span style="color: #000000;">           Retrieved_Gtid_Set: 
+</span><span style="color: #008080;">55</span> <span style="color: #000000;">            Executed_Gtid_Set: 
+</span><span style="color: #008080;">56</span>                 Auto_Position: <span style="color: #800000; font-weight: bold;">0</span>
+<span style="color: #008080;">57</span> <span style="color: #800000; font-weight: bold;">1</span> row <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+<p><span class="cnblogs_code_collapse">View Code 从库状态信息</span></div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 在主库进行操作，在从库验证</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d9abb6b6ad99bdbbe9eb">[email&#160;protected]</a> ~</span><span style="color: #ff0000;">]</span># mysql <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>p123  <span style="color: #808080;">-</span>S <span style="color: #808080;">/</span>data<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">3306</span><span style="color: #808080;">/</span><span style="color: #000000;">mysql.sock
+mysql</span><span style="color: #808080;">></span><span style="color: #000000;"> show databases;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------+</span>
+<span style="color: #808080;">|</span> <span style="color: #0000ff;">Database</span>           <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------+</span>
+<span style="color: #808080;">|</span> information_schema <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> mysql              <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> performance_schema <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> test               <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------+</span>
+<span style="color: #800000; font-weight: bold;">4</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span><span style="color: #000000;"> sec)
+mysql</span><span style="color: #808080;">></span> <span style="color: #0000ff;">create</span> <span style="color: #0000ff;">database</span><span style="color: #000000;"> clsn;
+Query OK, </span><span style="color: #800000; font-weight: bold;">1</span> row affected (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 在从库上可以看到该数据库已创建</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1a6875756e5a7e782a28">[email&#160;protected]</a> ~</span><span style="color: #ff0000;">]</span># mysql <span style="color: #808080;">-</span>uroot <span style="color: #808080;">-</span>p123 <span style="color: #808080;">-</span>S <span style="color: #808080;">/</span>data<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">3307</span><span style="color: #808080;">/</span><span style="color: #000000;">mysql.sock
+mysql</span><span style="color: #808080;">></span><span style="color: #000000;"> show databases;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------+</span>
+<span style="color: #808080;">|</span> <span style="color: #0000ff;">Database</span>           <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------+</span>
+<span style="color: #808080;">|</span> information_schema <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> clsn               <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> mysql              <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> performance_schema <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> test               <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------+</span>
+<span style="color: #800000; font-weight: bold;">5</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+<p>　　<span style="background-color: #ffff00; color: #ff0000;"><strong><em><span style="text-decoration-line: underline;">至此mysql</span></em></strong><strong><em><span style="text-decoration-line: underline;">主从复制就搭建完成</span></em></strong></span></p>
+</div>
+<h3>1.3.3 忘记数据库密码？</h3>
+<div>
+<div class="cnblogs_code">
+<pre>shell<span style="color: #808080;">></span> <span style="color: #808080;">/</span>application<span style="color: #808080;">/</span>mysql<span style="color: #808080;">/</span>bin<span style="color: #808080;">/</span>mysqld_safe  <span style="color: #008080;">--</span><span style="color: #008080;">defaults-file=/data/3306/my.cnf    --skip-grant-tables --skip-networking  &</span>
+mysql<span style="color: #808080;">></span> <span style="color: #0000ff;">update</span> <span style="color: #ff00ff;">user</span> <span style="color: #0000ff;">set</span> password<span style="color: #808080;">=</span>password(<span style="color: #ff0000;">'</span><span style="color: #ff0000;">123</span><span style="color: #ff0000;">'</span>) <span style="color: #0000ff;">where</span> <span style="color: #ff00ff;">user</span><span style="color: #808080;">=</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">root</span><span style="color: #ff0000;">'</span> <span style="color: #808080;">and</span> host<span style="color: #808080;">=</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">localhost</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+mysql</span><span style="color: #808080;">></span> flush <span style="color: #0000ff;">privileges</span>;</pre>
+</div>
+</div>
+<h3>1.3.4 主从复制状态失败的原因？</h3>
+<div>
+<div class="cnblogs_code">
+<pre>Last_IO_Error: error reconnecting <span style="color: #0000ff;">to</span> master <span style="color: #ff0000;">'</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="334156435f7302031d031d031d0601">[email&#160;protected]</a>:3306</span><span style="color: #ff0000;">'</span> <span style="color: #808080;">-</span> retry<span style="color: #808080;">-</span>time: <span style="color: #800000; font-weight: bold;">60</span>  retries: <span style="color: #800000; font-weight: bold;">1</span></pre>
+</div>
+</div>
+<p>原因：</p>
+<div>
+<blockquote>
+<div>
+<p class="a">1、主机没启动，或者宕机，检查主库的状态。</p>
+<p class="a">2、网络通信问题，使用ping命令进行检查；或使用mysql命令进行shell端登陆测试</p>
+<p class="a">3、防火墙，selinux（务必检查）。</p>
+<p class="a">4、复制用户和密码、端口号、地址有问题，使用mysql命令进行shell端登陆测试。</p>
+<p class="a">5、mysql自动解析，会将连接的IP解析成主机名（skip-name-resolve = 0）写入my.cnf文件即可。</p>
+<p class="a">6、从库IO异常关闭，通过show slave status \G 进行查看。</p>
+</div>
+</blockquote>
+</div>
+<h2>1.4 MySQL主从复制常见问题</h2>
+<h3>1.4.1 从库binlog落后主库binlog？</h3>
+<p>　　从库记录的已经主库已经给我传送的binlog事件的坐标，一般在繁忙的生产环境下会落后于主库</p>
+<div>
+<div class="cnblogs_code">
+<pre>show master status\G  <span style="color: #008080;">--</span><span style="color: #008080;">- 主</span>
+show slave status \G  <span style="color: #008080;">--</span><span style="color: #008080;">- 从</span>
+Master_Log_File: mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000007</span><span style="color: #000000;">
+Read_Master_Log_Pos: </span><span style="color: #800000; font-weight: bold;">729</span></pre>
+</div>
+</div>
+<p><strong>落后太远的原因：</strong></p>
+<blockquote>
+<p>硬件条件有关的，机器磁盘IO性能不足。</p>
+<p>主要还是网络问题，网络传输的性能。</p>
+<p>主库存放二进制日志的存储性能太低，建议binlog日志存咋SSD中。</p>
+<p>主库DUMP线程太繁忙，主要发生在一主多从的环境下。</p>
+<p>从库IO线程太忙</p>
+<p>人为控制（delay节点、延时节点 ）</p>
+</blockquote>
+<h3>1.4.2 主库update，从库迟迟的没有更新。</h3>
+<p><strong><em>特殊情况：</em></strong>日志已经传过来了，数据并没有同步</p>
+<p><em><span style="text-decoration: underline;"><strong>一般情况：</strong></span></em></p>
+<div>
+<blockquote>
+<div>
+<p class="a">1、没开启SQL线程</p>
+<p class="a">2、传的东西有问题（你要做的事情，我提前已经做了，不想重复做了，然后他就死了）</p>
+<p class="a">3、SQL线程忙。</p>
+<p class="a">4、人为控制了【delay(从库)节点、延时节点，一般生产设置为3-6小时之间，可以保证过去3-6小时之间的误操作，可以避免】。</p>
+</div>
+</blockquote>
+</div>
+<h3>1.4.3 主从复制延时配置(从库配置)</h3>
+<p>停止从库复制</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span><span style="color: #000000;">stop slave;
+Query OK, </span><span style="color: #800000; font-weight: bold;">0</span> rows affected (<span style="color: #800000; font-weight: bold;">0.01</span> sec)</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 修改延时参数，MASTER_DELAY，单位位S （秒）。</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span>CHANGE MASTER <span style="color: #0000ff;">TO</span> MASTER_DELAY <span style="color: #808080;">=</span> <span style="color: #800000; font-weight: bold;">30</span><span style="color: #000000;">;
+Query OK, </span><span style="color: #800000; font-weight: bold;">0</span> rows affected (<span style="color: #800000; font-weight: bold;">0.07</span> sec)</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 启动从库复制</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span><span style="color: #000000;">start slave;
+Query OK, </span><span style="color: #800000; font-weight: bold;">0</span> rows affected (<span style="color: #800000; font-weight: bold;">0.07</span> sec)</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 查看配置是否生效</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span><span style="color: #000000;"> show slave status \G
+&hellip;&hellip;
+              SQL_Delay: </span><span style="color: #800000; font-weight: bold;">30</span></pre>
+</div>
+</div>
+<h3>1.4.4 从库安全配置（其他用户只读）</h3>
+<p>修改my.cnf配置文件，添加只读参数</p>
+<div>
+<div class="cnblogs_code">
+<pre>read_only <span style="color: #808080;">=</span> <span style="color: #800000; font-weight: bold;">1</span>    <span style="color: #808080;">====></span><span style="color: #000000;"> 控制普通用户
+innodb_read_only </span><span style="color: #808080;">=</span> <span style="color: #800000; font-weight: bold;">1</span>  <span style="color: #808080;">====></span> 控制root用户，正常情况不要加</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 添加完成后重启数据库</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%read_only%</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+-------+</span>
+<span style="color: #808080;">|</span> Variable_name    <span style="color: #808080;">|</span> Value <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+-------+</span>
+<span style="color: #808080;">|</span> innodb_read_only <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>   <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> read_only        <span style="color: #808080;">|</span> <span style="color: #0000ff;">ON</span>    <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> tx_read_only     <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>   <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+-------+</span>
+<span style="color: #800000; font-weight: bold;">3</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+<p>　　延时从库: delay节点、延时节点</p>
+</div>
+<h3>1.4.5 主从复制故障及解决（跳过错误）</h3>
+<p>命令行设置</p>
+<div>
+<div class="cnblogs_code">
+<pre>stop slave; #<span style="color: #808080;"><==</span><span style="color: #000000;">临时停止同步开关。
+</span><span style="color: #0000ff;">set</span> global sql_slave_skip_counter <span style="color: #808080;">=</span> <span style="color: #800000; font-weight: bold;">1</span> ; #<span style="color: #808080;"><==</span><span style="color: #000000;">将同步指针向下移动一个，如果多次不同步，可以重复操作。
+start slave;</span></pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 在配置文件修改，设置要跳过的pos</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #808080;">/</span>etc<span style="color: #808080;">/</span><span style="color: #000000;">my.cnf
+slave</span><span style="color: #808080;">-</span>skip<span style="color: #808080;">-</span>errors <span style="color: #808080;">=</span> <span style="color: #800000; font-weight: bold;">1032</span>,<span style="color: #800000; font-weight: bold;">1062</span>,<span style="color: #800000; font-weight: bold;">1007</span></pre>
+</div>
+<p>　　在mysql中可以跳过某些错误,但是最好的解决办法，重新搭建主从复制。</p>
+</div>
+<h3>1.4.6 延时节点概念 --> SQL线程延时？</h3>
+<div class="cnblogs_code">
+<pre>Last_SQL_Errno: <span style="color: #800000; font-weight: bold;">0</span><span style="color: #000000;">
+Last_SQL_Error:</span></pre>
+</div>
+<p><strong><em><span style="text-decoration: underline;">原因:</span></em></strong></p>
+<blockquote>
+<p>1、主库做操作的对象，在从库不存在</p>
+<p>2、主库做操作的对象属性不一致。</p>
+<p>3、主库做操作的对象，从库已经存在</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &hellip;&hellip;</p>
+</blockquote>
+<h3>1.4.7 Slave_*_Running：？</h3>
+<blockquote>
+<div>
+<p>1、Slave_IO_Running I/O 线程正在运行、未运行还是正在运行但尚未连接到主服务器。可能值分别为Yes、No 或 Connecting。</p>
+<p>2、Slave_SQL_Running SQL 线程当前正在运行、未运行,可能值分别为 Yes、No 主服务器日志坐标：</p>
+<p>3、Master_Log_File 和 Read_Master_Log_Pos 标识主服务器二进制日志中 I/O 线程已经传输的最近事件的坐标。</p>
+<p>4、如果Master_Log_File和Read_Master_Log_Pos 的值远远落后于主服务器上的那些值，这表示主服务器与从属服务器之间事件的网络传输可能存在延迟。</p>
+</div>
+</blockquote>
+<h3>1.4.8 中继日志坐标</h3>
+<blockquote>
+<p>a)&nbsp; Relay_Log_File 和 Relay_Log_Pos 列标识从属服务器中继日志中 SQL 线程已经执行的最近事件的坐标。这些坐标对应于 Relay_Master_Log_File 和 Exec_Master_Log_Pos 列标识的主服务器二进制日志中的坐标。</p>
+<p>b)&nbsp; 如果 Relay_Master_Log_File 和 Exec_Master_Log_Pos 列的输出远远落后于 Master_Log_File 和Read_Master_Log_Pos 列（表示 I/O 线程的坐标），这表示 SQL 线程（而不是 I/O 线程）中存在延迟。即，它表示复制日志事件快于执行这些事件。</p>
+</blockquote>
+<h3>1.4.9 单一主从需要改变的地方</h3>
+<p><span style="background-color: #ffff00;"><strong>从库的作用</strong></span></p>
+<blockquote>
+<p>1、相当于实时备份</p>
+<p>2、使用从库备份</p>
+<p>3、一主多从应对读多的业务需求</p>
+</blockquote>
+<p><strong>&nbsp; &nbsp; &nbsp;</strong> 如果，从库只做备份服务器用，那么主库的压力会不减反增。因为，所有的业务都在主库实现，读和写，dump线程读取并投递binlog</p>
+<p><span style="background-color: #ffff00;"><strong>解决方案：</strong></span></p>
+<blockquote>
+<p>（1）可不可以挪走一部分读业务到从库，读写分离</p>
+<p>（2） 一主多从应对读多的业务需求，一旦发展成这个架构，dump线程投递binlog的压力更大</p>
+<p>（3） 多级主从，采用中间库缓解主库dump的压力，会出现中间库瓶颈的问题，选择blackhole引擎，看性能与安全的权衡</p>
+<p>（4）双主模型：缓解，数据一致性难保证</p>
+<p>（5）环装复制</p>
+</blockquote>
+<h2>1.5 【生产案例】主从复制事故</h2>
+<h3>1.5.1 发生背景</h3>
+<blockquote>
+<p>1、有一台已经工作很久的单机mysql数据。在2017年12月24日的平安夜，我司购物网站宕机了。机器物损坏，系统硬盘报废。</p>
+<p>2、在接到一条短信告知<span style="background-color: #ffff00; color: #ff0000;">服务器宕机</span>，数据库连不上。当时的我一脸懵逼的还在开party，谁能想到在这样一个阖家欢乐的时刻发生这样的事情。&nbsp;&nbsp;</p>
+<p>3、随之我火速赶回公司处理事故。首先更换硬盘，从备份服务器上拉取备份数据，用备份恢复宕机的时刻数据，经历40分钟后所有应用恢复正常。</p>
+<p>4、经历这次事故，决心修改数据库架构，我跟领导承诺，保证改完之后，出现类似故障能在5-10分钟恢复业务。把原来的停机时间缩短4-8倍。</p>
+</blockquote>
+<h3>1.5.2 搭建流程</h3>
+<h4><strong>1.5.2.1&nbsp; </strong><strong>架构设计</strong></h4>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230151833742-2105293480.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 修改架构采用数据库主从同步，能保证数据的安全，提高事故发生的恢复速度。</p>
+<h4><strong>1.5.2.2&nbsp; </strong><strong>架构实施</strong></h4>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; （1）准备一台新机器，配置、系统、环境等与原数据库保持一致。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; （2）在主库检查binlog开关，没有开启将其开启 ，检查server_id 与 auto.cnf文件中的uuid 是否唯一。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; （3）主库创建授权复制的用户，授权 replication slave。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; （4）备份主库上现有数据，恢复到从库中，推荐使用mysqldump，在访问低谷的时候做。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; （5）在从库上开启binlog和relaylog,server_id。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; （6）在从库配置change master to 信息：在第一次开启主从的时候，告诉从库user password host&nbsp; port，复制binlog的起点file、position。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; （7）start slave 开启主从复制。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 到此历经千辛万苦主从复制搭建完成。</p>
+<h3>1.5.3 测试主从切换</h3>
+<blockquote>
+<p>（1） 主从的可用性测试：在主库中插入数据，在从库查看有没有。&nbsp;&nbsp;</p>
+<p>（2） 主从快速恢复演练</p>
+<p>　　a)&nbsp; 在一个月黑风高夜选一个业务不繁忙时间点，人工宕掉主库。</p>
+<p>　　b)&nbsp; 将从库定为主库，查看从库的日志量（master.info、relay-log.info）</p>
+<p>　　c)&nbsp; 判断主从日志的差距（master.info,show master status）</p>
+<p>　　d)&nbsp; 恢复后发现偏差，就人为登录到主库（备份服务器也行）中，把截取差距的binlog日志，并传送到从库进行数据补偿。</p>
+<p>　　e)&nbsp; 此时从库数据现在已经和主库一致。</p>
+<p>　　f)&nbsp; reset master，reset slave</p>
+<p>　　g)&nbsp; 应用割接到从库，将应用数据库IP指向从库IP，测试应用。</p>
+<p>（3）小结：经历里这次测试，主从见的切换历时6分32秒，比之前缩短许多，但是感觉还差点什么，以后再补吧。</p>
+</blockquote>
+<h2>1.6 mysql半同步复制</h2>
+<p>　　MySQL复制默认是异步复制，存在一定的概率备库与主库的数据是不对等的,如果Master宕机，事务在Master上已提交，但很可能这些事务没有传到任何的Slave上，此时Slave也可能会丢失事务。在半同步复制的架构下，当master在将自己binlog发给slave上的时候，要确保slave已经接受到了这个二进制日志以后，才会返回数据给客户端。</p>
+<p>　　半同步复制介于异步复制和全同步复制之间，主库在执行完客户端提交的事务后不是立刻返回给客户端，而是等待至少一个从库接收到并写到relay log中才返回给客户端。相对于异步复制，半同步复制提高了数据的安全性，同时它也造成了一定程度的延迟，这个延迟最少是一个TCP/IP往返的时间。所以，半同步复制最好在低延时的网络中使用。</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230151931851-594607212.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<p align="center">半同步复制的原理图</p>
+<p>　　在5.6中加入了group commit特性之后，性能不比传统的异步复制差。</p>
+<h3>1.6.1 半同步复制的潜在问题</h3>
+<p>　　客户端事务在存储引擎层提交后，在得到从库确认的过程中，主库宕机了，此时，可能的情况有两种</p>
+<p><strong>事务还没发送到从库上</strong></p>
+<p>　　此时，客户端会收到事务提交失败的信息，客户端会重新提交该事务到新的主上，当宕机的主库重新启动后，以从库的身份重新加入到该主从结构中，会发现，该事务在从库中被提交了两次，一次是之前作为主的时候，一次是被新主同步过来的。</p>
+<p><strong>事务已经发送到从库上</strong></p>
+<p>　　此时，从库已经收到并应用了该事务，但是客户端仍然会收到事务提交失败的信息，重新提交该事务到新的主上。</p>
+<h3>1.6.2 半同步架构搭建</h3>
+<p><span style="background-color: #ffff00;"><strong>加载使用的插件</strong></span></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">主库:
+INSTALL PLUGIN rpl_semi_sync_master SONAME </span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">semisync_master.so</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+从从:
+INSTALL PLUGIN rpl_semi_sync_slave SONAME </span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">semisync_slave.so</span><span style="color: #ff0000;">'</span>;</pre>
+</div>
+</div>
+<p><strong>查看是否加载成功</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre>show plugins;</pre>
+</div>
+</div>
+<p><strong>启动半同步复制</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">主库:
+</span><span style="color: #0000ff;">SET</span> GLOBAL rpl_semi_sync_master_enabled <span style="color: #808080;">=</span> <span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;">;
+从库:
+</span><span style="color: #0000ff;">SET</span> GLOBAL rpl_semi_sync_slave_enabled <span style="color: #808080;">=</span> <span style="color: #800000; font-weight: bold;">1</span>;</pre>
+</div>
+</div>
+<p><strong>重启从库上的IO</strong><strong>线程</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">STOP SLAVE IO_THREAD;
+START SLAVE IO_THREAD;</span></pre>
+</div>
+</div>
+<p><strong>查看是否在运行</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">主库:
+show status </span><span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">Rpl_semi_sync_master_status</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+从库:
+show status </span><span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">Rpl_semi_sync_slave_status</span><span style="color: #ff0000;">'</span>;</pre>
+</div>
+</div>
+<p><strong>测试半同步复制</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">查看延迟时间:
+show variables </span><span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%rpl_semi_sync%</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+从库:
+stop slave;
+主库:
+</span><span style="color: #0000ff;">create</span> <span style="color: #0000ff;">database</span> clsn;</pre>
+</div>
+<p>　　如果创建库的时间是设置的时间就成功了。</p>
+</div>
+<h2>1.7 主从复制架构的演变</h2>
+<h3>1.7.1 基本结构</h3>
+<p>（1）一主一从</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230152117226-2068861123.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<p>（2）一主多从</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230152145445-1265499500.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" />&nbsp;</p>
+
+<p>（3）多级主从</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230152203710-42573272.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<p>（4）双主</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230152220898-423986887.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<p>（5）多主一从（5.7之后开始支持）</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230152232179-1765608793.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<p>（6）循环复制</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 对于循环数据库镜像，就是多个数据库A、B、C、D等，对其中任一个数据库的修改，都要同时镜像到其它的数据库里。&nbsp;<span class="cnblogs_code"> <span style="color: #ff00ff;">replicate</span><span style="color: #808080;">-</span>same<span style="color: #808080;">-</span>server<span style="color: #808080;">-</span>id <span style="color: #808080;">=</span> <span style="color: #800000; font-weight: bold;">0</span></span>&nbsp;</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230152241507-635336480.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" />&nbsp;</p>
+
+<h3>1.7.2 高级应用架构演变</h3>
+<p><span style="background-color: #ffff00;"><strong>（1</strong><strong>）读写分离&mdash;&mdash;MySQL proxy</strong><strong>、amoeba</strong><strong>、xx-dbproxy</strong><strong>等。</strong></span></p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230152306820-59568261.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<p>　　一般来说都是通过主从复制（Master-Slave）的方式来同步数据，再通过读写分离（MySQL-Proxy）来提升数据库的并发负载能力这样的方案来进行部署与实施的。　　</p>
+<p><span style="background-color: #ffff00;"><strong>（2</strong><strong>）分库分表&mdash;&mdash;cobar</strong><strong>、自主研发等。</strong></span></p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230152317273-92340670.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" />&nbsp;</p>
+
+<p>　　1) 系统对外提供的数据库名是dbtest,并且其中有两张表tb1和tb2。</p>
+<p>　　2) tb1表的数据被映射到物理数据库dbtest1的tb1上。</p>
+<p>　　3) tb2表的一部分数据被映射到物理数据库dbtest2的tb2上，另外一部分数据被映射到物理数据库dbtest3的tb2上。</p>
+<p><span style="background-color: #ffff00;"><strong>（3</strong><strong>）MMM</strong><strong>架构&mdash;&mdash;mysql-mmm</strong><strong>（google</strong><strong>）-</strong><strong>使用极少</strong></span></p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230152332335-1783684620.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<p>　　MMM（Master-Master replication manager for MySQL）是一套支持双主故障切换和双主日常管理的脚本程序。MMM使用Perl语言开发，主要用来监控和管理MySQL Master-Master（双主）复制，可以说是mysql主主复制管理器。</p>
+<p>　　虽然叫做双主复制，但是业务上同一时刻只允许对一个主进行写入，另一台备选主上提供部分读服务，以加速在主主切换时刻备选主的预热，可以说MMM这套脚本程序一方面实现了故障切换的功能，另一方面其内部附加的工具脚本也可以实现多个slave的read负载均衡。</p>
+<p>　　关于mysql主主复制配置的监控、故障转移和管理的一套可伸缩的脚本套件（在任何时候只有一个节点可以被写入），这个套件也能对居于标准的主从配置的任意数量的从服务器进行读负载均衡，所以你可以用它来在一组居于复制的服务器启动虚拟ip，除此之外，它还有实现数据备份、节点之间重新同步功能的脚本。</p>
+<p>　　对于那些对数据的一致性要求很高的业务，非常不建议采用MMM这种高可用架构。</p>
+<p><span style="background-color: #ffff00;"><strong>（4</strong><strong>）MHA</strong><strong>架构&mdash;&mdash;mysql-master-ha</strong><strong>（日本DeNa</strong><strong>）</strong></span></p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230152405476-1810433091.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" />&nbsp;</p>
+
+<p>　　MHA（Master High Availability）目前在MySQL高可用方面是一个相对成熟的解决方案，它由日本DeNA公司youshimaton（现就职于Facebook公司）开发，是一套优秀的作为MySQL高可用性环境下故障切换和主从提升的高可用软件。在MySQL故障切换过程中，MHA能做到在0~30秒之内自动完成数据库的故障切换操作，并且在进行故障切换的过程中，MHA能在最大程度上保证数据的一致性，以达到真正意义上的高可用。</p>
+<p>　　该软件由两部分组成：MHA Manager（管理节点）和MHA Node（数据节点）。</p>
+<p><span style="background-color: #ffff00;"><strong>（5</strong><strong>）MGR-- 5.7&nbsp;&nbsp;&nbsp;&nbsp; </strong><strong>新特性&nbsp;&nbsp;&nbsp; MySQL&nbsp;&nbsp;&nbsp; Group&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; replication</strong></span></p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230152430351-638052279.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<p>　　基于传统异步复制和半同步复制的缺陷&mdash;&mdash;数据的一致性问题无法保证，MySQL官方在5.7.17版本正式推出组复制（MySQL Group Replication，简称MGR）。</p>
+<p>　　由若干个节点共同组成一个复制组，一个事务的提交，必须经过组内大多数节点（N / 2 + 1）决议并通过，才能得以提交。如上图所示，由3个节点组成一个复制组，Consensus层为一致性协议层，在事务提交过程中，发生组间通讯，由2个节点决议(certify)通过这个事务，事务才能够最终得以提交并响应。</p>
+<p><span style="background-color: #ffff00;">（6）PXC、MySQL Cluster、galera cluster架构</span></p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171230152443757-539991414.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL Replication 主从复制全方位解决方案" alt="" /></p>
+
+<p align="center">在PXC中，一次数据写入在各个节点间的验证/回滚流程</p>
+<p><strong><em><span style="text-decoration: underline;">PXC</span></em></strong><strong><em><span style="text-decoration: underline;">架构的优点：</span></em></strong></p>
+<blockquote>
+<p>a)&nbsp; 服务高可用；</p>
+<p>b)&nbsp; 数据同步复制(并发复制)，几乎无延迟；</p>
+<p>c)&nbsp; 多个可同时读写节点，可实现写扩展，不过最好事先进行分库分表，让各个节点分别写不同的表或者库，避免让galera解决数据冲突；</p>
+<p>d)&nbsp; 新节点可以自动部署，部署操作简单；</p>
+<p>e)&nbsp; 数据严格一致性，尤其适合电商类应用；</p>
+<p>f)&nbsp; 完全兼容MySQL；</p>
+</blockquote>
+<h3>1.7.3 分库分表简单实践</h3>
+<p>　　实践中使用的为world数据库，为mysql官方提供，详情参照：<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/8087417.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/8087417.html#_label0'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/clsn/p/8087417.html#_label0"  target="_blank">http://www.cnblogs.com/clsn/p/8087417.html#_label0</a></p>
+<p><strong>第一个里程碑:创建新表</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">CREATE</span> <span style="color: #0000ff;">TABLE</span><span style="color: #000000;"> `country_1` (
+  `Code` </span><span style="color: #0000ff;">char</span>(<span style="color: #800000; font-weight: bold;">3</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> <span style="color: #0000ff;">DEFAULT</span> <span style="color: #ff0000;">''</span><span style="color: #000000;">,
+  `Name` </span><span style="color: #0000ff;">char</span>(<span style="color: #800000; font-weight: bold;">52</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> <span style="color: #0000ff;">DEFAULT</span> <span style="color: #ff0000;">''</span><span style="color: #000000;">,
+  `Continent` enum(</span><span style="color: #ff0000;">'</span><span style="color: #ff0000;">Asia</span><span style="color: #ff0000;">'</span>,<span style="color: #ff0000;">'</span><span style="color: #ff0000;">Europe</span><span style="color: #ff0000;">'</span>,<span style="color: #ff0000;">'</span><span style="color: #ff0000;">North America</span><span style="color: #ff0000;">'</span>,<span style="color: #ff0000;">'</span><span style="color: #ff0000;">Africa</span><span style="color: #ff0000;">'</span>,<span style="color: #ff0000;">'</span><span style="color: #ff0000;">Oceania</span><span style="color: #ff0000;">'</span>,<span style="color: #ff0000;">'</span><span style="color: #ff0000;">Antarctica</span><span style="color: #ff0000;">'</span>,<span style="color: #ff0000;">'</span><span style="color: #ff0000;">South America</span><span style="color: #ff0000;">'</span>) <span style="color: #808080;">NOT</span> <span style="color: #0000ff;">NULL</span> <span style="color: #0000ff;">DEFAULT</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">Asia</span><span style="color: #ff0000;">'</span><span style="color: #000000;">,
+  </span><span style="color: #0000ff;">PRIMARY</span> <span style="color: #0000ff;">KEY</span><span style="color: #000000;"> (`Code`),
+  </span><span style="color: #0000ff;">KEY</span><span style="color: #000000;"> `name_idx` (`Name`)
+) ENGINE</span><span style="color: #808080;">=</span>InnoDB <span style="color: #0000ff;">DEFAULT</span> CHARSET<span style="color: #808080;">=</span>latin1</pre>
+</div>
+</div>
+<p><strong>第二个里程碑：从旧表导入数据到新表</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">insert</span> <span style="color: #0000ff;">into</span> country_1(code,name,continent) <span style="color: #0000ff;">select</span> code,name,continent <span style="color: #0000ff;">from</span> country;</pre>
+</div>
+</div>
+<p><strong>第三个里程碑：横向拆表</strong></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 创建与导出表相同格式的新表1</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">create</span> <span style="color: #0000ff;">table</span> country_1_p1 <span style="color: #808080;">like</span> country_1;</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 将数据的前100行插入到新表1中</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">insert</span> <span style="color: #0000ff;">into</span> country_1_p1 <span style="color: #0000ff;">select</span> code,name,continent <span style="color: #0000ff;">from</span> country_1 <span style="color: #0000ff;">order</span> <span style="color: #0000ff;">by</span> code limit <span style="color: #800000; font-weight: bold;">100</span>;</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 创建与新表1相同格式的新表2</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">create</span> <span style="color: #0000ff;">table</span> country_1_p2 <span style="color: #808080;">like</span> country_1;</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 将100行之后的139行导入表2.</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">insert</span> <span style="color: #0000ff;">into</span> country_1_p2 <span style="color: #0000ff;">select</span> code,name,continent <span style="color: #0000ff;">from</span> country_1 <span style="color: #0000ff;">order</span> <span style="color: #0000ff;">by</span> code limit <span style="color: #800000; font-weight: bold;">139</span> offset <span style="color: #800000; font-weight: bold;">100</span>;</pre>
+</div>
+</div>
+<h2>1.8 参考文献</h2>
+<div>
+<blockquote>
+<div>
+<p class="a">[1]&nbsp; http://blog.csdn.net/hguisu/article/details/7325124</p>
+<p class="a">[2]&nbsp; https://www.cnblogs.com/ivictor/p/5735580.html</p>
+<p class="a">[3]&nbsp; https://www.cnblogs.com/Aiapple/p/5792939.html</p>
+<p class="a">[4]&nbsp; http://heylinux.com/archives/1004.html 读写分离</p>
+<p class="a">[5]&nbsp; http://hualong.iteye.com/blog/2102798 Cobar逻辑层次图</p>
+<p class="a">[6]&nbsp; https://www.cnblogs.com/kevingrace/p/5662975.html MMM架构</p>
+<p class="a">[7]&nbsp; https://www.cnblogs.com/gomysql/p/3675429.html&nbsp; MHA架构</p>
+<p class="a">[8]&nbsp; http://blog.jobbole.com/70844/ &nbsp;&nbsp;MySQL在大型网站的应用架构演变</p>
+<p class="a">[9]&nbsp; https://www.cnblogs.com/dosmile/p/6681923.html&nbsp; MGR复制</p>
+<p class="a">[10] http://imysql.cn/tag/pxc &nbsp;&nbsp; PXC架构</p>
+<p class="a">[11] https://mp.weixin.qq.com/s/Ll0sdKS6Vbw1pXIKbW3-NQ&nbsp;</p>
+</div>
+</blockquote>
+</div>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="300" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/" rel="category tag">MySQL</a> <a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/" rel="category tag">数据库</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2018年1月3日<i class="i-time">05:33:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 10940 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx300.html" tppabs="http://clsn.io/clsn/lx300.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx300.html">MySQL Replication 主从复制全方位解决方案 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/14.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx321.html" tppabs="http://clsn.io/clsn/lx321.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>CentOS 7.X 系统安装及优化</span></a><a href="lx290.html" tppabs="http://clsn.io/clsn/lx290.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>MHA高可用架构与Atlas读写分离</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx321.html" tppabs="http://clsn.io/clsn/lx321.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx290.html" tppabs="http://clsn.io/clsn/lx290.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx300.html#respond" tppabs="http://clsn.io/clsn/lx300.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='300' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx988.html" tppabs="http://clsn.io/clsn/lx988.html" rel="bookmark">用户与磁盘</a></li> <li><a href="lx774.html" tppabs="http://clsn.io/clsn/lx774.html" rel="bookmark">chrony软件使用说明</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx994.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx994.html'" tppabs="http://clsn.io/clsn/lx994.html" rel="bookmark">重定向、别名、绝对路径、相对路径 详解</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx77.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx77.html'" tppabs="http://clsn.io/clsn/lx77.html" rel="bookmark">OpenSUSE 服务器系统部署</a></li> <li><a href="lx243.html" tppabs="http://clsn.io/clsn/lx243.html" rel="bookmark">SVN服务实战应用指南</a></li> <li><a href="lx630.html" tppabs="http://clsn.io/clsn/lx630.html" rel="bookmark">企业级Tomcat部署实践及安全调优</a></li> <li><a href="lx986.html" tppabs="http://clsn.io/clsn/lx986.html" rel="bookmark">linux的特殊符号与正则表达式</a></li> <li><a href="lx427.html" tppabs="http://clsn.io/clsn/lx427.html" rel="bookmark">keepalived实现服务高可用</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx230.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx230.html'" tppabs="http://clsn.io/clsn/lx230.html" rel="bookmark">企业防火墙之iptables</a></li> <li><a href="lx980.html" tppabs="http://clsn.io/clsn/lx980.html" rel="bookmark">Linux中常见问题（磁盘 定时任务）</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx300.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx300.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx300.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

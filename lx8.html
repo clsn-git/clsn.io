@@ -1,0 +1,824 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>Kubernetes 编排系统 | 惨绿少年</title><meta name="description" content="Pod" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx8.html" tppabs="http://clsn.io/clsn/lx8.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-8 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/" rel="category tag">云计算</a><i class="be be-arrowright"></i><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/" rel="category tag">虚拟化</a><i class="be be-arrowright"></i>Kubernetes 编排系统 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-8" class="post-8 post type-post status-publish format-standard hentry category-linux category-cloud category-virt ury"> <header class="entry-header"> <h1 class="entry-title">Kubernetes 编排系统</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2018年3月9日<i class="i-time">07:56:00</i></span><span class="comment"><a href="lx8.html#respond" tppabs="http://clsn.io/clsn/lx8.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="javascript:if(confirm('http://clsn.io/clsn/lx8.html?wpzmaction=add&postid=8  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx8.html?wpzmaction=add&postid=8'" tppabs="http://clsn.io/clsn/lx8.html?wpzmaction=add&postid=8" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h2>1.1 <span style="background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">Kubernetes</span><span style="font-family: 微软雅黑, sans-serif; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">简介</span></h2>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203175245328-1183720416.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Kubernetes 编排系统" alt="" /></p>
+
+<h3>1.1.1 <span style="font-family: '微软雅黑',sans-serif;">什么是</span>Kubernetes</h3>
+<p style="text-indent: 21.0pt;">Kubernetes (<span style="font-family: '微软雅黑',sans-serif;">通常称为</span>K8s<span style="font-family: '微软雅黑',sans-serif;">，</span>K8s<span style="font-family: '微软雅黑',sans-serif;">是将</span>8<span style="font-family: '微软雅黑',sans-serif;">个字母&ldquo;</span>ubernete<span style="font-family: '微软雅黑',sans-serif;">&rdquo;替换为&ldquo;</span>8<span style="font-family: '微软雅黑',sans-serif;">&rdquo;的缩写</span>) <span style="font-family: '微软雅黑',sans-serif;">是用于<strong><span style="text-decoration: underline;">自动部署、扩展和管理容器化（</span></strong></span><strong><span style="text-decoration: underline;">containerized</span></strong><strong><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">）应用程序的开源系统</span></span></strong><span style="font-family: '微软雅黑',sans-serif;">。</span>Google<span style="font-family: '微软雅黑',sans-serif;">设计并捐赠给</span>Cloud Native Computing Foundation<span style="font-family: '微软雅黑',sans-serif;">（今属</span>Linux<span style="font-family: '微软雅黑',sans-serif;">基金会）来使用的。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">它旨在提供&ldquo;<span style="background: yellow;">跨主机集群的自动部署、扩展以及运行应用程序容器的平台</span>&rdquo;。它支持一系列容器工具</span>, <span style="font-family: '微软雅黑',sans-serif;">包括</span>Docker<span style="font-family: '微软雅黑',sans-serif;">等。</span>CNCF<span style="font-family: '微软雅黑',sans-serif;">于</span>2017<span style="font-family: '微软雅黑',sans-serif;">年宣布首批</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">认证服务提供商（</span>KCSPs<span style="font-family: '微软雅黑',sans-serif;">），包含</span>IBM<span style="font-family: '微软雅黑',sans-serif;">、</span>MIRANTIS<span style="font-family: '微软雅黑',sans-serif;">、华为、</span>inwinSTACK<span style="font-family: '微软雅黑',sans-serif;">迎栈科技等服务商。</span></p>
+<h3>1.1.2 Kubernetes<span style="font-family: '微软雅黑',sans-serif;">发展史</span></h3>
+<p style="text-indent: 21.0pt;">Kubernetes (<span style="font-family: '微软雅黑',sans-serif;">希腊语</span>"<span style="font-family: '微软雅黑',sans-serif;">舵手</span>" <span style="font-family: '微软雅黑',sans-serif;">或</span> "<span style="font-family: '微软雅黑',sans-serif;">飞行员</span>") <span style="font-family: '微软雅黑',sans-serif;">由</span>Joe Beda<span style="font-family: '微软雅黑',sans-serif;">，</span>Brendan Burns<span style="font-family: '微软雅黑',sans-serif;">和</span>Craig McLuckie<span style="font-family: '微软雅黑',sans-serif;">创立，并由其他谷歌工程师，包括</span>Brian Grant<span style="font-family: '微软雅黑',sans-serif;">和</span>Tim Hockin<span style="font-family: '微软雅黑',sans-serif;">进行加盟创作，并由谷歌在</span>2014<span style="font-family: '微软雅黑',sans-serif;">年首次对外宣布</span> <span style="font-family: '微软雅黑',sans-serif;">。它的开发和设计都深受谷歌的</span>Borg<span style="font-family: '微软雅黑',sans-serif;">系统的影响，它的许多顶级贡献者之前也是</span>Borg<span style="font-family: '微软雅黑',sans-serif;">系统的开发者。在谷歌内部，</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">的原始代号曾经是</span>Seven<span style="font-family: '微软雅黑',sans-serif;">，即星际迷航中友好的</span>Borg(<span style="font-family: '微软雅黑',sans-serif;">博格人</span>)<span style="font-family: '微软雅黑',sans-serif;">角色。</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">标识中舵轮有七个轮辐就是对该项目代号的致意。</span></p>
+<p style="text-indent: 21.0pt;">Kubernetes v1.0<span style="font-family: '微软雅黑',sans-serif;">于</span>2015<span style="font-family: '微软雅黑',sans-serif;">年</span>7<span style="font-family: '微软雅黑',sans-serif;">月</span>21<span style="font-family: '微软雅黑',sans-serif;">日发布。随着</span>v1.0<span style="font-family: '微软雅黑',sans-serif;">版本发布，谷歌与</span>Linux <span style="font-family: '微软雅黑',sans-serif;">基金会合作组建了</span>Cloud Native Computing Foundation (CNCF)<span style="font-family: '微软雅黑',sans-serif;">并把</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">作为种子技术来提供。</span></p>
+<p style="text-indent: 21.0pt;">Rancher Labs<span style="font-family: '微软雅黑',sans-serif;">在其</span>Rancher<span style="font-family: '微软雅黑',sans-serif;">容器管理平台中包含了</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">的发布版。</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">也在很多其他公司的产品中被使用，比如</span>Red Hat<span style="font-family: '微软雅黑',sans-serif;">在</span>OpenShift<span style="font-family: '微软雅黑',sans-serif;">产品中，</span>CoreOS<span style="font-family: '微软雅黑',sans-serif;">的</span>Tectonic<span style="font-family: '微软雅黑',sans-serif;">产品中，</span> <span style="font-family: '微软雅黑',sans-serif;">以及</span>IBM<span style="font-family: '微软雅黑',sans-serif;">的</span>IBM<span style="font-family: '微软雅黑',sans-serif;">云私有产品中。</span></p>
+<h3>1.1.3 Kubernetes <span style="font-family: '微软雅黑',sans-serif;">特点</span></h3>
+<p style="text-indent: 21.0pt;">1<span style="font-family: '微软雅黑',sans-serif;">、可移植</span>: <span style="font-family: '微软雅黑',sans-serif;">支持公有云，私有云，混合云，多重云（</span>multi-cloud<span style="font-family: '微软雅黑',sans-serif;">）</span></p>
+<p style="text-indent: 21.0pt;">2<span style="font-family: '微软雅黑',sans-serif;">、可扩展</span>: <span style="font-family: '微软雅黑',sans-serif;">模块化</span>, <span style="font-family: '微软雅黑',sans-serif;">插件化</span>, <span style="font-family: '微软雅黑',sans-serif;">可挂载</span>, <span style="font-family: '微软雅黑',sans-serif;">可组合</span></p>
+<p style="text-indent: 21.0pt;">3<span style="font-family: '微软雅黑',sans-serif;">、自动化</span>: <span style="font-family: '微软雅黑',sans-serif;">自动部署，自动重启，自动复制，自动伸缩</span>/<span style="font-family: '微软雅黑',sans-serif;">扩展</span></p>
+<p style="text-indent: 21.0pt;">4<span style="font-family: '微软雅黑',sans-serif;">、快速部署应用，快速扩展应用</span></p>
+<p style="text-indent: 21.0pt;">5<span style="font-family: '微软雅黑',sans-serif;">、无缝对接新的应用功能</span></p>
+<p style="text-indent: 21.0pt;">6<span style="font-family: '微软雅黑',sans-serif;">、节省资源，优化硬件资源的使用</span></p>
+<h3>1.1.4 Kubernetes<span style="font-family: '微软雅黑',sans-serif;">规划组件</span></h3>
+<p style="margin-left: 42.0pt;"><span style="font-family: '微软雅黑',sans-serif;">参考文档：</span><a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://docs.kubernetes.org.cn/249.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://docs.kubernetes.org.cn/249.html'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://docs.kubernetes.org.cn/249.html" >http://docs.kubernetes.org.cn/249.html</a></p>
+<p style="text-indent: 21.0pt;">Kubernetes<span style="font-family: '微软雅黑',sans-serif;">定义了一组构建块，它们可以共同提供部署、维护和扩展应用程序的机制。组成</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">的组件设计为松耦合和可扩展的，这样可以满足多种不同的工作负载。可扩展性在很大程度上由</span><strong>Kubernetes API</strong><span style="font-family: '微软雅黑',sans-serif;">提供&mdash;&mdash;它被作为扩展的内部组件以及</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">上运行的容器等使用。</span></p>
+<p><strong><span style="background: yellow;">Pod</span></strong></p>
+<p style="text-indent: 21.0pt;"><span style="text-decoration: underline;">Kubernetes</span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">的基本调度单元称为&ldquo;</span>pod</span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">&rdquo;</span></span><span style="font-family: '微软雅黑',sans-serif;">。它可以把更高级别的抽象内容增加到容器化组件。一个</span>pod<span style="font-family: '微软雅黑',sans-serif;">一般包含一个或多个容器，这样可以保证它们一直位于主机上，并且可以共享资源。</span><span style="text-decoration: underline;">Kubernetes</span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">中的每个</span>pod</span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">都被分配一个唯一的（在集群内的）</span>IP</span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">地址这样就可以允许应用程序使用端口，而不会有冲突的风险。</span></span></p>
+<p style="text-indent: 21.0pt;">Pod<span style="font-family: '微软雅黑',sans-serif;">可以定义一个卷，例如本地磁盘目录或网络磁盘，并将其暴露在</span>pod<span style="font-family: '微软雅黑',sans-serif;">中的一个容器之中。</span>pod<span style="font-family: '微软雅黑',sans-serif;">可以通过</span>Kubernetes API<span style="font-family: '微软雅黑',sans-serif;">手动管理，也可以委托给控制器来管理。</span></p>
+<p><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">标签和选择器</span></strong></p>
+<p style="text-indent: 21.0pt;">Kubernetes<span style="font-family: '微软雅黑',sans-serif;">使客户端（用户或内部组件）将称为&ldquo;标签&rdquo;的键值对附加到系统中的任何</span>API<span style="font-family: '微软雅黑',sans-serif;">对象，如</span>pod<span style="font-family: '微软雅黑',sans-serif;">和节点。相应地，<span style="text-decoration: underline;">&ldquo;标签选择器&rdquo;是针对匹配对象的标签的查询。</span></span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">标签和选择器是</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">中的主要分组机制，用于确定操作适用的组件。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">例如，如果应用程序的</span>Pods<span style="font-family: '微软雅黑',sans-serif;">具有系统的标签</span> tier ("front-end", "back-end", for example) <span style="font-family: '微软雅黑',sans-serif;">和一个</span> release_track ("canary", "production", for example)<span style="font-family: '微软雅黑',sans-serif;">，那么对所有</span>"back-end" <span style="font-family: '微软雅黑',sans-serif;">和</span> "canary" <span style="font-family: '微软雅黑',sans-serif;">节点的操作可以使用如下所示的标签选择器：</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">&nbsp;<span class="cnblogs_code">tier=back-end AND release_track=canary</span>&nbsp;</span></p>
+<p><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">控制器</span></strong></p>
+<p style="text-indent: 21.0pt;"><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">控制器是将实际集群状态转移到所需集群状态的对帐循环。它通过管理一组</span><strong>pod</strong></span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">来实现。</span></span><span style="font-family: '微软雅黑',sans-serif;">一种控制器是一个&ldquo;复制控制器&rdquo;，它通过在集群中运行指定数量的</span>pod<span style="font-family: '微软雅黑',sans-serif;">副本来处理复制和缩放。如果基础节点出现故障，它还可以处理创建替换</span>pod<span style="font-family: '微软雅黑',sans-serif;">。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">其它控制器，是核心</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">系统的一部分包括一个&ldquo;</span><span style="text-decoration: underline;">DaemonSet</span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">控制器</span></span><span style="font-family: '微软雅黑',sans-serif;">&rdquo;为每一台机器（或机器的一些子集）上运行的恰好一个</span>pod<span style="font-family: '微软雅黑',sans-serif;">，和一个&ldquo;作业控制器&rdquo;用于运行</span>pod<span style="font-family: '微软雅黑',sans-serif;">运行到完成，例如作为批处理作业的一部分。控制器管理的一组</span>pod<span style="font-family: '微软雅黑',sans-serif;">由作为控制器定义的一部分的标签选择器确定。</span></p>
+<p><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">服务</span></strong></p>
+<p style="text-indent: 21.0pt;">Kubernetes<span style="font-family: '微软雅黑',sans-serif;">服务是一组协同工作的</span>pod<span style="font-family: '微软雅黑',sans-serif;">，就像多层架构应用中的一层。构成服务的</span>pod<span style="font-family: '微软雅黑',sans-serif;">组通过标签选择器来定义。</span></p>
+<p style="text-indent: 21.0pt;">Kubernetes<span style="font-family: '微软雅黑',sans-serif;">通过给服务分配静态</span>IP<span style="font-family: '微软雅黑',sans-serif;">地址和域名来提供服务发现机制，并且以轮询调度的方式将流量负载均衡到能与选择器匹配的</span>pod<span style="font-family: '微软雅黑',sans-serif;">的</span>IP<span style="font-family: '微软雅黑',sans-serif;">地址的网络连接上（即使是故障导致</span>pod<span style="font-family: '微软雅黑',sans-serif;">从一台机器移动到另一台机器）。默认情况下，一个服务会暴露在集群中（例如，多个后端</span>pod<span style="font-family: '微软雅黑',sans-serif;">可能被分组成一个服务，前端</span>pod<span style="font-family: '微软雅黑',sans-serif;">的请求在它们之间负载平衡）；但是，一个服务也可以暴露在集群外部（例如，从客户端访问前端</span>pod<span style="font-family: '微软雅黑',sans-serif;">）。</span></p>
+<h3>1.1.5 Kubernetes<span style="font-family: '微软雅黑',sans-serif;">核心组件</span></h3>
+<p style="text-indent: 21.0pt;">Kubernetes<span style="font-family: '微软雅黑',sans-serif;">遵循</span><em>master-slave architecture</em><span style="font-family: '微软雅黑',sans-serif;">。</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">的组件可以分为管理单个的</span> node <span style="font-family: '微软雅黑',sans-serif;">组件和控制平面的一部分的组件。</span></p>
+<p style="text-indent: 21.0pt;">Kubernetes Master<span style="font-family: '微软雅黑',sans-serif;">是集群的主要控制单元，用于管理其工作负载并指导整个系统的通信。</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">控制平面由各自的进程组成，每个组件都可以在单个主节点上运行，也可以在支持</span><em>high-availability clusters</em><span style="font-family: '微软雅黑',sans-serif;">的多个主节点上运行。</span></p>
+<p>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">主要由以下几个核心组件组成：</span></p>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 27.06%; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="27%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">组件名称</span></strong></p>
+</td>
+<td style="width: 72.94%; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" width="72%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 27.06%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>etcd </strong></p>
+</td>
+<td style="width: 72.94%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="72%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">保存了整个集群的状态；</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 27.06%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>apiserver</strong></p>
+</td>
+<td style="width: 72.94%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="72%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">提供了资源操作的唯一入口，并提供认证、授权、访问控制、</span>API<span style="font-family: '微软雅黑',sans-serif;">注册和发现等机制；</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 27.06%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>controller manager</strong></p>
+</td>
+<td style="width: 72.94%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="72%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">负责维护集群的状态，比如故障检测、自动扩展、滚动更新等；</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 27.06%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>scheduler</strong></p>
+</td>
+<td style="width: 72.94%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="72%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">负责资源的调度，按照预定的调度策略将</span>Pod<span style="font-family: '微软雅黑',sans-serif;">调度到相应的机器上；</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 27.06%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>kubelet</strong></p>
+</td>
+<td style="width: 72.94%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="72%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">负责维护容器的生命周期，同时也负责</span>Volume<span style="font-family: '微软雅黑',sans-serif;">（</span>CVI<span style="font-family: '微软雅黑',sans-serif;">）和网络（</span>CNI<span style="font-family: '微软雅黑',sans-serif;">）的管理；</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 27.06%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>Container runtime</strong></p>
+</td>
+<td style="width: 72.94%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="72%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">负责镜像管理以及</span>Pod<span style="font-family: '微软雅黑',sans-serif;">和容器的真正运行（</span>CRI<span style="font-family: '微软雅黑',sans-serif;">）；</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 27.06%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>kube-proxy</strong></p>
+</td>
+<td style="width: 72.94%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="72%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">负责为</span>Service<span style="font-family: '微软雅黑',sans-serif;">提供</span>cluster<span style="font-family: '微软雅黑',sans-serif;">内部的服务发现和负载均衡；</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span style="font-family: '微软雅黑',sans-serif;">核心组件结构图</span></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203175259843-780547270.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Kubernetes 编排系统" alt="" />&nbsp;</p>
+
+<p><span style="font-family: '微软雅黑',sans-serif;">除了核心组件，还有一些推荐的</span>Add-ons<span style="font-family: '微软雅黑',sans-serif;">：</span></p>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 31.14%; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="31%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">组件名称</span></strong></p>
+</td>
+<td style="width: 68.86%; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" width="68%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 31.14%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="31%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>kube-dns</strong></p>
+</td>
+<td style="width: 68.86%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="68%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">负责为整个集群提供</span>DNS<span style="font-family: '微软雅黑',sans-serif;">服务</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 31.14%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="31%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>Ingress Controller</strong></p>
+</td>
+<td style="width: 68.86%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="68%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">为服务提供外网入口</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 31.14%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="31%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>Heapster</strong></p>
+</td>
+<td style="width: 68.86%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="68%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">提供资源监控</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 31.14%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="31%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>Dashboard</strong></p>
+</td>
+<td style="width: 68.86%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="68%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">提供</span>GUI</p>
+</td>
+</tr>
+<tr>
+<td style="width: 31.14%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="31%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>Federation</strong></p>
+</td>
+<td style="width: 68.86%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="68%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">提供跨可用区的集群</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 31.14%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="31%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>Fluentd-elasticsearch</strong></p>
+</td>
+<td style="width: 68.86%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="68%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">提供集群日志采集、存储与查询</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>1.1.6 <span style="font-family: '微软雅黑',sans-serif;">分层架构</span></h3>
+<p style="text-indent: 21.0pt;">Kubernetes<span style="font-family: '微软雅黑',sans-serif;">设计理念和功能其实就是一个类似</span>Linux<span style="font-family: '微软雅黑',sans-serif;">的分层架构，如下图所示：</span></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203175310937-357350103.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Kubernetes 编排系统" alt="" />&nbsp;</p>
+
+<p><span style="font-family: '微软雅黑',sans-serif;">分层说明：</span></p>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 14.88%; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="14%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">分层结构</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" colspan="2" width="85%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 14.88%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="14%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif;">核心层</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="2" width="85%">
+<p style="text-align: justify; text-justify: inter-ideograph;">Kubernetes<span style="font-family: '微软雅黑',sans-serif;">最核心的功能，对外提供</span>API<span style="font-family: '微软雅黑',sans-serif;">构建高层的应用，对内提供插件式应用执行环境</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 14.88%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="14%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif;">应用层</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="2" width="85%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">部署（无状态应用、有状态应用、批处理任务、集群应用等）和路由（服务发现、</span>DNS<span style="font-family: '微软雅黑',sans-serif;">解析等）</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 14.88%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="14%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif;">管理层</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="2" width="85%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">系统度量（如基础设施、容器和网络的度量），自动化（如自动扩展、动态</span>Provision<span style="font-family: '微软雅黑',sans-serif;">等）以及策略管理（</span>RBAC<span style="font-family: '微软雅黑',sans-serif;">、</span>Quota<span style="font-family: '微软雅黑',sans-serif;">、</span>PSP<span style="font-family: '微软雅黑',sans-serif;">、</span>NetworkPolicy<span style="font-family: '微软雅黑',sans-serif;">等）</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 14.88%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="14%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif;">接口层</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="2" width="85%">
+<p style="text-align: justify; text-justify: inter-ideograph;">kubectl<span style="font-family: '微软雅黑',sans-serif;">命令行工具、客户端</span>SDK<span style="font-family: '微软雅黑',sans-serif;">以及集群联邦</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 14.88%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" rowspan="3" width="14%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif;">生态系统</span></strong></p>
+</td>
+<td style="width: 85.12%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #92D050; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="2" width="85%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">在接口层之上的庞大容器集群管理调度的生态系统，可以划分为两个范畴</span></p>
+</td>
+</tr>
+<tr style="height: 17.7pt;">
+<td style="width: 23.04%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 17.7pt;" width="23%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>Kubernetes</strong><strong><span style="font-family: '微软雅黑',sans-serif;">外部</span></strong></p>
+</td>
+<td style="width: 62.08%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 17.7pt;" width="62%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">日志、监控、配置管理、</span>CI<span style="font-family: '微软雅黑',sans-serif;">、</span>CD<span style="font-family: '微软雅黑',sans-serif;">、</span>Workflow<span style="font-family: '微软雅黑',sans-serif;">、</span>FaaS<span style="font-family: '微软雅黑',sans-serif;">、</span>OTS<span style="font-family: '微软雅黑',sans-serif;">应用、</span>ChatOps<span style="font-family: '微软雅黑',sans-serif;">等</span></p>
+</td>
+</tr>
+<tr style="height: 17.65pt;">
+<td style="width: 23.04%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 17.65pt;" width="23%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>Kubernetes</strong><strong><span style="font-family: '微软雅黑',sans-serif;">内部</span></strong></p>
+</td>
+<td style="width: 62.08%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 17.65pt;" width="62%">
+<p style="text-align: justify; text-justify: inter-ideograph;">CRI<span style="font-family: '微软雅黑',sans-serif;">、</span>CNI<span style="font-family: '微软雅黑',sans-serif;">、</span>CVI<span style="font-family: '微软雅黑',sans-serif;">、镜像仓库、</span>Cloud Provider<span style="font-family: '微软雅黑',sans-serif;">、集群自身的配置和管理等</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>1.2 <span style="font-family: '微软雅黑',sans-serif;">部署</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">集群</span></h2>
+<h3>1.2.1 <span style="font-family: '微软雅黑',sans-serif;">主机环境说明</span></h3>
+<p style="margin-left: 7.1pt;"><span style="font-family: '微软雅黑',sans-serif;">系统版本说明</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="87f5e8e8f3c7ecbff4aaeae6f4f3e2f5">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat /etc/redhat-release </span>
+CentOS Linux release 7.2.1511<span style="color: #000000;"> (Core) 
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d5a7babaa195beeda6">[email&#160;protected]</a></span>-master ~]<span style="color: #008000;">#</span><span style="color: #008000;"> uname -r </span>
+3.10.0-327<span style="color: #000000;">.el7.x86_64
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fc8e939388bc97c48f">[email&#160;protected]</a></span>-master ~]<span style="color: #008000;">#</span><span style="color: #008000;"> getenforce </span>
+<span style="color: #000000;">Disabled
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8cfee3e3f8cce7b4ff">[email&#160;protected]</a></span>-master ~]<span style="color: #008000;">#</span><span style="color: #008000;"> systemctl status  firewalld.service </span>
+● firewalld.service - firewalld -<span style="color: #000000;"> dynamic firewall daemon
+   Loaded: loaded (</span>/usr/lib/systemd/system/<span style="color: #000000;">firewalld.service; disabled; vendor preset: enabled)
+   Active: inactive (dead)</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">主机</span>IP<span style="font-family: '微软雅黑',sans-serif;">规划</span></p>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 23%; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="23%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">主机名</span></strong></p>
+</td>
+<td style="width: 39.32%; border-top: solid #9BBB59 1.0pt; border-left: none; border-bottom: solid #9BBB59 1.0pt; border-right: none; background: #9BBB59; padding: 0cm 5.4pt 0cm 5.4pt;" width="39%">
+<p style="text-align: center;" align="center"><strong><span style="color: white;">IP</span></strong></p>
+</td>
+<td style="width: 37.68%; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" width="37%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">功能</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 23%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="23%">
+<p style="text-align: center;" align="center"><strong>k8s-master</strong></p>
+</td>
+<td style="width: 39.32%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="39%">
+<p style="text-align: center;" align="center">10.0.0.11/172.16.1.11</p>
+</td>
+<td style="width: 37.68%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="37%">
+<p style="text-align: center;" align="center">Master<span style="font-family: '微软雅黑',sans-serif;">、</span>etcd<span style="font-family: '微软雅黑',sans-serif;">、</span>registry</p>
+</td>
+</tr>
+<tr>
+<td style="width: 23%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="23%">
+<p style="text-align: center;" align="center"><strong>k8s-node-1</strong></p>
+</td>
+<td style="width: 39.32%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="39%">
+<p style="text-align: center;" align="center">10.0.0.12/172.16.1.12</p>
+</td>
+<td style="width: 37.68%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="37%">
+<p style="text-align: center;" align="center">node1</p>
+</td>
+</tr>
+<tr>
+<td style="width: 23%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="23%">
+<p style="text-align: center;" align="center"><strong>k8s-node-2</strong></p>
+</td>
+<td style="width: 39.32%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="39%">
+<p style="text-align: center;" align="center">10.0.0.13/172.16.1.13</p>
+</td>
+<td style="width: 37.68%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="37%">
+<p style="text-align: center;" align="center">node2</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span style="font-family: '微软雅黑',sans-serif;">设置</span>hosts<span style="font-family: '微软雅黑',sans-serif;">解析</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="196b76766d5972216a3474786a6d7c6b">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat /etc/hosts</span>
+127.0.0.1<span style="color: #000000;">   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::</span>1<span style="color: #000000;">         localhost localhost.localdomain localhost6 localhost6.localdomain6
+</span>10.0.0.11   k8s-<span style="color: #000000;">master
+</span>10.0.0.12   k8s-node-1
+10.0.0.13   k8s-node-2</pre>
+</div>
+<h3>1.2.2 <span style="font-family: '微软雅黑',sans-serif;">安装软件包</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">在三个节点上分别操作</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c2e3333281c37642f71313d2f28392e">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> yum install etcd docker kubernetes flannel  -y </span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1664797962567d2e653b787972733b27">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> yum install docker kubernetes flannel  -y </span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fc8e939388bc97c48fd192939899d1ce">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> yum install docker kubernetes flannel  -y</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">安装的软件版本说明</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d3a1bcbca793b8eba0febeb2a0a7b6a1">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rpm -qa  etcd docker kubernetes flannel</span>
+flannel-0.7.1-2<span style="color: #000000;">.el7.x86_64
+docker</span>-1.12.6-71.git3e8e77d.el7.centos.1<span style="color: #000000;">.x86_64
+kubernetes</span>-1.5.2-0.7<span style="color: #000000;">.git269f928.el7.x86_64
+etcd</span>-3.2.11-1.el7.x86_64</pre>
+</div>
+<h3>1.2.3 <span style="font-family: '微软雅黑',sans-serif;">修改配置</span>etcd</h3>
+<p>&nbsp;&nbsp; yum<span style="font-family: '微软雅黑',sans-serif;">安装的</span>etcd<span style="font-family: '微软雅黑',sans-serif;">默认配置文件在</span>/etc/etcd/etcd.conf<span style="font-family: '微软雅黑',sans-serif;">。</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">最终配置文件</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="10627f7f64507b28633d7d7163647562">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> grep -Ev '^$|#' /etc/etcd/etcd.conf</span>
+ETCD_DATA_DIR=<span style="color: #800000;">"</span><span style="color: #800000;">/var/lib/etcd/default.etcd</span><span style="color: #800000;">"</span><span style="color: #000000;">
+ETCD_LISTEN_CLIENT_URLS</span>=<span style="color: #800000;">"</span><span style="color: #800000;">http://0.0.0.0:2379</span><span style="color: #800000;">"</span><span style="color: #000000;">
+ETCD_NAME</span>=<span style="color: #800000;">"</span><span style="color: #800000;">default</span><span style="color: #800000;">"</span><span style="color: #000000;">
+ETCD_ADVERTISE_CLIENT_URLS</span>=<span style="color: #800000;">"</span><span style="color: #800000;">http://10.0.0.11:2379</span><span style="color: #800000;">"</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">启动</span>etcd</p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d4a6bbbba094bfeca7f9b9b5a7a0b1a6">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> systemctl enable etcd</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ddafb2b2a99db6e5aef0b0bcaea9b8af">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> systemctl start etcd</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">测试</span>etcd</p>
+<div class="cnblogs_code">
+<pre>etcdctl set testdir/<span style="color: #000000;">testkey0 0
+etcdctl set testdir</span>/<span style="color: #000000;">testkey0 0
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ec9e838398ac87d49f">[email&#160;protected]</a></span>-master ~]<span style="color: #008000;">#</span><span style="color: #008000;"> etcdctl -C http://10.0.0.11:2379 cluster-health</span>
+member 8e9e05c52164694d <span style="color: #0000ff;">is</span> healthy: got healthy result <span style="color: #0000ff;">from</span> http://10.0.0.11:2379<span style="color: #000000;">
+cluster </span><span style="color: #0000ff;">is</span> healthy</pre>
+</div>
+<h3>1.2.4 <span style="font-family: '微软雅黑',sans-serif;">配置并启动</span>kubernetes</h3>
+<p>/etc/kubernetes/apiserver<span style="font-family: '微软雅黑',sans-serif;">配置文件内容</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ccbea3a3b88ca7f4bfe1a1adbfb8a9be">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;">  grep -Ev '^$|#'  /etc/kubernetes/apiserver</span>
+KUBE_API_ADDRESS=<span style="color: #800000;">"</span><span style="color: #800000;">--insecure-bind-address=0.0.0.0</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_API_PORT</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--port=8080</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_ETCD_SERVERS</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--etcd-servers=http://10.0.0.11:2379</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_SERVICE_ADDRESSES</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--service-cluster-ip-range=10.254.0.0/16</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_ADMISSION_CONTROL</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,SecurityContextDeny,ResourceQuota</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_API_ARGS</span>=<span style="color: #800000;">""</span></pre>
+</div>
+<p>/etc/kubernetes/config<span style="font-family: '微软雅黑',sans-serif;">配置文件</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e99b86869da982d19ac484889a9d8c9b">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;">  grep -Ev '^$|#' /etc/kubernetes/config</span>
+KUBE_LOGTOSTDERR=<span style="color: #800000;">"</span><span style="color: #800000;">--logtostderr=true</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_LOG_LEVEL</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--v=0</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_ALLOW_PRIV</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--allow-privileged=false</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_MASTER</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--master=http://10.0.0.11:8080</span><span style="color: #800000;">"</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">启动服务</span></p>
+<div class="cnblogs_code">
+<pre>systemctl enable kube-<span style="color: #000000;">apiserver.service
+systemctl start kube</span>-<span style="color: #000000;">apiserver.service
+systemctl enable kube</span>-controller-<span style="color: #000000;">manager.service
+systemctl start kube</span>-controller-<span style="color: #000000;">manager.service
+systemctl enable kube</span>-<span style="color: #000000;">scheduler.service
+systemctl start kube</span>-scheduler.service</pre>
+</div>
+<h3>1.2.5 <span style="font-family: '微软雅黑',sans-serif;">部署配置</span>node</h3>
+<p>/etc/kubernetes/config<span style="font-family: '微软雅黑',sans-serif;">配置文件</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f785989883b79ccf84da99989392dac6">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> grep -Ev '^$|#'  /etc/kubernetes/config</span>
+KUBE_LOGTOSTDERR=<span style="color: #800000;">"</span><span style="color: #800000;">--logtostderr=true</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_LOG_LEVEL</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--v=0</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_ALLOW_PRIV</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--allow-privileged=false</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_MASTER</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--master=http://10.0.0.11:8080</span><span style="color: #800000;">"</span><span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="60120f0f14200b5813">[email&#160;protected]</a></span>-node-1 ~]<span style="color: #008000;">#</span><span style="color: #008000;"> grep -Ev '^$|#'  /etc/kubernetes/kubelet</span>
+KUBELET_ADDRESS=<span style="color: #800000;">"</span><span style="color: #800000;">--address=0.0.0.0</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBELET_HOSTNAME</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--hostname-override=10.0.0.12</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBELET_API_SERVER</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--api-servers=http://10.0.0.11:8080</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBELET_POD_INFRA_CONTAINER</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--pod-infra-container-image=registry.access.redhat.com/rhel7/pod-infrastructure:latest</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBELET_ARGS</span>=<span style="color: #800000;">""</span></pre>
+</div>
+<p>/etc/kubernetes/config<span style="font-family: '微软雅黑',sans-serif;">配置文件</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="10627f7f64507b28633d7e7f74753d22">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> grep -Ev '^$|#'  /etc/kubernetes/config</span>
+KUBE_LOGTOSTDERR=<span style="color: #800000;">"</span><span style="color: #800000;">--logtostderr=true</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_LOG_LEVEL</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--v=0</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_ALLOW_PRIV</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--allow-privileged=false</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_MASTER</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--master=http://10.0.0.11:8080</span><span style="color: #800000;">"</span><span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="73011c1c0733184b00">[email&#160;protected]</a></span>-node-2 ~]<span style="color: #008000;">#</span><span style="color: #008000;"> grep -Ev '^$|#'  /etc/kubernetes/kubelet</span>
+KUBELET_ADDRESS=<span style="color: #800000;">"</span><span style="color: #800000;">--address=0.0.0.0</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBELET_HOSTNAME</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--hostname-override=10.0.0.13</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBELET_API_SERVER</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--api-servers=http://10.0.0.11:8080</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBELET_POD_INFRA_CONTAINER</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--pod-infra-container-image=registry.access.redhat.com/rhel7/pod-infrastructure:latest</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBELET_ARGS</span>=<span style="color: #800000;">""</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">启动</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">systemctl enable kubelet.service
+systemctl start kubelet.service
+systemctl enable kube</span>-<span style="color: #000000;">proxy.service
+systemctl start kube</span>-proxy.service</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">在</span>master<span style="font-family: '微软雅黑',sans-serif;">上查看集群中节点及节点状态</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> kubectl -s http://10.0.0.11:8080 get node</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4b3924243f0b20733866262a383f2e39">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl -s http://10.0.0.11:8080 get node</span>
+<span style="color: #000000;">NAME        STATUS    AGE
+</span>10.0.0.12<span style="color: #000000;">   Ready     49s
+</span>10.0.0.13<span style="color: #000000;">   Ready     56s
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="daa8b5b5ae9ab1e2a9">[email&#160;protected]</a></span>-master ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl get nodes</span>
+<span style="color: #000000;">NAME        STATUS    AGE
+</span>10.0.0.12<span style="color: #000000;">   Ready     1m
+</span>10.0.0.13   Ready     1m</pre>
+</div>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">至此</span>Kubernetes<span style="font-family: '微软雅黑',sans-serif;">基础部署完成</span></p>
+<h3>1.2.6 Kubernetes<span style="font-family: '微软雅黑',sans-serif;">其他安装方法</span></h3>
+<blockquote>
+<p>&nbsp;&nbsp; &nbsp;二进制安装</p>
+<p>&nbsp;&nbsp; &nbsp; kubuadm&nbsp;安装</p>
+<p>&nbsp;&nbsp; &nbsp; minikube&nbsp;安装</p>
+<p>&nbsp;&nbsp; &nbsp; ansible部署：<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://github.com/gjmzj/kubeasz  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://github.com/gjmzj/kubeasz'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://github.com/gjmzj/kubeasz" >https://github.com/gjmzj/kubeasz</a></p>
+</blockquote>
+<h2>1.3 <span style="font-family: '微软雅黑',sans-serif;">创建覆盖网络</span>--Flannel</h2>
+<h3>1.3.1 <span style="font-family: '微软雅黑',sans-serif;">配置</span>Flannel<span style="font-family: '微软雅黑',sans-serif;">（所有节点操作）</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">安装软件包</span></p>
+<div class="cnblogs_code">
+<pre>yum install flannel -y</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">修改配置文件</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="72001d1d0632194a015f1f1301061700">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> grep "^[a-Z]" /etc/sysconfig/flanneld</span>
+FLANNEL_ETCD_ENDPOINTS=<span style="color: #800000;">"</span><span style="color: #800000;">http://10.0.0.11:2379</span><span style="color: #800000;">"</span><span style="color: #000000;">
+FLANNEL_ETCD_PREFIX</span>=<span style="color: #800000;">"</span><span style="color: #800000;">/atomic.io/network</span><span style="color: #800000;">"</span></pre>
+</div>
+<h3>1.3.2 <span style="font-family: '微软雅黑',sans-serif;">配置</span>etcd<span style="font-family: '微软雅黑',sans-serif;">中关于</span>flannel<span style="font-family: '微软雅黑',sans-serif;">的</span>key</h3>
+<p style="text-indent: 21.0pt;">Flannel<span style="font-family: '微软雅黑',sans-serif;">使用</span>Etcd<span style="font-family: '微软雅黑',sans-serif;">进行配置，来保证多个</span>Flannel<span style="font-family: '微软雅黑',sans-serif;">实例之间的配置一致性，所以需要在</span>etcd<span style="font-family: '微软雅黑',sans-serif;">上进行如下配置：（&lsquo;</span>/atomic.io/network/config<span style="font-family: '微软雅黑',sans-serif;">&rsquo;这个</span>key<span style="font-family: '微软雅黑',sans-serif;">与上文</span>/etc/sysconfig/flannel<span style="font-family: '微软雅黑',sans-serif;">中的配置项</span>FLANNEL_ETCD_PREFIX<span style="font-family: '微软雅黑',sans-serif;">是相对应的，错误的话启动就会出错）</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">配置网络范围</span></p>
+<div class="cnblogs_code">
+<pre>etcdctl mk  /atomic.io/network/config <span style="color: #800000;">'</span><span style="color: #800000;">{ "Network": "172.16.0.0/16" }</span><span style="color: #800000;">'</span></pre>
+</div>
+<p style="text-indent: 15.75pt;"><span style="font-family: '微软雅黑',sans-serif;">操作创建网络</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="53213c3c2713386b207e3e3220273621">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> etcdctl mk /atomic.io/network/config '{ "Network": "172.16.0.0/16" }'</span>
+{ <span style="color: #800000;">"</span><span style="color: #800000;">Network</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">172.16.0.0/16</span><span style="color: #800000;">"</span> }</pre>
+</div>
+<p>master<span style="font-family: '微软雅黑',sans-serif;">节点操作</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">    systemctl enable flanneld.service 
+    systemctl start flanneld.service 
+    service docker restart
+    systemctl restart kube</span>-<span style="color: #000000;">apiserver.service
+    systemctl restart kube</span>-controller-<span style="color: #000000;">manager.service
+    systemctl restart kube</span>-scheduler.service</pre>
+</div>
+<p>node<span style="font-family: '微软雅黑',sans-serif;">节点操作</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">    systemctl enable flanneld.service 
+    systemctl start flanneld.service 
+    service docker restart
+    systemctl restart kubelet.service
+    systemctl restart kube</span>-<span style="color: #000000;">proxy.service 
+    </span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">修改配置文件</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4d3f2222390d26753e60202c3e39283f">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat  /etc/kubernetes/apiserver </span>
+KUBE_API_ADDRESS=<span style="color: #800000;">"</span><span style="color: #800000;">--insecure-bind-address=0.0.0.0</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_API_PORT</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--port=8080</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_ETCD_SERVERS</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--etcd-servers=http://10.0.0.11:2379</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_SERVICE_ADDRESSES</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--service-cluster-ip-range=10.254.0.0/16</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_ADMISSION_CONTROL</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,SecurityContextDeny,ResourceQuota</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_API_ARGS</span>=<span style="color: #800000;">""</span></pre>
+</div>
+<p>&nbsp;&nbsp; <strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new"; color: red; background: yellow;">至此</span><span style="color: red; background: yellow;">Flannel</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new"; color: red; background: yellow;">网络配置完成</span></strong></p>
+<h2>1.4 <span style="font-family: '微软雅黑',sans-serif;">创建一个简单的</span>pod</h2>
+<p style="text-indent: 21.0pt;">Pod<span style="font-family: '微软雅黑',sans-serif;">是</span>K8s<span style="font-family: '微软雅黑',sans-serif;">集群中所有业务类型的基础</span></p>
+<p style="text-indent: 21.0pt;">Pod<span style="font-family: '微软雅黑',sans-serif;">是在</span>K8s<span style="font-family: '微软雅黑',sans-serif;">集群中运行部署应用或服务的最小单元，它是可以支持多容器的。</span></p>
+<p style="text-indent: 21.0pt;">Pod<span style="font-family: '微软雅黑',sans-serif;">的设计理念是支持多个容器在一个</span>Pod<span style="font-family: '微软雅黑',sans-serif;">中共享网络地址和文件系统。</span></p>
+<p style="text-indent: 21.0pt;">POD<span style="font-family: '微软雅黑',sans-serif;">控制器</span>Deployment<span style="font-family: '微软雅黑',sans-serif;">、</span>Job<span style="font-family: '微软雅黑',sans-serif;">、</span>DaemonSet<span style="font-family: '微软雅黑',sans-serif;">和</span>PetSet</p>
+<h3>1.4.1 <span style="font-family: '微软雅黑',sans-serif;">写一个编排</span>yaml<span style="font-family: '微软雅黑',sans-serif;">格式</span></h3>
+<p style="text-indent: 7.1pt;">kubenetes<span style="font-family: '微软雅黑',sans-serif;">里面的创建</span>service<span style="font-family: '微软雅黑',sans-serif;">、</span>rc<span style="font-family: '微软雅黑',sans-serif;">、</span>pod<span style="font-family: '微软雅黑',sans-serif;">都是这种形式</span>(<span style="font-family: '微软雅黑',sans-serif;">另外一种是</span>json)</p>
+<p style="text-indent: 7.1pt;"><span style="font-family: '微软雅黑',sans-serif;">关于</span>yaml<span style="font-family: '微软雅黑',sans-serif;">参考：</span><a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://t.cn/RK0Jlwu  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://t.cn/RK0Jlwu'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://t.cn/RK0Jlwu" >http://t.cn/RK0Jlwu</a></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9be9f4f4efdbf0a3e8b6f6fae8effee9">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat  /etc/kubernetes/apiserver </span>
+KUBE_API_ADDRESS=<span style="color: #800000;">"</span><span style="color: #800000;">--insecure-bind-address=0.0.0.0</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_API_PORT</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--port=8080</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_ETCD_SERVERS</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--etcd-servers=http://10.0.0.11:2379</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_SERVICE_ADDRESSES</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--service-cluster-ip-range=10.254.0.0/16</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_ADMISSION_CONTROL</span>=<span style="color: #800000;">"</span><span style="color: #800000;">--admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,SecurityContextDeny,ResourceQuota</span><span style="color: #800000;">"</span><span style="color: #000000;">
+KUBE_API_ARGS</span>=<span style="color: #800000;">""</span></pre>
+</div>
+<h3>1.4.2 <span style="font-family: '微软雅黑',sans-serif;">启动一个</span>pod</h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c7b5a8a8b387acffb4eaaaa6b4b3a2b5">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl create -f hello.yaml </span>
+pod <span style="color: #800000;">"</span><span style="color: #800000;">hello-world</span><span style="color: #800000;">"</span> created</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">查看默认</span>namespace<span style="font-family: '微软雅黑',sans-serif;">下的</span>pods</p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fc8e939388bc97c48fd1919d8f88998e">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl get pods</span>
+<span style="color: #000000;">NAME          READY     STATUS              RESTARTS   AGE
+hello</span>-world   0/1       ContainerCreating   0          8s</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">查看</span>pod<span style="font-family: '微软雅黑',sans-serif;">的详细信息</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b8cad7d7ccf8d380cb95d5d9cbccddca">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl  describe pod  hello-world </span>
+<span style="color: #000000;">Events:
+  FirstSeen    LastSeen    Count    From            SubObjectPath    Type       Reason        Message
+  </span>---------    --------    -----    ----            -------------    --------   ------        -------<span style="color: #000000;">
+  4m        4m        </span>1    {default-scheduler}      Normal         Scheduled    Successfully assigned hello-world to 10.0.0.13<span style="color: #000000;">
+  4m        1m        </span>5    {kubelet 10.0.0.13}      Warning        FailedSync    Error syncing pod, skipping: failed to <span style="color: #800000;">"</span><span style="color: #800000;">StartContainer</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">for</span> <span style="color: #800000;">"</span><span style="color: #800000;">POD</span><span style="color: #800000;">"</span> with ErrImagePull: <span style="color: #800000;">"</span><span style="color: #800000;">image pull failed for registry.access.redhat.com/rhel7/pod-infrastructure:latest, this may be because there are no credentials on this request.  details: (open /etc/docker/certs.d/registry.access.redhat.com/redhat-ca.crt: no such file or directory)</span><span style="color: #800000;">"</span><span style="color: #000000;">
+  3m        14s       </span>13   {kubelet 10.0.0.13}      Warning        FailedSync    Error syncing pod, skipping: failed to <span style="color: #800000;">"</span><span style="color: #800000;">StartContainer</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">for</span> <span style="color: #800000;">"</span><span style="color: #800000;">POD</span><span style="color: #800000;">"</span> with ImagePullBackOff: <span style="color: #800000;">"</span><span style="color: #800000;">Back-off pulling image \"registry.access.redhat.com/rhel7/pod-infrastructure:latest\"</span><span style="color: #800000;">"</span></pre>
+</div>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: red;">该错误的解决方法</span><span style="font-family: '微软雅黑',sans-serif;">：&nbsp;<span class="cnblogs_code">yum install python-rhsm* -y</span>&nbsp;</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">获取指定</span>pods<span style="font-family: '微软雅黑',sans-serif;">详细信息</span></p>
+<div class="cnblogs_code">
+<pre>kubectl describe pods yourpodname</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">获取已运行</span>pod<span style="font-family: '微软雅黑',sans-serif;">状态</span></p>
+<div class="cnblogs_code">
+<pre>kubectl get pods -o wide</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">下载</span>pod-infrastructure<span style="font-family: '微软雅黑',sans-serif;">镜像包</span></p>
+<div class="cnblogs_code">
+<pre>docker tag docker.io/tianyebj/pod-infrastructure:latest registry.access.redhat.com/rhel7/pod-infrastructure:lates</pre>
+</div>
+<h3>1.4.3 pod<span style="font-family: '微软雅黑',sans-serif;">其他操作</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">删除</span>pod<span style="font-family: '微软雅黑',sans-serif;">，重新创建</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fa8895958eba91c289d7979b898e9f88">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl delete -f hello.yaml </span>
+pod <span style="color: #800000;">"</span><span style="color: #800000;">hello-world</span><span style="color: #800000;">"</span><span style="color: #000000;"> deleted
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ee9c81819aae85d69d">[email&#160;protected]</a></span>-master ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl create -f hello.yaml </span>
+pod <span style="color: #800000;">"</span><span style="color: #800000;">hello-world</span><span style="color: #800000;">"</span> created</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">查看状态</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="31435e5e45715a09421c5c5042455443">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl get pods -o wide</span>
+<span style="color: #000000;">NAME        READY     STATUS             RESTARTS   AGE       IP            NODE
+nginx</span>-web   1/1       ImagePullBackOff   0          1m        172.16.53.2   10.0.0.13</pre>
+</div>
+<h2>1.5 Replication Controller</h2>
+<p>&nbsp;&nbsp; RC<span style="font-family: '微软雅黑',sans-serif;">是</span>K8s<span style="font-family: '微软雅黑',sans-serif;">集群中最早的保证</span>Pod<span style="font-family: '微软雅黑',sans-serif;">高可用的</span>API<span style="font-family: '微软雅黑',sans-serif;">对象。通过监控运行中的</span>Pod<span style="font-family: '微软雅黑',sans-serif;">来保证集群中运行指定数目的</span>Pod<span style="font-family: '微软雅黑',sans-serif;">副本。指定的数目可以是多个也可以是</span>1<span style="font-family: '微软雅黑',sans-serif;">个；少于指定数目，</span>RC<span style="font-family: '微软雅黑',sans-serif;">就会启动运行新的</span>Pod<span style="font-family: '微软雅黑',sans-serif;">副本；多于指定数目，</span>RC<span style="font-family: '微软雅黑',sans-serif;">就会杀死多余的</span>Pod<span style="font-family: '微软雅黑',sans-serif;">副本。</span></p>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">即使在指定数目为</span>1<span style="font-family: '微软雅黑',sans-serif;">的情况下，通过</span>RC<span style="font-family: '微软雅黑',sans-serif;">运行</span>Pod<span style="font-family: '微软雅黑',sans-serif;">也比直接运行</span>Pod<span style="font-family: '微软雅黑',sans-serif;">更明智，因为</span>RC<span style="font-family: '微软雅黑',sans-serif;">也可以发挥它高可用的能力，保证永远有</span>1<span style="font-family: '微软雅黑',sans-serif;">个</span>Pod<span style="font-family: '微软雅黑',sans-serif;">在运行。</span></p>
+<h3>1.5.1 <span style="font-family: '微软雅黑',sans-serif;">简单</span>rc<span style="font-family: '微软雅黑',sans-serif;">配置</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="81f3eeeef5c1eab9f2acece0f2f5e4f3">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl get  rc</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">始终保证有一个在活着</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">更新</span>rc<span style="font-family: '微软雅黑',sans-serif;">文件</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c3b1acacb783a8fbb0eeaea2b0b7a6b1">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl replace -f  nginx.yml</span></pre>
+</div>
+<p>&nbsp;&nbsp; nginx.yml<span style="font-family: '微软雅黑',sans-serif;">文件信息</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2d5f4242596d46155e00404c5e59485f">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> vim nginx.yml</span>
+<span style="color: #000000;">apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx</span>-2<span style="color: #000000;">
+spec:
+  restartPolicy: Never
+  containers:
+  </span>-<span style="color: #000000;"> name: nginx
+    image: </span><span style="color: #800000;">"</span><span style="color: #800000;">docker.io/nginx:latest</span><span style="color: #800000;">"</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">对现有已创建资源直进行修改</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0d7f6262794d66357e20606c7e79687f">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl edit rc nginx</span></pre>
+</div>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">可以调整数量即使生效</span></p>
+<h3>1.5.2 rs<span style="font-family: '微软雅黑',sans-serif;">实现灰度发布</span></h3>
+<p style="text-indent: 21.0pt;">RS<span style="font-family: '微软雅黑',sans-serif;">是新一代</span>RC<span style="font-family: '微软雅黑',sans-serif;">，提供同样的高可用能力，区别主要在于</span>RS<span style="font-family: '微软雅黑',sans-serif;">后来居上，能支持更多中的匹配模式。副本集对象一般不单独使用，而是作为部署的理想状态参数使用。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">是</span>K8S 1.2<span style="font-family: '微软雅黑',sans-serif;">中出现的概念，是</span>RC<span style="font-family: '微软雅黑',sans-serif;">的升级。一般和</span>Deployment<span style="font-family: '微软雅黑',sans-serif;">共同使用。</span></p>
+<blockquote>
+<p style="text-indent: 21.0pt;">&nbsp;部署表示用户对K8s集群的一次更新操作。部署是一个比RS应用模式更广的API对象，可以是创建一个新的服务，更新一个新的服务，也可以是滚动升级一个服务。滚动升级一个服务，实际是创建一个新的RS，然后逐渐将新RS中副本数增加到理想状态，将旧RS中的副本数减小到0的复合操作；</p>
+<p style="text-indent: 21.0pt;">&nbsp;　　这样一个复合操作用一个RS是不太好描述的，所以用一个更通用的Deployment来描述。</p>
+<p style="text-indent: 21.0pt;"><span style="text-indent: 0px; background-color: initial;">　　以K8s的发展方向，未来对所有长期伺服型的的业务的管理，都会通过Deployment来管理。</span></p>
+<p style="text-indent: 21.0pt;">&nbsp;　　Deployment是对RC的升级，与RC的相似度超过90%。</p>
+</blockquote>
+<p>web-rc.yaml<span style="font-family: '微软雅黑',sans-serif;">文件内容</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dcaeb3b3a89cb7e4aff1b1bdafa8b9ae">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat web-rc.yaml </span>
+<span style="color: #000000;">apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: myweb
+spec:
+  replicas: </span>3<span style="color: #000000;">
+  selector:
+    app: myweb
+  template:
+    metadata:
+      labels:
+        app: myweb
+    spec:
+      containers:
+      </span>-<span style="color: #000000;"> name: myweb
+        image: kubeguide</span>/tomcat-<span style="color: #000000;">app:v1
+        ports:
+        </span>- containerPort: 8080<span style="color: #000000;">
+        env:
+        </span>-<span style="color: #000000;"> name: MYSQL_SERVICE_HOST
+          value: </span><span style="color: #800000;">'</span><span style="color: #800000;">mysql</span><span style="color: #800000;">'</span>
+        -<span style="color: #000000;"> name: MYSQL_SERVICE_PORT
+          value: </span><span style="color: #800000;">'</span><span style="color: #800000;">3306</span><span style="color: #800000;">'</span></pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">创建集群</span></strong></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="89fbe6e6fdc9e2b1faa4e4e8fafdecfb">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl create -f web-rc.yaml</span></pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">对集群进行升级操作</span></strong></p>
+<p><strong>&nbsp;&nbsp; </strong><span style="font-family: '微软雅黑',sans-serif;">将集群内容器自动升级到新版本的容器</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="23514c4c5763481b500e4e4250574651">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl rolling-update  myweb  -f web-rc2.yaml </span></pre>
+</div>
+<p>web-rc2.yaml<span style="font-family: '微软雅黑',sans-serif;">配置文件内容</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d9abb6b6ad99b2e1aaf4b4b8aaadbcab">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat web-rc2.yaml </span>
+<span style="color: #000000;">apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: myweb</span>-2<span style="color: #000000;">
+spec:
+  replicas: </span>3<span style="color: #000000;">
+  selector:
+    app: myweb</span>-2<span style="color: #000000;">
+  template:
+    metadata:
+      labels:
+        app: myweb</span>-2<span style="color: #000000;">
+    spec:
+      containers:
+      </span>- name: myweb-2<span style="color: #000000;">
+        image: kubeguide</span>/tomcat-<span style="color: #000000;">app:v2
+        ports:
+        </span>- containerPort: 8080<span style="color: #000000;">
+        env:
+        </span>-<span style="color: #000000;"> name: MYSQL_SERVICE_HOST
+          value: </span><span style="color: #800000;">'</span><span style="color: #800000;">mysql</span><span style="color: #800000;">'</span>
+        -<span style="color: #000000;"> name: MYSQL_SERVICE_PORT
+          value: </span><span style="color: #800000;">'</span><span style="color: #800000;">3306</span><span style="color: #800000;">'</span></pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">升级后的回滚</span></strong></p>
+<p><strong>&nbsp;&nbsp; </strong><span style="font-family: '微软雅黑',sans-serif;">使用新的文件，进行升级操作可达到回滚的目的，参考：https://github.com/kubeguide/samplecode</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c2e3333281c37642f71313d2f28392e">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl rolling-update  myweb-2  -f web-rc.yaml </span></pre>
+</div>
+<h3>1.5.3 rc<span style="font-family: '微软雅黑',sans-serif;">小结</span></h3>
+<p style="margin-left: 24.0pt;"><span style="font-family: 'Segoe UI Emoji',sans-serif;">?</span> RC<span style="font-family: '微软雅黑',sans-serif;">里包括完整的</span>POD<span style="font-family: '微软雅黑',sans-serif;">定义模板</span></p>
+<p style="margin-left: 24.0pt;"><span style="font-family: 'Segoe UI Emoji',sans-serif;">?</span> RC<span style="font-family: '微软雅黑',sans-serif;">通过</span>Label Selector<span style="font-family: '微软雅黑',sans-serif;">机制实现对</span>POD<span style="font-family: '微软雅黑',sans-serif;">副本的自动控制。</span></p>
+<p style="margin-left: 24.0pt;"><span style="font-family: 'Segoe UI Emoji',sans-serif;">?</span> <span style="font-family: '微软雅黑',sans-serif;">通过改变</span>RC<span style="font-family: '微软雅黑',sans-serif;">里的</span>POD<span style="font-family: '微软雅黑',sans-serif;">副本以实现</span>POD<span style="font-family: '微软雅黑',sans-serif;">的扩容和缩容</span></p>
+<p style="margin-left: 24.0pt;"><span style="font-family: 'Segoe UI Emoji',sans-serif;">?</span> <span style="font-family: '微软雅黑',sans-serif;">通过改变</span>RC<span style="font-family: '微软雅黑',sans-serif;">里</span>POD<span style="font-family: '微软雅黑',sans-serif;">模块中的镜像版本，可以实现</span>POD<span style="font-family: '微软雅黑',sans-serif;">的滚动升级。</span></p>
+<h2>1.6 <span style="font-family: '微软雅黑',sans-serif;">服务（</span>Service<span style="font-family: '微软雅黑',sans-serif;">）</span></h2>
+<h3>1.6.1 Service<span style="font-family: '微软雅黑',sans-serif;">作用</span></h3>
+<p style="text-indent: 21.0pt;"><span style="text-decoration: underline;">RC</span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">、</span>RS</span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">和</span>Deployment</span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">只是保证了支撑服务的</span>POD</span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">的数量</span></span><span style="font-family: '微软雅黑',sans-serif;">，但是没有解决如何访问这些服务的问题。一个</span>Pod<span style="font-family: '微软雅黑',sans-serif;">只是一个运行服务的实例，随时可能在一个节点上停止，在另一个节点以一个新的</span>IP<span style="font-family: '微软雅黑',sans-serif;">启动一个新的</span>Pod<span style="font-family: '微软雅黑',sans-serif;">，因此不能以确定的</span>IP<span style="font-family: '微软雅黑',sans-serif;">和端口号提供服务。</span></p>
+<p style="text-indent: 21.0pt;"><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">要稳定地提供服务需要服务发现和负载均衡能力</span></span><span style="font-family: '微软雅黑',sans-serif;">。服务发现完成的工作，是针对客户端访问的服务，找到对应的的后端服务实例。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">在</span>K8<span style="font-family: '微软雅黑',sans-serif;">集群中，客户端需要访问的服务就是</span>Service<span style="font-family: '微软雅黑',sans-serif;">对象。每个</span>Service<span style="font-family: '微软雅黑',sans-serif;">会对应一个集群内部有效的<strong><span style="color: red;">虚拟</span></strong></span><strong><span style="color: red;">IP</span></strong><span style="font-family: '微软雅黑',sans-serif;">，集群内部通过虚拟</span>IP<span style="font-family: '微软雅黑',sans-serif;">访问一个服务。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">在</span>K8s<span style="font-family: '微软雅黑',sans-serif;">集群中微服务的负载均衡是由</span>Kube-proxy<span style="font-family: '微软雅黑',sans-serif;">实现的。</span>Kube-proxy<span style="font-family: '微软雅黑',sans-serif;">是</span>K8s<span style="font-family: '微软雅黑',sans-serif;">集群内部的负载均衡器。它是一个分布式代理服务器，在</span>K8s<span style="font-family: '微软雅黑',sans-serif;">的每个节点上都有一个；这一设计体现了它的<strong><em>伸缩性</em></strong>优势，需要访问服务的节点越多，提供负载均衡能力的</span>Kube-proxy<span style="font-family: '微软雅黑',sans-serif;">就越多，高可用节点也随之增多。</span></p>
+<h3>1.6.2 <span style="font-family: '微软雅黑',sans-serif;">测试</span>service</h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="34465b5b40745f0c4719595547405146">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> vim myweb-svc.yaml </span>
+<span style="color: #000000;">apiVersion: v1
+kind: Service
+metadata:
+  name: myweb
+spec:
+  type: NodePort
+  ports:
+    </span>- port: 8080<span style="color: #000000;">
+      nodePort: </span>30001<span style="color: #000000;">
+  selector:
+    app: myweb</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">启动集群</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="addfc2c2d9edc695de80c0ccded9c8df">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl create -f myweb-svc.yaml </span>
+service <span style="color: #800000;">"</span><span style="color: #800000;">myweb</span><span style="color: #800000;">"</span><span style="color: #000000;"> created
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3a4855554e7a510249">[email&#160;protected]</a></span>-master ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl get svc</span>
+NAME         CLUSTER-IP      EXTERNAL-<span style="color: #000000;">IP   PORT(S)          AGE
+kubernetes   </span>10.254.0.1      <none>        443/<span style="color: #000000;">TCP          6h
+myweb        </span>10.254.247.21   <nodes>       8080:30001/TCP   12s</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">浏览器访问测试</span></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203175348406-53755867.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Kubernetes 编排系统" alt="" />&nbsp;</p>
+
+<h3>1.6.3 service<span style="font-family: '微软雅黑',sans-serif;">原理图</span></h3>
+<p style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203175356062-1640106637.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Kubernetes 编排系统" alt="" /></p>
+
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">网访问</span>node ip <span style="font-family: '微软雅黑',sans-serif;">转到</span>cluster ip<span style="font-family: '微软雅黑',sans-serif;">上</span> <span style="font-family: '微软雅黑',sans-serif;">在进行</span>pod <span style="font-family: '微软雅黑',sans-serif;">分发</span>&nbsp; rr<span style="font-family: '微软雅黑',sans-serif;">轮询</span></p>
+<div class="cnblogs_code">
+<pre>kubectl create -f web-<span style="color: #000000;">svc.yaml
+    [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="20524f4f54604b1853">[email&#160;protected]</a></span>-master ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl get service</span>
+<span style="color: #000000;">    
+    NAME         CLUSTER</span>-IP      EXTERNAL-<span style="color: #000000;">IP   PORT(S)          AGE
+    kubernetes   </span>10.254.0.1      <none>        443/<span style="color: #000000;">TCP          4h
+    myweb        </span>10.254.168.71   <nodes>       8080:30001/TCP   15s</pre>
+</div>
+<h3>1.6.4 K8S<span style="font-family: '微软雅黑',sans-serif;">三种</span>IP</h3>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 21.64%; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="21%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">类型</span></strong></p>
+</td>
+<td style="width: 78.36%; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" width="78%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 21.64%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="21%">
+<p style="text-align: center;" align="center"><strong>Node IP</strong></p>
+</td>
+<td style="width: 78.36%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="78%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">节点设备的</span>IP<span style="font-family: '微软雅黑',sans-serif;">，如物理机，虚拟机等容器宿主的实际</span>IP<span style="font-family: '微软雅黑',sans-serif;">。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 21.64%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="21%">
+<p style="text-align: center;" align="center"><strong>Pod IP</strong></p>
+</td>
+<td style="width: 78.36%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="78%">
+<p style="text-align: justify; text-justify: inter-ideograph;">Pod <span style="font-family: '微软雅黑',sans-serif;">的</span>IP<span style="font-family: '微软雅黑',sans-serif;">地址，是根据</span>docker0<span style="font-family: '微软雅黑',sans-serif;">网格</span>IP<span style="font-family: '微软雅黑',sans-serif;">段进行分配的。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 21.64%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="21%">
+<p style="text-align: center;" align="center"><strong>Cluster IP</strong></p>
+</td>
+<td style="width: 78.36%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" width="78%">
+<p style="text-align: justify; text-justify: inter-ideograph;">&nbsp;Service<span style="font-family: '微软雅黑',sans-serif;">的</span>IP<span style="font-family: '微软雅黑',sans-serif;">，是一个虚拟</span>IP<span style="font-family: '微软雅黑',sans-serif;">，仅作用于</span>service<span style="font-family: '微软雅黑',sans-serif;">对象，由</span>k8s<span style="font-family: '微软雅黑',sans-serif;">管理和分配，需要结合</span>service port<span style="font-family: '微软雅黑',sans-serif;">才能使用，单独的</span>IP<span style="font-family: '微软雅黑',sans-serif;">没有通信功能，集群外访问需要一些修改。</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2><span style="font-size: 1.5em;">1.7 </span><span style="font-family: '微软雅黑',sans-serif;">部署</span><span style="font-size: 1.5em;">DashBoard</span></h2>
+<p style="margin-left: 25.1pt;"><span style="font-family: '微软雅黑',sans-serif;">参考文档：</span>http://www.cnblogs.com/zhenyuyaodidiao/p/6500897.html</p>
+<h3>1.7.1 <span style="font-family: '微软雅黑',sans-serif;">修改配置文件</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">编辑</span>dashboard.yaml<span style="font-family: '微软雅黑',sans-serif;">，注意或更改以下部分：</span></p>
+<div class="cnblogs_code">
+<pre>    image: index.tenxcloud.com/google_containers/kubernetes-dashboard-amd64:v1.4.1<span style="color: #000000;">
+            args:
+         </span>-  --apiserver-host=http://10.0.0.11:8080</pre>
+</div>
+<p style="text-indent: 15.75pt;"><span style="font-family: '微软雅黑',sans-serif;">编辑</span>dashboardsvc.yaml<span style="font-family: '微软雅黑',sans-serif;">文件：</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">apiVersion: v1
+kind: Service
+metadata:
+  name: kubernetes</span>-<span style="color: #000000;">dashboard
+  namespace: kube</span>-<span style="color: #000000;">system
+  labels:
+    k8s</span>-app: kubernetes-<span style="color: #000000;">dashboard
+    kubernetes.io</span>/cluster-service: <span style="color: #800000;">"</span><span style="color: #800000;">true</span><span style="color: #800000;">"</span><span style="color: #000000;">
+spec:
+  selector:
+    k8s</span>-app: kubernetes-<span style="color: #000000;">dashboard
+  ports:
+  </span>- port: 80<span style="color: #000000;">
+targetPort: </span>9090</pre>
+</div>
+<h3>1.7.2 <span style="font-family: '微软雅黑',sans-serif;">镜像准备</span></h3>
+<blockquote>
+<p>在dashboard.yaml中定义了dashboard所用的镜像</p>
+<p>gcr.io/google_containers/kubernetes-dashboard-amd64:v1.5.1（当然你可以选择其他的版本）</p>
+</blockquote>
+<p><span style="font-family: '微软雅黑',sans-serif;">下载地址</span></p>
+<div class="cnblogs_code">
+<pre>docker pull registry.cn-hangzhou.aliyuncs.com/google-containers/kubernetes-dashboard-amd64:v1.4.1</pre>
+</div>
+<h3>1.7.3 <span style="font-family: '微软雅黑',sans-serif;">启动</span>dashboard</h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">在</span>master<span style="font-family: '微软雅黑',sans-serif;">执行如下命令：</span></p>
+<div class="cnblogs_code">
+<pre>kubectl create -<span style="color: #000000;">f dashboard.yaml
+kubectl create </span>-f dashboardsvc.yaml</pre>
+</div>
+<p style="text-indent: 15.75pt;"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: red; background: yellow;">到此</span><span style="color: red; background: yellow;">dashboard</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: red; background: yellow;">搭建完成</span></strong></p>
+<h3>1.7.4 <span style="font-family: '微软雅黑',sans-serif;">验证</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">　　命令验证，</span>master<span style="font-family: '微软雅黑',sans-serif;">上执行如下命令：</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="790b16160d3912410a5414180a0d1c0b">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl get deployment --all-namespaces</span>
+NAMESPACE     NAME                          DESIRED   CURRENT   UP-TO-<span style="color: #000000;">DATE   AVAILABLE   AGE
+kube</span>-system   kubernetes-dashboard-latest   1         1         1            1<span style="color: #000000;">           42m
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="23514c4c5763481b50">[email&#160;protected]</a></span>-master ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl get svc  --all-namespaces</span>
+NAMESPACE     NAME                   CLUSTER-IP      EXTERNAL-<span style="color: #000000;">IP   PORT(S)          AGE
+default       kubernetes             </span>10.254.0.1      <none>        443/<span style="color: #000000;">TCP          5h
+default       myweb                  </span>10.254.168.71   <nodes>       8080:30001/<span style="color: #000000;">TCP   1h
+kube</span>-system   kubernetes-dashboard   10.254.90.78    <none>        80/<span style="color: #000000;">TCP           41m
+    [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="186a77776c5873206b">[email&#160;protected]</a></span>-master ~]<span style="color: #008000;">#</span><span style="color: #008000;"> kubectl get pod  -o wide  --all-namespaces</span>
+<span style="color: #000000;">    NAMESPACE     NAME                                           READY     STATUS    RESTARTS   AGE       IP            NODE
+    default       myweb</span>-c2dfj                                    1/1       Running   0          1h        172.16.57.2   10.0.0.13<span style="color: #000000;">
+    default       myweb</span>-h7rkb                                    1/1       Running   0          1h        172.16.76.2   10.0.0.12<span style="color: #000000;">
+    default       myweb</span>-l48b3                                    1/1       Running   0          1h        172.16.57.3   10.0.0.13<span style="color: #000000;">
+    kube</span>-system   kubernetes-dashboard-latest-1395490986-1t37v   1/1       Running   0          43m       172.16.76.3   10.0.0.12</pre>
+</div>
+<h3>1.7.5 <span style="font-family: '微软雅黑',sans-serif;">浏览器访问：</span>http://10.0.0.11:8080/ui</h3>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180203175411906-1279802068.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="Kubernetes 编排系统" alt="" />&nbsp;</p>
+
+<h3>1.7.6 <span style="font-family: '微软雅黑',sans-serif;">销毁应用</span><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: red; font-weight: normal;">（测试）</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">在</span>master<span style="font-family: '微软雅黑',sans-serif;">上执行：</span></p>
+<div class="cnblogs_code">
+<pre>kubectl delete deployment kubernetes-dashboard-latest --namespace=kube-<span style="color: #000000;">system
+kubectl delete svc  kubernetes</span>-dashboard --namespace=kube-system</pre>
+</div>
+<h2>1.8 <span style="font-family: '微软雅黑',sans-serif;">参考文献</span></h2>
+<blockquote>
+<p>&nbsp;[1]&nbsp;<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://docs.kubernetes.org.cn/227.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://docs.kubernetes.org.cn/227.html'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://docs.kubernetes.org.cn/227.html" >http://docs.kubernetes.org.cn/227.html</a></p>
+<p>&nbsp;[2]&nbsp;<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/zhenyuyaodidiao/p/6500830.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/zhenyuyaodidiao/p/6500830.html'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=http://www.cnblogs.com/zhenyuyaodidiao/p/6500830.html" >http://www.cnblogs.com/zhenyuyaodidiao/p/6500830.html</a></p>
+</blockquote>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="8" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/" rel="category tag">云计算</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/" rel="category tag">虚拟化</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2018年3月9日<i class="i-time">07:56:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 16078 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx8.html" tppabs="http://clsn.io/clsn/lx8.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx8.html">Kubernetes 编排系统 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/2.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx15.html" tppabs="http://clsn.io/clsn/lx15.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>ESXI 迁移至KVM (V2V迁移)</span></a><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>日志切割之Logrotate</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx15.html" tppabs="http://clsn.io/clsn/lx15.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx1105.html" tppabs="http://clsn.io/clsn/lx1105.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx8.html#respond" tppabs="http://clsn.io/clsn/lx8.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='8' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx15.html" tppabs="http://clsn.io/clsn/lx15.html" rel="bookmark">ESXI 迁移至KVM (V2V迁移)</a></li> <li><a href="lx194.html" tppabs="http://clsn.io/clsn/lx194.html" rel="bookmark">KVM 虚拟化技术</a></li> <li><a href="lx110.html" tppabs="http://clsn.io/clsn/lx110.html" rel="bookmark">ESXI 6.5 从载到安装</a></li> <li><a href="lx1038.html" tppabs="http://clsn.io/clsn/lx1038.html" rel="bookmark">Linux企业运维人员最常用150个命令汇总</a></li> <li><a href="lx8.html" tppabs="http://clsn.io/clsn/lx8.html" rel="bookmark">Kubernetes 编排系统</a></li> <li><a href="lx75.html" tppabs="http://clsn.io/clsn/lx75.html" rel="bookmark">LXC 容器集chroot使用说明</a></li> <li><a href="lx353.html" tppabs="http://clsn.io/clsn/lx353.html" rel="bookmark">惨绿少年是什么？</a></li> <li><a href="lx31.html" tppabs="http://clsn.io/clsn/lx31.html" rel="bookmark">Docker 容器入门</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx8.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx8.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx8.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

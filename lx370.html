@@ -1,0 +1,1347 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>MySQL的存储引擎与日志说明 | 惨绿少年</title><meta name="description" content="　　文件系统：操作系统组织和存取数据的一种机制。文件系统是一种软件。" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx370.html" tppabs="http://clsn.io/clsn/lx370.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-370 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/" rel="category tag">MySQL</a><i class="be be-arrowright"></i><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/" rel="category tag">数据库</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>MySQL的存储引擎与日志说明 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-370" class="post-370 post type-post status-publish format-standard hentry category-linux category-mysql category-databases category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">MySQL的存储引擎与日志说明</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2017年12月27日<i class="i-time">10:22:00</i></span><span class="comment"><a href="lx370.html#respond" tppabs="http://clsn.io/clsn/lx370.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="lx370.html" tppabs="http://clsn.io/clsn/lx370.html?wpzmaction=add&postid=370" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h2>1.1 存储引擎的介绍</h2>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171222204438584-733595513.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL的存储引擎与日志说明" alt="" />&nbsp;</p>
+
+<h3>1.1.1 文件系统存储</h3>
+<p>　　文件系统：操作系统组织和存取数据的一种机制。文件系统是一种软件。</p>
+<p>　　类型：ext2 3 4 ，xfs 数据。&nbsp; 不管使用什么文件系统，数据内容不会变化，不同的是，存储空间、大小、速度。</p>
+<h3>1.1.2 mysql数据库存储</h3>
+<p>　　MySQL引擎： 可以理解为，MySQL的&ldquo;文件系统&rdquo;，只不过功能更加强大。</p>
+<p>　　MySQL引擎功能： 除了可以提供基本的存取功能，还有更多功能事务功能、锁定、备份和恢复、优化以及特殊功能。</p>
+<h3>1.1.3 MySQL存储引擎种类</h3>
+<p>MySQL 提供以下存储引擎：</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">InnoDB、MyISAM (最常用的两种)
+MEMORY、ARCHIVE、FEDERATED、EXAMPLE
+BLACKHOLE、MERGE、NDBCLUSTER、CSV</span></pre>
+</div>
+<p>　　除此之外还可以使用第三方存储引擎。</p>
+</div>
+<h3>1.1.4 innodb与myisam对比</h3>
+<p><span style="background-color: #ffff00;"><strong>InnoDb</strong><strong>引擎</strong></span></p>
+<ol>
+<li>支持ACID的事务，支持事务的四种隔离级别；</li>
+<li>支持行级锁及外键约束：因此可以支持写并发；</li>
+<li>不存储总行数；</li>
+<li>一个InnoDb引擎存储在一个文件空间（共享表空间，表大小不受操作系统控制，一个表可能分布在多个文件里），也有可能为多个（设置为独立表空，表大小受操作系统文件大小限制，一般为2G），受操作系统文件大小的限制；</li>
+<li>主键索引采用聚集索引（索引的数据域存储数据文件本身），辅索引的数据域存储主键的值；因此从辅索引查找数据，需要先通过辅索引找到主键值，再访问辅索引；最好使用自增主键，防止插入数据时，为维持B+树结构，文件的大调整。</li>
+</ol>
+<p><em><span style="text-decoration: underline;">Innodb</span></em><em><span style="text-decoration: underline;">的主索引结构如下：</span></em></p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171222204555943-813641176.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL的存储引擎与日志说明" alt="" />&nbsp;</p>
+
+<p><span style="background-color: #ffff00;"><strong>MyISAM</strong><strong>引擎</strong></span></p>
+<ol>
+<li>不支持事务，但是每次查询都是原子的；</li>
+<li>支持表级锁，即每次操作是对整个表加锁；</li>
+<li>存储表的总行数；</li>
+<li>一个MYISAM表有三个文件：索引文件、表结构文件、数据文件；</li>
+<li>采用菲聚集索引，索引文件的数据域存储指向数据文件的指针。辅索引与主索引基本一致，但是辅索引不用保证唯一性。</li>
+</ol>
+<p><em><span style="text-decoration: underline;">MYISAM</span></em><em><span style="text-decoration: underline;">的主索引结构如下：</span></em></p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171222204614428-1809734723.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL的存储引擎与日志说明" alt="" /></p>
+
+<p><span style="background-color: #ffff00;"><strong>两种索引数据查找过程如下：</strong></span></p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171222204639834-1451134518.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL的存储引擎与日志说明" alt="" />&nbsp;</p>
+
+<h2>1.2 innodb存储引擎</h2>
+<p>　　在MySQL5.5版本之后，默认的<strong>存储引擎</strong>，提供高可靠性和高性能。</p>
+<h3>1.2.1 Innodb引擎的优点</h3>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">a)    事务安全（遵从ACID）
+b)    MVCC（Multi</span><span style="color: #808080;">-</span><span style="color: #000000;">Versioning Concurrency Control，多版本并发控制）
+c)    InnoDB行级锁
+d)    支持外键引用完整性约束
+e)    出现故障后快速自动恢复（crash safe recovery）
+f)    用于在内存中缓存数据和索引的缓冲区池（buffer pool（data buffer page  </span><span style="color: #ff00ff;">log</span><span style="color: #000000;"> buffer page） 、undo buffer page）
+g)    大型数据卷上的最大性能
+h)    将对表的查询与不同存储引擎混合
+i)    Oracle样式一致非锁定读取(共享锁)
+j)    表数据进行整理来优化基于主键的查询（聚集索引）</span></pre>
+</div>
+<h3>1.2.2 Innodb功能总览</h3>
+<div align="center">
+<div align="center">
+<table class="MsoTable15Grid4Accent3" style="width: 100%; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 24.46%; border-top-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-top-color: #9bbb59; border-bottom-color: #9bbb59; border-left-color: #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 5;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">功能</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top-width: 1pt; border-top-color: #9bbb59; border-left: none; border-bottom-width: 1pt; border-bottom-color: #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">支持</span></strong></p>
+</td>
+<td style="width: 26.86%; border-top-width: 1pt; border-top-color: #9bbb59; border-left: none; border-bottom-width: 1pt; border-bottom-color: #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">功能</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: #9bbb59; border-right-color: #9bbb59; border-bottom-color: #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">支持</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.46%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">存储限制</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span lang="EN-US">64 TB</span></p>
+</td>
+<td style="width: 26.86%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">索引高速缓存</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.46%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span lang="EN-US">MVCC</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+<td style="width: 26.86%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">数据高速缓存</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.46%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span lang="EN-US">B </span></strong><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">树索引</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+<td style="width: 26.86%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">自适应散列索引</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.46%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">群集索引</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+<td style="width: 26.86%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">复制</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.46%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">压缩数据</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+<td style="width: 26.86%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">更新数据字典</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.46%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">加密数据</span><span lang="EN-US">[b]</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+<td style="width: 26.86%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">地理空间数据类型</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.46%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">查询高速缓存</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+<td style="width: 26.86%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">地理空间索引</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">否</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.46%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">事务</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+<td style="width: 26.86%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">全文搜索索引</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.46%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">锁定粒度</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">行</span></p>
+</td>
+<td style="width: 26.86%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">群集数据库</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">否</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.46%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">外键</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+<td style="width: 26.86%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">备份和恢复</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.46%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">文件格式管理</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+<td style="width: 26.86%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">快速索引创建</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.46%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">多个缓冲区池</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+<td style="width: 26.86%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><strong><span lang="EN-US">PERFORMANCE_SCHEMA</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 24.46%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">更改缓冲</span></strong></p>
+</td>
+<td style="width: 24.4%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+<td style="width: 26.86%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="26%">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">自动故障恢复</span></strong></p>
+</td>
+<td style="width: 24.28%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="24%">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3>1.2.3 查询存储引擎的方法</h3>
+<p>1、使用 SELECT 确认会话存储引擎：</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">SELECT</span> <span style="color: #008000; font-weight: bold;">@@default_storage_engine</span><span style="color: #000000;">;
+或
+show variables </span><span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%engine%</span><span style="color: #ff0000;">'</span>;</pre>
+</div>
+</div>
+<p>2、使用 SHOW 确认每个表的存储引擎：</p>
+<div>
+<div class="cnblogs_code">
+<pre>SHOW <span style="color: #0000ff;">CREATE</span> <span style="color: #0000ff;">TABLE</span><span style="color: #000000;"> City\G
+SHOW </span><span style="color: #0000ff;">TABLE</span> STATUS <span style="color: #808080;">LIKE</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">CountryLanguage</span><span style="color: #ff0000;">'</span>\G</pre>
+</div>
+</div>
+<p>3、使用 INFORMATION_SCHEMA 确认每个表的存储引擎：</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">SELECT</span> TABLE_NAME, ENGINE <span style="color: #0000ff;">FROM</span><span style="color: #000000;"> 
+INFORMATION_SCHEMA.TABLES
+</span><span style="color: #0000ff;">WHERE</span> TABLE_NAME <span style="color: #808080;">=</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">City</span><span style="color: #ff0000;">'</span>
+<span style="color: #808080;">AND</span> TABLE_SCHEMA <span style="color: #808080;">=</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">world_innodb</span><span style="color: #ff0000;">'</span>\G    </pre>
+</div>
+</div>
+<p>4、从5.1版本，迁移到5.5版本以上版本</p>
+<p>&nbsp;&nbsp; 　　假如5.1版本数据库所有生产表都是myisam的。</p>
+<p>&nbsp;&nbsp;　　 使用mysqldump备份后，一点要替换备份的文件中的engine(引擎)字段，从myisam替换为innodb（可以使用sed命令），否则迁移无任何意义。</p>
+<p>&nbsp;&nbsp;　　 数据库升级时，要注意其他配套设施的兼容性，注意代码能否兼容新特性。</p>
+<h3>1.2.4 设置存储引擎</h3>
+<p>1、在启动配置文件中设置服务器存储引擎：</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;">mysqld</span><span style="color: #ff0000;">]</span>
+<span style="color: #0000ff;">default</span><span style="color: #808080;">-</span>storage<span style="color: #808080;">-</span>engine<span style="color: #808080;">=<</span>Storage Engine<span style="color: #808080;">></span></pre>
+</div>
+</div>
+<p>2、使用 SET 命令为当前客户机会话设置：</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">SET</span> <span style="color: #008000; font-weight: bold;">@@storage_engine</span><span style="color: #808080;">=<</span>Storage Engine<span style="color: #808080;">></span>;</pre>
+</div>
+</div>
+<p>3、在 CREATE TABLE 语句指定：</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">CREATE</span> <span style="color: #0000ff;">TABLE</span> t (i <span style="color: #0000ff;">INT</span>) ENGINE <span style="color: #808080;">=</span> <span style="color: #808080;"><</span>Storage Engine<span style="color: #808080;">></span>;</pre>
+</div>
+</div>
+<h2>1.3 InnoDB存储引擎的存储结构</h2>
+<h3>1.3.1 InnoDB 系统表空间特性</h3>
+<ol>
+<li>默认情况下，InnoDB 元数据、撤消日志和缓冲区存储在系统&ldquo;表空间&rdquo;中。</li>
+<li>这是单个逻辑存储区域，可以包含一个或多个文件。</li>
+<li>每个文件可以是常规文件或原始分区。</li>
+<li>最后的文件可以自动扩展。</li>
+</ol>
+<h3>1.3.2 表空间的定义</h3>
+<p>　　表空间：MySQL数据库存储的方式</p>
+<p>　　　　表空间中包含数据文件</p>
+<p>　　MySQl表空间和数据文件是1:1的关系</p>
+<p>　　　　共享表空间除外，是可以1:N关系</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171222205111912-2060569556.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL的存储引擎与日志说明" alt="" /></p>
+
+<h3>1.3.3 表空间类型</h3>
+<p>　　1、共享表空间：ibdata1~ibdataN,一般是2-3个</p>
+<p>　　2、独立表空间：存放在指定库目录下，例如data/world/目录下的city.ibd</p>
+<p>　　　　表空间位置（datadir）：</p>
+<p>　　　　data/目录下</p>
+<h3>1.3.4 系统表空间的存储内容</h3>
+<p><span style="background-color: #00ff00;"><em><span style="text-decoration: underline;">共享表空间（物理存储结构）</span></em></span></p>
+<p>&nbsp;&nbsp;　　 ibdata1~N 通常被叫做系统表空间，是数据初始化生成的</p>
+<p>&nbsp;&nbsp;　　 系统元数据，基表数据，除了表内容数据之外的数据。</p>
+<p>&nbsp;&nbsp; 　　tmp 表空间（一般很少关注）</p>
+<p>&nbsp;&nbsp; 　　undo日志 ：数据--回滚数据（回滚日志使用）</p>
+<p>&nbsp;&nbsp;　　 redo日志 ：ib_logfile0~N 存放系统的innodb表的一些重做日志。</p>
+<p>&nbsp;&nbsp;　　 说明：undo日志默认实在ibdata中的，在5.6以后是可以单独定义的。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;　　 tmp 表空间在<em><span style="text-decoration: underline;">5.7</span></em><em><span style="text-decoration: underline;">版本之后</span></em>被移出了ibdata1，变为ibtmp1</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 　　&nbsp; 在<em><span style="text-decoration: underline;">5.5</span></em><em><span style="text-decoration: underline;">版本之前</span></em>，所有的应用数据也都默认存放到了ibdata中。</p>
+<p><span style="background-color: #00ff00;"><em><span style="text-decoration: underline;">独立表空间(</span></em><em><span style="text-decoration: underline;">一个存储引擎的功能)</span></em></span></p>
+<p>&nbsp;&nbsp;　　 在5.6之后，默认的情况下会单表单独存储到独立表空间文件</p>
+<p>　　　除了系统表空间之外，InnoDB 还在数据库目录中创建另外的表空间，用于每个 InnoDB 表的 .ibd 文件。</p>
+<p>　　&nbsp; &nbsp;InnoDB 创建的每个新表在数据库目录中设置一个 .ibd 文件来搭配表的.frm 文件。</p>
+<p>　　　可以使用 innodb_file_per_table 选项控制此设置，更改该设置仅会更改已创建的新表的默认值。。</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171222205202037-1994656863.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL的存储引擎与日志说明" alt="" /></p>
+
+<h3>1.3.5 设置共享表空间</h3>
+<p>查看当前的共享表空间设置</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">innodb_data_file_path</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">---------------------+------------------------+</span>
+<span style="color: #808080;">|</span> Variable_name         <span style="color: #808080;">|</span> Value                  <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">---------------------+------------------------+</span>
+<span style="color: #808080;">|</span> innodb_data_file_path <span style="color: #808080;">|</span> ibdata1:12M:autoextend <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">---------------------+------------------------+</span>
+<span style="color: #800000; font-weight: bold;">1</span> row <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+<p>　设置共享表空间：</p>
+</div>
+<p>　　一般是在初始搭建环境的时候就配置号，预设值一般为1G；且最后一个为自动扩展。</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c0b2afafb480a4a2f0f2">[email&#160;protected]</a> world</span><span style="color: #ff0000;">]</span># vim <span style="color: #808080;">/</span>etc<span style="color: #808080;">/</span><span style="color: #000000;">my.cnf
+</span><span style="color: #ff0000;">[</span><span style="color: #ff0000;">mysqld</span><span style="color: #ff0000;">]</span><span style="color: #000000;">
+innodb_data_file_path</span><span style="color: #808080;">=</span>ibdata1:76M;ibdata2:100M:autoextend</pre>
+</div>
+</div>
+<p>重启服务查看当前的共享表空间设置</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">innodb_data_file_path</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">---------------------+-------------------------------------+</span>
+<span style="color: #808080;">|</span> Variable_name         <span style="color: #808080;">|</span> Value                               <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">---------------------+-------------------------------------+</span>
+<span style="color: #808080;">|</span> innodb_data_file_path <span style="color: #808080;">|</span> ibdata1:76M;ibdata2:100M:autoextend <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">---------------------+-------------------------------------+</span>
+<span style="color: #800000; font-weight: bold;">1</span> row <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<h3>1.3.6 设置独立表空间</h3>
+<p>　　　独立表空间在5.6版本是默认开启的。</p>
+<p>　　　<span style="color: #ff0000;">独立表空间注意事项：</span><strong><span style="text-decoration: underline;">不开起独立表空间，共享表空间会占用很大</span></strong></p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%per_table%</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">---------------------+-------+</span>
+<span style="color: #808080;">|</span> Variable_name         <span style="color: #808080;">|</span> Value <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">---------------------+-------+</span>
+<span style="color: #808080;">|</span> innodb_file_per_table <span style="color: #808080;">|</span> <span style="color: #0000ff;">ON</span>    <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">---------------------+-------+</span>
+<span style="color: #800000; font-weight: bold;">1</span> row <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 在参数文件/etc/my.cnf&nbsp; 可以控制独立表空间</p>
+<p>关闭独立表空间 （0是关闭，1是开启）</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="790b16160d391d1b494b">[email&#160;protected]</a> clsn</span><span style="color: #ff0000;">]</span># vim <span style="color: #808080;">/</span>etc<span style="color: #808080;">/</span><span style="color: #000000;">my.cnf
+</span><span style="color: #ff0000;">[</span><span style="color: #ff0000;">mysqld</span><span style="color: #ff0000;">]</span><span style="color: #000000;">
+innodb_file_per_table</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">0</span></pre>
+</div>
+</div>
+<p>查看独立表空间配置</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%per_table%</span><span style="color: #ff0000;">'</span><span style="color: #000000;"> ;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">---------------------+-------+</span>
+<span style="color: #808080;">|</span> Variable_name         <span style="color: #808080;">|</span> Value <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">---------------------+-------+</span>
+<span style="color: #808080;">|</span> innodb_file_per_table <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>   <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">---------------------+-------+</span>
+<span style="color: #800000; font-weight: bold;">1</span> row <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<p>小结:</p>
+<div>
+<div class="cnblogs_code">
+<pre>innodb_file_per_table<span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">0</span><span style="color: #000000;">    关闭独立表空间
+innodb_file_per_table</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">1</span>    开启独立表空间，单表单存储</pre>
+</div>
+</div>
+<h2>1.4 MySQL中的事务</h2>
+<p>　　一组数据操作执行步骤，这些步骤被视为一个工作单元</p>
+<p>&nbsp;&nbsp;　　　　 用于对多个语句进行分组，可以在多个客户机并发访问同一个表中的数据时使用。</p>
+<p>　　所有步骤都成功或都失败</p>
+<p>&nbsp;&nbsp;　　　　 如果所有步骤正常，则执行，如果步骤出现错误或不完整，则取消。</p>
+<p><em><span style="text-decoration: underline;">简单来说事务就是：保证工作单元中的语句同时成功或同时失败。</span></em></p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171222205547162-622353342.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL的存储引擎与日志说明" alt="" /></p>
+
+<p align="center">事务处理流程示意图</p>
+<h3>1.4.1 事务是什么</h3>
+<p>　　与其给事务定义，不如说一说事务的特性。众所周知，事务需要满足<strong>ACID</strong>四个特性。</p>
+<p><span style="background-color: #00ff00;">A(atomicity) 原子性。</span></p>
+<p>　　　一个事务的执行被视为一个不可分割的最小单元。事务里面的操作，要么全部成功执行，要么全部失败回滚，不可以只执行其中的一部分。</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">所有语句作为一个单元全部成功执行或全部取消。
+updata t1 </span><span style="color: #0000ff;">set</span> <span style="color: #0000ff;">money</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">10000</span><span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">17</span> <span style="color: #0000ff;">where</span>  id<span style="color: #808080;">=</span><span style="color: #000000;">wxid1
+updata t1 </span><span style="color: #0000ff;">set</span> <span style="color: #0000ff;">money</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">10000</span><span style="color: #808080;">+</span><span style="color: #800000; font-weight: bold;">17</span>  <span style="color: #0000ff;">where</span>  id<span style="color: #808080;">=</span>wxid2</pre>
+</div>
+</div>
+<p><span style="background-color: #00ff00;">C(consistency) 一致性</span>。</p>
+<p>　　一个事务的执行不应该破坏数据库的完整性约束。如果上述例子中第2个操作执行后系统崩溃，保证A和B的金钱总计是不会变的。</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">如果数据库在事务开始时处于一致状态，则在执行该事务期间将保留一致状态。
+    updata t1 </span><span style="color: #0000ff;">set</span> <span style="color: #0000ff;">money</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">10000</span><span style="color: #808080;">-</span><span style="color: #800000; font-weight: bold;">17</span> <span style="color: #0000ff;">where</span>  id<span style="color: #808080;">=</span><span style="color: #000000;">wxid1
+    updata t1 </span><span style="color: #0000ff;">set</span> <span style="color: #0000ff;">money</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">10000</span><span style="color: #808080;">+</span><span style="color: #800000; font-weight: bold;">17</span>  <span style="color: #0000ff;">where</span>  id<span style="color: #808080;">=</span><span style="color: #000000;">wxid2
+    在以上操作过程中，去查自己账户还是10000</span></pre>
+</div>
+</div>
+<p><span style="background-color: #00ff00;">I(isolation) 隔离性。</span></p>
+<p>　　通常来说，事务之间的行为不应该互相影响。然而实际情况中，事务相互影响的程度受到隔离级别的影响。文章后面会详述。</p>
+<div>
+<p class="ac">　　事务之间不相互影响。在做操作的时候，其他人对这两个账户做任何操作，在不同的隔离条件下，可能一致性保证又不一样</p>
+</div>
+<p><em>隔离级别</em></p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">    隔离级别会影响到一致性。
+    </span><span style="color: #0000ff;">read</span><span style="color: #808080;">-</span><span style="color: #000000;">uncommit  X
+    </span><span style="color: #0000ff;">read</span><span style="color: #808080;">-</span><span style="color: #0000ff;">commit</span><span style="color: #000000;">   可能会用的一种级别
+    </span><span style="color: #0000ff;">repeatable</span><span style="color: #808080;">-</span><span style="color: #0000ff;">read</span><span style="color: #000000;">   默认的级别，和oracle一样的
+    </span><span style="color: #0000ff;">SERIALIZABLE</span>       严格的默认，一般不会用</pre>
+</div>
+<p>　　此规则除了受隔离级别控制，还受锁控制，可以联想一下NFS的实现</p>
+<p><span style="background-color: #00ff00;">D(durability) 持久性。</span></p>
+<p>　　事务提交之后，需要将提交的事务持久化到磁盘。即使系统崩溃，提交的数据也不应该丢失。</p>
+<div>
+<div class="cnblogs_code">
+<pre>　保证数据落地，才算事务真正安全</pre>
+</div>
+</div>
+<h3>1.4.2 事务的控制语句</h3>
+<p>常用的事务控制语句：</p>
+<div class="cnblogs_code">
+<pre>    START <span style="color: #0000ff;">TRANSACTION</span>（或 <span style="color: #0000ff;">BEGIN</span><span style="color: #000000;">）：显式开始一个新事务
+    </span><span style="color: #0000ff;">COMMIT</span><span style="color: #000000;">：永久记录当前事务所做的更改(事务成功结束)
+    </span><span style="color: #0000ff;">ROLLBACK</span>：取消当前事务所做的更改(事务失败结束)</pre>
+</div>
+<p>需要知道的事务控制语句：</p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">    SAVEPOINT：分配事务过程中的一个位置，以供将来引用
+    </span><span style="color: #0000ff;">ROLLBACK</span> <span style="color: #0000ff;">TO</span><span style="color: #000000;"> SAVEPOINT：取消在 savepoint 之后执行的更改
+    RELEASE SAVEPOINT：删除 savepoint 标识符
+    </span><span style="color: #0000ff;">SET</span> AUTOCOMMIT：为当前连接禁用或启用默认 autocommit模式</pre>
+</div>
+<h3>1.4.3 autocommit参数</h3>
+<p>　　在MySQL5.5开始，开启事务时不再需要begin或者start transaction语句。并且，默认是开启了Autocommit模式，作为一个事务隐式提交每个语句。</p>
+<p>　　在有些业务繁忙企业场景下，这种配置可能会对性能产生很大影响，但对于安全性上有很大提高。将来，我们需要去权衡我们的业务需求去调整是否自动提交。</p>
+<p><strong>　　注意：在生产中，根据实际需求选择是否可开启，一般银行类业务会选择关闭。</strong></p>
+<p>查看当前autocommit状态：</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%autoc%</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------+-------+</span>
+<span style="color: #808080;">|</span> Variable_name <span style="color: #808080;">|</span> Value <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------+-------+</span>
+<span style="color: #808080;">|</span> autocommit    <span style="color: #808080;">|</span> <span style="color: #0000ff;">ON</span>    <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------+-------+</span>
+<span style="color: #800000; font-weight: bold;">1</span> row <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<p>修改配置文件，并重启</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ef9d80809baf8b8ddfdd">[email&#160;protected]</a> world</span><span style="color: #ff0000;">]</span># vim <span style="color: #808080;">/</span>etc<span style="color: #808080;">/</span><span style="color: #000000;">my.cnf
+</span><span style="color: #ff0000;">[</span><span style="color: #ff0000;">mysqld</span><span style="color: #ff0000;">]</span><span style="color: #000000;">
+autocommit</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">0</span></pre>
+</div>
+</div>
+<p>再次查看autocommit状态</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%autoc%</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------+-------+</span>
+<span style="color: #808080;">|</span> Variable_name <span style="color: #808080;">|</span> Value <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------+-------+</span>
+<span style="color: #808080;">|</span> autocommit    <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>   <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------+-------+</span>
+<span style="color: #800000; font-weight: bold;">1</span> row <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span><span style="color: #000000;"> sec)
+mysql</span><span style="color: #808080;">></span> <span style="color: #0000ff;">select</span> <span style="color: #008000; font-weight: bold;">@@autocommit</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------+</span>
+<span style="color: #808080;">|</span> <span style="color: #008000; font-weight: bold;">@@autocommit</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------+</span>
+<span style="color: #808080;">|</span>            <span style="color: #800000; font-weight: bold;">0</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------+</span>
+<span style="color: #800000; font-weight: bold;">1</span> row <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+<p>　　<strong>说明： </strong>autocommit设置为开启的对比</p>
+</div>
+<div>
+<p class="a3">&nbsp;&nbsp;&nbsp;　　<span style="color: #00ff00;"> 优点：</span>数据安全性好，每次修改都会落地</p>
+<p class="a3">&nbsp;&nbsp;　　&nbsp; <span style="color: #00ff00;">缺点：</span>不能进行银行类的交易事务、产生大量小的IO</p>
+</div>
+<h3>1.4.4 导致提交的非事务语句：</h3>
+<div class="cnblogs_code">
+<pre>DDL语句： （<span style="color: #0000ff;">ALTER</span>、<span style="color: #0000ff;">CREATE</span> 和 <span style="color: #0000ff;">DROP</span><span style="color: #000000;">）
+DCL语句： （</span><span style="color: #0000ff;">GRANT</span>、<span style="color: #0000ff;">REVOKE</span> 和 <span style="color: #0000ff;">SET</span><span style="color: #000000;"> PASSWORD）
+锁定语句：（LOCK TABLES 和 UNLOCK TABLES）</span></pre>
+</div>
+<p>导致隐式提交的语句示例：</p>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">TRUNCATE</span> <span style="color: #0000ff;">TABLE</span>
+<span style="color: #0000ff;">LOAD</span><span style="color: #000000;"> DATA INFILE
+</span><span style="color: #0000ff;">SELECT</span> <span style="color: #0000ff;">FOR</span> <span style="color: #0000ff;">UPDATE</span></pre>
+</div>
+<p>用于隐式提交的 SQL 语句：</p>
+<div class="cnblogs_code">
+<pre>START <span style="color: #0000ff;">TRANSACTION</span>
+<span style="color: #0000ff;">SET</span> AUTOCOMMIT <span style="color: #808080;">=</span> <span style="color: #800000; font-weight: bold;">1</span></pre>
+</div>
+<h2>1.5 redo与undo</h2>
+<p style="text-align: center;">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171222210412928-417691500.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL的存储引擎与日志说明" alt="" /></p>
+
+<h3>1.5.1 事务日志undo</h3>
+<p><span style="background-color: #00ff00;">undo原理：</span></p>
+<p>　　Undo Log的原理很简单，为了满足事务的原子性，在操作任何数据之前，首先将数据备份到一个地方（这个存储数据备份的地方称为Undo Log）。然后进行数据的修改。</p>
+<p>　　如果出现了错误或者用户执行了ROLLBACK语句，系统可以利用Undo Log中的备份将数据恢复到事务开始之前的状态。</p>
+<p>除了可以保证事务的原子性，Undo Log也可以用来辅助完成事务的持久化。</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171222210532068-508366062.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL的存储引擎与日志说明" alt="" /></p>
+
+<p><strong><span style="text-decoration: underline;">undo</span></strong><strong><span style="text-decoration: underline;">是什么？</span></strong></p>
+<p>　　undo,顾名思义&ldquo;回滚日志&rdquo;，是事务日志的一种。</p>
+<p><strong><span style="text-decoration: underline;">作用是什么？</span></strong></p>
+<p>　　在事务ACID过程中，实现的是&ldquo;A&ldquo;原子性的作用。</p>
+<p><span style="background-color: #00ff00;"><em><span style="text-decoration: underline;">用Undo Log</span></em><em><span style="text-decoration: underline;">实现原子性和持久化的事务的简化过程</span></em></span></p>
+<div>
+<div class="cnblogs_code">
+<pre>  假设有A、B两个数据，值分别为1,<span style="color: #800000; font-weight: bold;">2</span><span style="color: #000000;">。
+  A.事务开始.
+  B.记录A</span><span style="color: #808080;">=</span>1到undo <span style="color: #ff00ff;">log</span><span style="color: #000000;">.
+  C.修改A</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">3</span><span style="color: #000000;">.
+  D.记录B</span><span style="color: #808080;">=</span>2到undo <span style="color: #ff00ff;">log</span><span style="color: #000000;">.
+  E.修改B</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">4</span><span style="color: #000000;">.
+  F.将undo log写到磁盘。
+  G.将数据写到磁盘。
+  H.事务提交</span></pre>
+</div>
+</div>
+<p>&nbsp; 这里有一个隐含的前提条件：&lsquo;数据都是先读到内存中，然后修改内存中的数据，最后将数据写回磁盘之所以能同时保证原子性和持久化，是因为以下特点：</p>
+<div>
+<div class="cnblogs_code">
+<pre>  A. 更新数据前记录Undo <span style="color: #ff00ff;">log</span><span style="color: #000000;">。
+  B. 为了保证持久性，必须将数据在事务提交前写到磁盘。只要事务成功提交，数据必然已经持久化。
+  C. Undo log必须先于数据持久化到磁盘。如果在G,H之间系统崩溃，undo log是完整的，可以用来回滚事务。
+  D. 如果在A</span><span style="color: #808080;">-</span>F之间系统崩溃,因为数据没有持久化到磁盘。所以磁盘上的数据还是保持在事务开始前的状态。</pre>
+</div>
+</div>
+<p><span style="background-color: #00ff00;"><strong><em><span style="text-decoration: underline;">缺陷：</span></em></strong></span></p>
+<p>　　每个事务提交前将数据和Undo Log写入磁盘，这样会导致大量的磁盘IO，因此性能很低。如果能够将数据缓存一段时间，就能减少IO提高性能。但是这样就会丧失事务的持久性。</p>
+<p>　　因此引入了另外一种机制来实现持久化，即Redo Log.</p>
+<h3>1.5.2 事务日志redo</h3>
+<p><strong><em><span style="text-decoration: underline;">redo</span></em></strong><strong><em><span style="text-decoration: underline;">原理：</span></em></strong></p>
+<p>　　和Undo Log相反，Redo Log记录的是新数据的备份。在事务提交前，只要将Redo Log持久化即可，不需要将数据持久化。当系统崩溃时，虽然数据没有持久化，但是Redo Log已经持久化。</p>
+<p>　　系统可以根据Redo Log的内容，将所有数据恢复到最新的状态。</p>
+<p style="text-align: center;">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171222210631396-1458752602.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL的存储引擎与日志说明" alt="" /></p>
+
+<p>&nbsp;</p>
+<p><strong><span style="text-decoration: underline;">Redo</span></strong><strong><span style="text-decoration: underline;">是什么？</span></strong></p>
+<p>　　redo,顾名思义&ldquo;重做日志&rdquo;，是事务日志的一种。</p>
+<p><strong><span style="text-decoration: underline;">作用是什么？</span></strong></p>
+<p>　　在事务ACID过程中，实现的是&ldquo;D&rdquo;持久化的作用。</p>
+<p><em><span style="text-decoration: underline;">Undo + Redo</span></em><em><span style="text-decoration: underline;">事务的简化过程</span></em></p>
+<div>
+<div class="cnblogs_code">
+<pre> 假设有A、B两个数据，值分别为1,<span style="color: #800000; font-weight: bold;">2</span><span style="color: #000000;">.
+  A.事务开始.
+  B.记录A</span><span style="color: #808080;">=</span>1到undo <span style="color: #ff00ff;">log</span><span style="color: #000000;">.
+  C.修改A</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">3</span><span style="color: #000000;">.
+  D.记录A</span><span style="color: #808080;">=</span>3到redo <span style="color: #ff00ff;">log</span><span style="color: #000000;">.
+  E.记录B</span><span style="color: #808080;">=</span>2到undo <span style="color: #ff00ff;">log</span><span style="color: #000000;">.
+  F.修改B</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">4</span><span style="color: #000000;">.
+  G.记录B</span><span style="color: #808080;">=</span>4到redo <span style="color: #ff00ff;">log</span><span style="color: #000000;">.
+  H.将redo log写入磁盘。
+  I.事务提交</span></pre>
+</div>
+</div>
+<p><em><span style="text-decoration: underline;">Undo + Redo</span></em><em><span style="text-decoration: underline;">事务的特点</span></em></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;"> A. 为了保证持久性，必须在事务提交前将Redo Log持久化。
+  B. 数据不需要在事务提交前写入磁盘，而是缓存在内存中。
+  C. Redo </span><span style="color: #ff00ff;">Log</span><span style="color: #000000;"> 保证事务的持久性。
+  D. Undo </span><span style="color: #ff00ff;">Log</span><span style="color: #000000;"> 保证事务的原子性。
+  E. 有一个隐含的特点，数据必须要晚于redo log写入持久存储。</span></pre>
+</div>
+<p class="a3"><span style="background-color: #ffff00;">redo是否持久化到磁盘参数</span></p>
+</div>
+<div>
+<div class="cnblogs_code">
+<pre>innodb_flush_log_at_trx_commit<span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">1</span><span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">0</span><span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">2</span></pre>
+</div>
+</div>
+<h3>1.5.3 事务中的锁</h3>
+<p><strong><em><span style="text-decoration: underline;">什么是&ldquo;锁&rdquo;？</span></em></strong></p>
+<p>　　&ldquo;锁&rdquo;顾名思义就是锁定的意思。</p>
+<p><strong><em><span style="text-decoration: underline;">&ldquo;锁&rdquo;的作用是什么？</span></em></strong></p>
+<p>　　在事务ACID过程中，&ldquo;锁&rdquo;和&ldquo;隔离级别&rdquo;一起来实现&ldquo;I&rdquo;隔离性的作用。</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171222210755443-1768045723.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="MySQL的存储引擎与日志说明" alt="" />&nbsp;</p>
+
+<p><strong><em><span style="text-decoration: underline;">锁的粒度：</span></em></strong></p>
+<p>　　1、MyIasm：低并发锁&mdash;&mdash;表级锁</p>
+<p>　　2、Innodb：高并发锁&mdash;&mdash;行级锁</p>
+<p><strong><em><span style="text-decoration: underline;">四种隔离级别：</span></em></strong></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">READ</span> <span style="color: #0000ff;">UNCOMMITTED</span><span style="color: #000000;"> 许事务查看其他事务所进行的未提交更改
+</span><span style="color: #0000ff;">READ</span> <span style="color: #0000ff;">COMMITTED</span><span style="color: #000000;">    允许事务查看其他事务所进行的已提交更改
+</span><span style="color: #0000ff;">REPEATABLE</span> <span style="color: #0000ff;">READ</span><span style="color: #808080;">******</span> 确保每个事务的 <span style="color: #0000ff;">SELECT</span><span style="color: #000000;"> 输出一致； InnoDB 的默认级别
+</span><span style="color: #0000ff;">SERIALIZABLE</span>  将一个事务的结果与其他事务完全隔离</pre>
+</div>
+</div>
+<p><em><span style="text-decoration: underline;">开销、加锁速度、死锁、粒度、并发性能</span></em></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">表级锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。
+行级锁：开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低,并发度也最高。
+页面锁：开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。</span></pre>
+</div>
+<p>　　从上述特点可见，很难笼统地说哪种锁更好，只能就具体应用的特点来说哪种锁更合适！</p>
+</div>
+<p>　　仅从锁的角度来说：表级锁更适合于以查询为主，只有少量按索引条件更新数据的应用，如Web应用；而行级锁则更适合于有大量按索引条件并发更新少量不同数据，同时又有并发查询的应用，如一些在线事务处理（OLTP）系统。</p>
+<h2>1.6 MySQL 日志管理</h2>
+<h3>1.6.1 MySQL日志类型简介</h3>
+<p><span style="background-color: #00ff00;"><em><span style="text-decoration: underline;">日志的类型的说明：</span></em></span></p>
+<table class="MsoTable15Grid4Accent3" style="border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr style="mso-yfti-irow: -1; mso-yfti-firstrow: yes; mso-yfti-lastfirstrow: yes; height: 13.15pt;">
+<td style="width: 63.55pt; border-top-width: 1pt; border-top-color: #9bbb59; border-left-width: 1pt; border-left-color: #9bbb59; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right: none; background: #9bbb59; padding: 0cm 5.4pt; height: 13.15pt;" rowspan="2" width="85">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 5;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">日志文件</span></strong></p>
+</td>
+<td style="width: 5cm; border-top-width: 1pt; border-top-color: #9bbb59; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right: none; background: #9bbb59; padding: 0cm 5.4pt; height: 13.15pt;" rowspan="2" width="189">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">选项</span></strong></p>
+</td>
+<td style="width: 186.8pt; border-top-width: 1pt; border-top-color: #9bbb59; border-left: none; border-bottom-width: 1pt; border-bottom-color: #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt; height: 13.15pt;" width="249">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">文件名</span></strong></p>
+</td>
+<td style="width: 130.7pt; border-top-width: 1pt; border-top-color: #9bbb59; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #9bbb59; background: #9bbb59; padding: 0cm 5.4pt; height: 13.15pt;" rowspan="2" width="174">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">程序</span></strong></p>
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="color: white; mso-themecolor: background1;" lang="EN-US">N/A</span></strong></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 0; height: 13.15pt;">
+<td style="width: 186.8pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; background: #9bbb59; padding: 0cm 5.4pt; height: 13.15pt;" width="249">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">表名称</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 63.55pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="85">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">错误</span></strong></p>
+</td>
+<td style="width: 5cm; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="189">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">--log-error</span></p>
+</td>
+<td style="width: 186.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="249">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">host_name.err</span></p>
+</td>
+<td style="width: 130.7pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="174">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">N/A</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 2; height: 13.15pt;">
+<td style="width: 63.55pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 13.15pt;" rowspan="2" width="85">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">常规</span></strong></p>
+</td>
+<td style="width: 5cm; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt; height: 13.15pt;" rowspan="2" width="189">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">--general_log</span></p>
+</td>
+<td style="width: 186.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt; height: 13.15pt;" width="249">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">host_name.log</span></p>
+</td>
+<td style="width: 130.7pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt; height: 13.15pt;" rowspan="2" width="174">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">mysqldumpslow</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">mysqlbinlog</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 3; height: 13.15pt;">
+<td style="width: 186.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt; height: 13.15pt;" width="249">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">general_log</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 4; height: 17.3pt;">
+<td style="width: 63.55pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt; height: 17.3pt;" rowspan="2" width="85">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">慢速查询</span></strong></p>
+</td>
+<td style="width: 5cm; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt; height: 17.3pt;" rowspan="2" width="189">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">--slow_query_log</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">--long_query_time</span></p>
+</td>
+<td style="width: 186.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt; height: 17.3pt;" width="249">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">host_name-slow.log</span></p>
+</td>
+<td style="width: 130.7pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial; padding: 0cm 5.4pt; height: 17.3pt;" rowspan="2" width="174">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">N/A</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">程序</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 5; height: 17.3pt;">
+<td style="width: 186.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt; height: 17.3pt;" width="249">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">slow_log</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 63.55pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt;" width="85">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">二进制</span></strong></p>
+</td>
+<td style="width: 5cm; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="189">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">--log-bin</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">--expire-logs-days</span></p>
+</td>
+<td style="width: 186.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="249">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">host_name-bin.000001</span></p>
+</td>
+<td style="width: 130.7pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; background: #eaf1dd; padding: 0cm 5.4pt;" width="174">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">N/A</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 63.55pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #c2d69b; border-bottom-color: #c2d69b; border-left-color: #c2d69b; border-top: none; padding: 0cm 5.4pt;" width="85">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">审计</span></strong></p>
+</td>
+<td style="width: 5cm; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="189">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">--audit_log</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">--audit_log_file</span></p>
+</td>
+<td style="width: 186.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="249">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">audit.log</span></p>
+</td>
+<td style="width: 130.7pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #c2d69b; border-right-width: 1pt; border-right-color: #c2d69b; padding: 0cm 5.4pt;" width="174">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">N/A</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p style="text-align: left;">&nbsp;</p>
+<h3>1.6.2 配置方法</h3>
+<h3><span style="font-size: 14px;">状态错误日志：</span></h3>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;">mysqld</span><span style="color: #ff0000;">]</span>
+<span style="color: #ff00ff;">log</span><span style="color: #808080;">-</span>error<span style="color: #808080;">=/</span>data<span style="color: #808080;">/</span>mysql<span style="color: #808080;">/</span>mysql.<span style="color: #ff00ff;">log</span></pre>
+</div>
+</div>
+<p>查看配置方式：</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%log%error%</span><span style="color: #ff0000;">'</span>;</pre>
+</div>
+</div>
+<p><span style="background-color: #00ff00;">作用：</span></p>
+<p>　　记录mysql数据库的一般状态信息及报错信息，是我们对于数</p>
+<p>　据库常规报错处理的常用日志。</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables  <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%log%err%</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------+----------------------------------+</span>
+<span style="color: #808080;">|</span> Variable_name       <span style="color: #808080;">|</span> Value                            <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------+----------------------------------+</span>
+<span style="color: #808080;">|</span> binlog_error_action <span style="color: #808080;">|</span> IGNORE_ERROR                     <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_error           <span style="color: #808080;">|</span> <span style="color: #808080;">/</span>application<span style="color: #808080;">/</span>mysql<span style="color: #808080;">/</span>data<span style="color: #808080;">/</span>db02.err <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------+----------------------------------+</span>
+<span style="color: #800000; font-weight: bold;">2</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<h3>1.6.3 一般查询日志</h3>
+<p>配置方法:</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;">mysqld</span><span style="color: #ff0000;">]</span><span style="color: #000000;">
+general_log</span><span style="color: #808080;">=</span><span style="color: #0000ff;">on</span><span style="color: #000000;">
+general_log_file</span><span style="color: #808080;">=/</span>data<span style="color: #808080;">/</span>mysql<span style="color: #808080;">/</span>server2.<span style="color: #ff00ff;">log</span></pre>
+</div>
+</div>
+<p>查看配置方式：</p>
+<div>
+<div class="cnblogs_code">
+<pre>show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%gen%</span><span style="color: #ff0000;">'</span>;</pre>
+</div>
+</div>
+<p>作用：</p>
+<p>　　记录mysql所有执行成功的SQL语句信息，可以做审计用，但是我们很少开启</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%gen%</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------------------------------+</span>
+<span style="color: #808080;">|</span> Variable_name    <span style="color: #808080;">|</span> Value                            <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------------------------------+</span>
+<span style="color: #808080;">|</span> general_log      <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>                              <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> general_log_file <span style="color: #808080;">|</span> <span style="color: #808080;">/</span>application<span style="color: #808080;">/</span>mysql<span style="color: #808080;">/</span>data<span style="color: #808080;">/</span>db02.<span style="color: #ff00ff;">log</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------------------------------+</span>
+<span style="color: #800000; font-weight: bold;">2</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<h2>1.7 二进制日志</h2>
+<p>　　二进制日志不依赖与存储引擎的。</p>
+<p>　　依赖于sql层，记录和sql语句相关的信息</p>
+<p><strong><span style="background-color: #00ff00;">binlog日志作用：</span></strong></p>
+<p>&nbsp;&nbsp;　　 1、提供备份功能</p>
+<p>&nbsp;&nbsp;　　 2、进行主从复制</p>
+<p>&nbsp;　　&nbsp; 3、基于时间点的任意恢复</p>
+<p>　　记录在sql层已经执行完成的语句，如果是事务，则记录已完成的事务。</p>
+<p>　　功能作用： 时间点备份 和 时间点恢复、 主从</p>
+<p><span style="background-color: #ffff00;"><strong><em><span style="text-decoration: underline;">二进制日志的&ldquo;总闸&rdquo;</span></em></strong></span></p>
+<p>作用：</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #800000; font-weight: bold;">1</span><span style="color: #000000;">、是否开启
+</span><span style="color: #800000; font-weight: bold;">2</span>、二进制日志路径<span style="color: #808080;">/</span>data<span style="color: #808080;">/</span>mysql<span style="color: #808080;">/</span>
+<span style="color: #800000; font-weight: bold;">3</span>、二进制日志文件名前缀mysql<span style="color: #808080;">-</span><span style="color: #000000;">bin  
+</span><span style="color: #800000; font-weight: bold;">4</span>、文件名以"前缀".<span style="color: #800000; font-weight: bold;">000001</span><span style="color: #808080;">~</span><span style="color: #000000;">N
+</span><span style="color: #ff00ff;">log</span><span style="color: #808080;">-</span>bin<span style="color: #808080;">=/</span>data<span style="color: #808080;">/</span>mysql<span style="color: #808080;">/</span>mysql<span style="color: #808080;">-</span>bin  </pre>
+</div>
+<p>二进制日志的&ldquo;分开关&rdquo;：</p>
+</div>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">只有总闸开启才有意义，默认是开启状态。
+我们在有些时候会临时关闭掉。
+只影响当前会话。
+sql_log_bin</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">1</span><span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">0</span></pre>
+</div>
+</div>
+<h3>1.7.1 二进制日志的格式</h3>
+<p>statement，语句模式：</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">记录信息简洁，记录的是SQL语句本身。但是在语句中出现函数操作的话，有可能记录的数据不准确。
+</span><span style="color: #800000; font-weight: bold;">5</span>.6中默认模式，但生产环境中慎用，建议改成row。</pre>
+</div>
+</div>
+<p>row，行模式</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">表中行数据的变化过程。
+记录数据详细，对IO性能要求比较高
+记录数据在任何情况下都是准确的。
+生产中一般是这种模式。
+</span><span style="color: #800000; font-weight: bold;">5</span>.7以后默认的模式。</pre>
+</div>
+</div>
+<p>mixed，混合模式</p>
+<div>
+<div class="cnblogs_code">
+<pre>经过判断，选择row<span style="color: #808080;">+</span>statement混合的一种记录模式。（一般不用）</pre>
+</div>
+</div>
+<h3>1.7.2 开启二进制日志</h3>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%log_bin%</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------------------+-------+</span>
+<span style="color: #808080;">|</span> Variable_name                   <span style="color: #808080;">|</span> Value <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------------------+-------+</span>
+<span style="color: #808080;">|</span> log_bin                         <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>   <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_bin_basename                <span style="color: #808080;">|</span>       <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_bin_index                   <span style="color: #808080;">|</span>       <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_bin_trust_function_creators <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>   <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_bin_use_v1_row_events       <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>   <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> sql_log_bin                     <span style="color: #808080;">|</span> <span style="color: #0000ff;">ON</span>    <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------------------+-------+</span>
+<span style="color: #800000; font-weight: bold;">6</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<p>修改配置文件开启二进制日志</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="acdec3c3d8ecc8ce9c9e">[email&#160;protected]</a> tmp</span><span style="color: #ff0000;">]</span># vim <span style="color: #808080;">/</span>etc<span style="color: #808080;">/</span><span style="color: #000000;">my.cnf
+</span><span style="color: #ff0000;">[</span><span style="color: #ff0000;">mysqld</span><span style="color: #ff0000;">]</span>
+<span style="color: #ff00ff;">log</span><span style="color: #808080;">-</span>bin<span style="color: #808080;">=/</span>application<span style="color: #808080;">/</span>mysql<span style="color: #808080;">/</span>data<span style="color: #808080;">/</span>mysql<span style="color: #808080;">-</span>bin</pre>
+</div>
+</div>
+<p><em><span style="text-decoration: underline;">命令行修改的方法</span></em></p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> <span style="color: #0000ff;">SET</span> GLOBAL binlog_format <span style="color: #808080;">=</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">STATEMENT</span><span style="color: #ff0000;">'</span><span style="color: #000000;">
+mysql</span><span style="color: #808080;">></span> <span style="color: #0000ff;">SET</span> GLOBAL binlog_format <span style="color: #808080;">=</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">ROW</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+mysql</span><span style="color: #808080;">></span> <span style="color: #0000ff;">SET</span> GLOBAL binlog_format <span style="color: #808080;">=</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">MIXED</span><span style="color: #ff0000;">'</span>;</pre>
+</div>
+</div>
+<p>查看文件二进制日志的类型</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="384a57574c785c5a080a">[email&#160;protected]</a> data</span><span style="color: #ff0000;">]</span># <span style="color: #0000ff;">file</span> mysql<span style="color: #808080;">-</span>bin.<span style="color: #808080;">*</span><span style="color: #000000;">
+mysql</span><span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000001</span>: MySQL <span style="color: #0000ff;">replication</span> <span style="color: #ff00ff;">log</span><span style="color: #000000;">
+mysql</span><span style="color: #808080;">-</span>bin.<span style="color: #0000ff;">index</span>:  <span style="color: #ff00ff;">ASCII</span> <span style="color: #0000ff;">text</span></pre>
+</div>
+</div>
+<p>查看MySQL的配置：</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%log_bin%</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------------------+-----------------------------------------+</span>
+<span style="color: #808080;">|</span> Variable_name                   <span style="color: #808080;">|</span> Value                                   <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------------------+-----------------------------------------+</span>
+<span style="color: #808080;">|</span> log_bin                         <span style="color: #808080;">|</span> <span style="color: #0000ff;">ON</span>                                      <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_bin_basename                <span style="color: #808080;">|</span> <span style="color: #808080;">/</span>application<span style="color: #808080;">/</span>mysql<span style="color: #808080;">/</span>data<span style="color: #808080;">/</span>mysql<span style="color: #808080;">-</span>bin       <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_bin_index                   <span style="color: #808080;">|</span> <span style="color: #808080;">/</span>application<span style="color: #808080;">/</span>mysql<span style="color: #808080;">/</span>data<span style="color: #808080;">/</span>mysql<span style="color: #808080;">-</span>bin.<span style="color: #0000ff;">index</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_bin_trust_function_creators <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>                                     <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_bin_use_v1_row_events       <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>                                     <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> sql_log_bin                     <span style="color: #808080;">|</span> <span style="color: #0000ff;">ON</span>                                      <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------------------+-----------------------------------------+</span>
+<span style="color: #800000; font-weight: bold;">6</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<h3>1.7.3 定义记录方式</h3>
+<p>查看现在的格式</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%format%</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------------+-------------------+</span>
+<span style="color: #808080;">|</span> Variable_name            <span style="color: #808080;">|</span> Value             <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------------+-------------------+</span>
+<span style="color: #808080;">|</span> binlog_format            <span style="color: #808080;">|</span> STATEMENT         <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> date_format              <span style="color: #808080;">|</span> <span style="color: #808080;">%</span>Y<span style="color: #808080;">-%</span>m<span style="color: #808080;">-%</span>d          <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> datetime_format          <span style="color: #808080;">|</span> <span style="color: #808080;">%</span>Y<span style="color: #808080;">-%</span>m<span style="color: #808080;">-%</span>d <span style="color: #808080;">%</span>H:<span style="color: #808080;">%</span>i:<span style="color: #808080;">%</span>s <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> default_week_format      <span style="color: #808080;">|</span> <span style="color: #800000; font-weight: bold;">0</span>                 <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> innodb_file_format       <span style="color: #808080;">|</span> Antelope          <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> innodb_file_format_check <span style="color: #808080;">|</span> <span style="color: #0000ff;">ON</span>                <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> innodb_file_format_max   <span style="color: #808080;">|</span> Antelope          <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> time_format              <span style="color: #808080;">|</span> <span style="color: #808080;">%</span>H:<span style="color: #808080;">%</span>i:<span style="color: #808080;">%</span>s          <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------------+-------------------+</span>
+<span style="color: #800000; font-weight: bold;">8</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<p>修改格式</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="86f4e9e9f2c6e2e4b6b4">[email&#160;protected]</a> data</span><span style="color: #ff0000;">]</span># vim <span style="color: #808080;">/</span>etc<span style="color: #808080;">/</span><span style="color: #000000;">my.cnf
+</span><span style="color: #ff0000;">[</span><span style="color: #ff0000;">mysqld</span><span style="color: #ff0000;">]</span><span style="color: #000000;">
+binlog_format</span><span style="color: #808080;">=</span>row</pre>
+</div>
+</div>
+<p>改完之后查看</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%format%</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------------+-------------------+</span>
+<span style="color: #808080;">|</span> Variable_name            <span style="color: #808080;">|</span> Value             <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------------+-------------------+</span>
+<span style="color: #808080;">|</span> binlog_format            <span style="color: #808080;">|</span> ROW               <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> date_format              <span style="color: #808080;">|</span> <span style="color: #808080;">%</span>Y<span style="color: #808080;">-%</span>m<span style="color: #808080;">-%</span>d          <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> datetime_format          <span style="color: #808080;">|</span> <span style="color: #808080;">%</span>Y<span style="color: #808080;">-%</span>m<span style="color: #808080;">-%</span>d <span style="color: #808080;">%</span>H:<span style="color: #808080;">%</span>i:<span style="color: #808080;">%</span>s <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> default_week_format      <span style="color: #808080;">|</span> <span style="color: #800000; font-weight: bold;">0</span>                 <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> innodb_file_format       <span style="color: #808080;">|</span> Antelope          <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> innodb_file_format_check <span style="color: #808080;">|</span> <span style="color: #0000ff;">ON</span>                <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> innodb_file_format_max   <span style="color: #808080;">|</span> Antelope          <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> time_format              <span style="color: #808080;">|</span> <span style="color: #808080;">%</span>H:<span style="color: #808080;">%</span>i:<span style="color: #808080;">%</span>s          <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">------------------------+-------------------+</span>
+<span style="color: #800000; font-weight: bold;">8</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<h2>1.8 二进制日志的操作</h2>
+<h3>1.8.1 查看</h3>
+<p>&nbsp; 操作系统层面查看</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="76041919023612144644">[email&#160;protected]</a> data</span><span style="color: #ff0000;">]</span># ll mysql<span style="color: #808080;">-</span>bin.<span style="color: #808080;">*</span>
+<span style="color: #808080;">-</span>rw<span style="color: #808080;">-</span>rw<span style="color: #008080;">--</span><span style="color: #008080;">-- 1 mysql mysql 143 Dec 20 20:17 mysql-bin.000001</span>
+<span style="color: #808080;">-</span>rw<span style="color: #808080;">-</span>rw<span style="color: #008080;">--</span><span style="color: #008080;">-- 1 mysql mysql 120 Dec 20 20:17 mysql-bin.000002</span>
+<span style="color: #808080;">-</span>rw<span style="color: #808080;">-</span>rw<span style="color: #008080;">--</span><span style="color: #008080;">-- 1 mysql mysql  82 Dec 20 20:17 mysql-bin.index</span></pre>
+</div>
+</div>
+<p>刷新日志</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> flush logs;</pre>
+</div>
+</div>
+<p>刷新完成后的日志目录</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a1d3ceced5e1c5c39193">[email&#160;protected]</a> data</span><span style="color: #ff0000;">]</span># ll mysql<span style="color: #808080;">-</span>bin.<span style="color: #808080;">*</span>
+<span style="color: #808080;">-</span>rw<span style="color: #808080;">-</span>rw<span style="color: #008080;">--</span><span style="color: #008080;">-- 1 mysql mysql 143 Dec 20 20:17 mysql-bin.000001</span>
+<span style="color: #808080;">-</span>rw<span style="color: #808080;">-</span>rw<span style="color: #008080;">--</span><span style="color: #008080;">-- 1 mysql mysql 167 Dec 20 20:24 mysql-bin.000002</span>
+<span style="color: #808080;">-</span>rw<span style="color: #808080;">-</span>rw<span style="color: #008080;">--</span><span style="color: #008080;">-- 1 mysql mysql 120 Dec 20 20:24 mysql-bin.000003</span>
+<span style="color: #808080;">-</span>rw<span style="color: #808080;">-</span>rw<span style="color: #008080;">--</span><span style="color: #008080;">-- 1 mysql mysql 123 Dec 20 20:24 mysql-bin.index</span>
+<span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f5879a9a81b59197c5c7">[email&#160;protected]</a> data</span><span style="color: #ff0000;">]</span>#</pre>
+</div>
+</div>
+<p>查看当前使用的二进制日志文件</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span><span style="color: #000000;"> show master status;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------+--------------+------------------+-------------------+</span>
+<span style="color: #808080;">|</span> <span style="color: #0000ff;">File</span>             <span style="color: #808080;">|</span> Position <span style="color: #808080;">|</span> Binlog_Do_DB <span style="color: #808080;">|</span> Binlog_Ignore_DB <span style="color: #808080;">|</span> Executed_Gtid_Set <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------+--------------+------------------+-------------------+</span>
+<span style="color: #808080;">|</span> mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000003</span> <span style="color: #808080;">|</span>      <span style="color: #800000; font-weight: bold;">120</span> <span style="color: #808080;">|</span>              <span style="color: #808080;">|</span>                  <span style="color: #808080;">|</span>                   <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------+--------------+------------------+-------------------+</span>
+<span style="color: #800000; font-weight: bold;">1</span> row <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<p>查看所有的二进制日志文件</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show <span style="color: #0000ff;">binary</span><span style="color: #000000;"> logs;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+-----------+</span>
+<span style="color: #808080;">|</span> Log_name         <span style="color: #808080;">|</span> File_size <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+-----------+</span>
+<span style="color: #808080;">|</span> mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000001</span> <span style="color: #808080;">|</span>       <span style="color: #800000; font-weight: bold;">143</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000002</span> <span style="color: #808080;">|</span>       <span style="color: #800000; font-weight: bold;">167</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000003</span> <span style="color: #808080;">|</span>       <span style="color: #800000; font-weight: bold;">120</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+-----------+</span>
+<span style="color: #800000; font-weight: bold;">3</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)&nbsp;</pre>
+</div>
+</div>
+<h3>1.8.2 查看二进制日志内容</h3>
+<p><strong><em><span style="text-decoration: underline;">名词说明：</span></em></strong></p>
+<p>　　1、events 事件</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 　　　二进制日志如何定义：命令的最小发生单元</p>
+<p>　　2、position</p>
+<p>&nbsp;&nbsp;　　　　 每个事件在整个二进制文件中想对应的位置号就是position号</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span><span style="color: #000000;"> show master status;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------+--------------+------------------+-------------------+</span>
+<span style="color: #808080;">|</span> <span style="color: #0000ff;">File</span>             <span style="color: #808080;">|</span> Position <span style="color: #808080;">|</span> Binlog_Do_DB <span style="color: #808080;">|</span> Binlog_Ignore_DB <span style="color: #808080;">|</span> Executed_Gtid_Set <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------+--------------+------------------+-------------------+</span>
+<span style="color: #808080;">|</span> mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000003</span> <span style="color: #808080;">|</span>      <span style="color: #800000; font-weight: bold;">120</span> <span style="color: #808080;">|</span>              <span style="color: #808080;">|</span>                  <span style="color: #808080;">|</span>                   <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">----------------+----------+--------------+------------------+-------------------+</span>
+<span style="color: #800000; font-weight: bold;">1</span> row <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span><span style="color: #000000;"> sec)
+</span><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="384a57574c785c5a080a">[email&#160;protected]</a> data</span><span style="color: #ff0000;">]</span># mysqlbinlog  mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000003</span> <span style="color: #808080;">>/</span>tmp<span style="color: #808080;">/</span>aa.ttt</pre>
+</div>
+</div>
+<p>导出所有的信息</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a6d4c9c9d2e6c2c49694">[email&#160;protected]</a> data</span><span style="color: #ff0000;">]</span># mysqlbinlog  mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000003</span> <span style="color: #808080;">>/</span>tmp<span style="color: #808080;">/</span>aa.ttt</pre>
+</div>
+</div>
+<p><strong><em><span style="text-decoration: underline;">binlog</span></em></strong><strong><em><span style="text-decoration: underline;">的查看方式：</span></em></strong></p>
+<p>1、查看binlog原始信息</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysqbin   mysql<span style="color: #808080;">-</span>bin.<span style="color: #800000; font-weight: bold;">000002</span>  </pre>
+</div>
+</div>
+<p>2、在row模式下，翻译成语句</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysqlbinlog <span style="color: #008080;">--</span><span style="color: #008080;">base64-output='decode-rows' -v   mysql-bin.000002</span></pre>
+</div>
+</div>
+<p>3、查看binlog事件</p>
+<div>
+<div class="cnblogs_code">
+<pre>show <span style="color: #0000ff;">binary</span><span style="color: #000000;"> logs; 所有在使用的binlog信息
+show binlog events </span><span style="color: #808080;">in</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">日志文件</span><span style="color: #ff0000;">'</span></pre>
+</div>
+</div>
+<p><strong>4</strong><strong>、如何截取binlog</strong><strong>内容，按需求恢复（常规思路）</strong></p>
+<div>
+<p class="a3">　　（1）、show binary logs;&nbsp;&nbsp; show master status;</p>
+<p class="a3">　　（2）、show binlog events in '' 从后往前看，找到误操作的事务，判断事务开始position和结束position</p>
+<p class="a3">　　（3）、把误操作的剔除掉，留下正常操作到2个sql文件中</p>
+<p class="a3">　　（4）、先测试库恢复，把误操作的数据导出，然后生产恢复。</p>
+</div>
+<p><span style="background-color: #ffff00;"><strong>使用上述方法遇到的问题：</strong></span></p>
+<div>
+<p class="ac">&nbsp;　　 恢复事件较长</p>
+<p class="ac">&nbsp; 　　　　对生产数据有一定的影响，有可能会出现冗余数据</p>
+</div>
+<p><span style="background-color: #ffff00;">　<strong>较好的解决方案。</strong></span></p>
+<div>
+<p class="ac">　　　　1、flashback闪回功能</p>
+<p class="ac">　　　　2、通过备份，延时从库</p>
+</div>
+<h3>1.8.3 mysqlbinlog截取二进制日志的方法</h3>
+<p>mysqlbinlog常见的选项有以下几个：</p>
+<p style="text-align: center;">&nbsp;</p>
+<table class="MsoTable15Grid5DarkAccent1" style="border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 148.6pt; border-top-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-top-color: white; border-bottom-color: white; border-left-color: white; border-right: none; background: #4f81bd; padding: 0cm 5.4pt;" width="198">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 5;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">参数</span></strong></p>
+</td>
+<td style="width: 374.2pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: white; border-right-color: white; border-bottom-color: white; border-left: none; background: #4f81bd; padding: 0cm 5.4pt;" width="499">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">参数说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 148.6pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #4f81bd; padding: 0cm 5.4pt;" width="198">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="color: white; mso-themecolor: background1;" lang="EN-US">--start-datetime</span></strong></p>
+</td>
+<td style="width: 374.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #b8cce4; padding: 0cm 5.4pt;" width="499">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">从二进制日志中读取指定等于时间戳或者晚于本地计算机的时间</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 148.6pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #4f81bd; padding: 0cm 5.4pt;" width="198">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="color: white; mso-themecolor: background1;" lang="EN-US">--stop-datetime</span></strong></p>
+</td>
+<td style="width: 374.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #dbe5f1; padding: 0cm 5.4pt;" width="499">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">从二进制日志中读取指定小于时间戳或者等于本地计算机的时间取值和上述一样</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 148.6pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #4f81bd; padding: 0cm 5.4pt;" width="198">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="color: white; mso-themecolor: background1;" lang="EN-US">--start-position</span></strong></p>
+</td>
+<td style="width: 374.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #b8cce4; padding: 0cm 5.4pt;" width="499">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">从二进制日志中读取指定</span><span lang="EN-US">position </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">事件位置作为开始。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 148.6pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #4f81bd; padding: 0cm 5.4pt;" width="198">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="color: white; mso-themecolor: background1;" lang="EN-US">--stop-position</span></strong></p>
+</td>
+<td style="width: 374.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #dbe5f1; padding: 0cm 5.4pt;" width="499">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">从二进制日志中读取指定</span><span lang="EN-US">position </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">事件位置作为事件截至</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp; 二进制日志文件示例：&nbsp;&nbsp;<span class="cnblogs_code">mysqlbinlog <span style="color: #008080;">--</span><span style="color: #008080;">start-position=120 --stop-position=结束号 </span></span>&nbsp;</p>
+<h3>1.8.4 删除二进制日志</h3>
+<p><strong>　　<span style="background-color: #00ff00;">默认情况下，不会删除旧的日志文件。</span></strong></p>
+<p>根据存在时间删除日志：</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">SET</span> GLOBAL expire_logs_days <span style="color: #808080;">=</span> <span style="color: #800000; font-weight: bold;">7</span><span style="color: #000000;">;
+或
+PURGE </span><span style="color: #0000ff;">BINARY</span> LOGS BEFORE now() <span style="color: #808080;">-</span> INTERVAL <span style="color: #800000; font-weight: bold;">3</span> <span style="color: #ff00ff;">day</span>;</pre>
+</div>
+</div>
+<p>根据文件名删除日志：</p>
+<div>
+<div class="cnblogs_code">
+<pre>PURGE <span style="color: #0000ff;">BINARY</span> LOGS <span style="color: #0000ff;">TO</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">mysql-bin.000010</span><span style="color: #ff0000;">'</span>;</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 重置二进制日志计数，从1开始计数，删除原有的二进制日志。</p>
+<div>
+<div class="cnblogs_code">
+<pre>reset master  </pre>
+</div>
+</div>
+<h2>1.9 mysql的慢查询日志（slow log）</h2>
+<h3>1.9.1 这是什么呢？</h3>
+<p>　　slow-log&nbsp; 记录所有条件内的慢的sql语句</p>
+<p>&nbsp;&nbsp;　&nbsp;优化的一种工具日志。能够帮我们定位问题。</p>
+<h3>1.9.2 慢查询日志</h3>
+<p>　　是将mysql服务器中影响数据库性能的相关SQL语句记录到日志文件</p>
+<p>　　通过对这些特殊的SQL语句分析，改进以达到提高数据库性能的目的。慢日志设置</p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">long_query_time ： 设定慢查询的阀值，超出次设定值的SQL即被记录到慢查询日志，缺省值为10s
+slow_query_log ： 指定是否开启慢查询日志
+slow_query_log_file ： 指定慢日志文件存放位置，可以为空，系统会给一个缺省的文件host_name</span><span style="color: #808080;">-</span>slow.<span style="color: #ff00ff;">log</span><span style="color: #000000;">
+min_examined_row_limit：查询检查返回少于该参数指定行的SQL不被记录到慢查询日志
+log_queries_not_using_indexes: 不使用索引的慢查询日志是否记录到索引</span></pre>
+</div>
+</div>
+<p><strong>慢查询日志配置</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #ff0000;">[</span><span style="color: #ff0000;"><a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="85f7eaeaf1c5e1e7b5b7">[email&#160;protected]</a> htdocs</span><span style="color: #ff0000;">]</span># vim <span style="color: #808080;">/</span>etc<span style="color: #808080;">/</span><span style="color: #000000;">my.cnf
+slow_query_log</span><span style="color: #808080;">=</span><span style="color: #0000ff;">ON</span><span style="color: #000000;">
+slow_query_log_file</span><span style="color: #808080;">=/</span>tmp<span style="color: #808080;">/</span>slow.<span style="color: #ff00ff;">log</span><span style="color: #000000;">
+long_query_time</span><span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">0.5</span><span style="color: #000000;">    # 控制慢日志记录的阈值
+log_queries_not_using_indexes</span></pre>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 配置完成后重启服务...</p>
+<p>查看慢查询日志是否开启，及其位置。</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%slow%</span><span style="color: #ff0000;">'</span>
+    <span style="color: #808080;">-></span><span style="color: #000000;"> ;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------------+---------------+</span>
+<span style="color: #808080;">|</span> Variable_name             <span style="color: #808080;">|</span> Value         <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------------+---------------+</span>
+<span style="color: #808080;">|</span> log_slow_admin_statements <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>           <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> log_slow_slave_statements <span style="color: #808080;">|</span> <span style="color: #0000ff;">OFF</span>           <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> slow_launch_time          <span style="color: #808080;">|</span> <span style="color: #800000; font-weight: bold;">2</span>             <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> slow_query_log            <span style="color: #808080;">|</span> <span style="color: #0000ff;">ON</span>            <span style="color: #808080;">|</span>
+<span style="color: #808080;">|</span> slow_query_log_file       <span style="color: #808080;">|</span> <span style="color: #808080;">/</span>tmp<span style="color: #808080;">/</span>slow.<span style="color: #ff00ff;">log</span> <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------------------+---------------+</span>
+<span style="color: #800000; font-weight: bold;">5</span> rows <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<h3>1.9.3 mysqldumpslow命令</h3>
+<div>
+<div class="cnblogs_code">
+<pre>　<span style="color: #808080;">/</span>path<span style="color: #808080;">/</span>mysqldumpslow <span style="color: #808080;">-</span>s c <span style="color: #808080;">-</span>t <span style="color: #800000; font-weight: bold;">10</span> <span style="color: #808080;">/</span><span style="color: #0000ff;">database</span><span style="color: #808080;">/</span>mysql<span style="color: #808080;">/</span>slow<span style="color: #808080;">-</span><span style="color: #ff00ff;">log</span></pre>
+</div>
+</div>
+<p>这会输出记录次数最多的10条SQL语句，其中：</p>
+<table class="MsoTable15Grid4Accent1" style="border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 56.45pt; border-top-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-top-color: #4f81bd; border-bottom-color: #4f81bd; border-left-color: #4f81bd; border-right: none; background: #4f81bd; padding: 0cm 5.4pt;" valign="top" width="75">
+<p class="MsoNormal"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">参数</span></strong></p>
+</td>
+<td style="width: 466.35pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: #4f81bd; border-right-color: #4f81bd; border-bottom-color: #4f81bd; border-left: none; background: #4f81bd; padding: 0cm 5.4pt;" valign="top" width="622">
+<p class="MsoNormal"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 56.45pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #95b3d7; border-bottom-color: #95b3d7; border-left-color: #95b3d7; border-top: none; background: #dbe5f1; padding: 0cm 5.4pt;" valign="top" width="75">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-s</span></strong></p>
+</td>
+<td style="width: 466.35pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; background: #dbe5f1; padding: 0cm 5.4pt;" valign="top" width="622">
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是表示按照何种方式排序，</span><span lang="EN-US">c</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">、</span><span lang="EN-US">t</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">、</span><span lang="EN-US">l</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">、</span><span lang="EN-US">r</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">分别是按照记录次数、时间、查询</span></p>
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">时间、返回的记录数来排序，</span><span lang="EN-US">ac</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">、</span><span lang="EN-US">at</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">、</span><span lang="EN-US">al</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">、</span><span lang="EN-US">ar</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">，表示相应的倒叙；</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 56.45pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #95b3d7; border-bottom-color: #95b3d7; border-left-color: #95b3d7; border-top: none; padding: 0cm 5.4pt;" valign="top" width="75">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">-t</span></strong></p>
+</td>
+<td style="width: 466.35pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; padding: 0cm 5.4pt;" valign="top" width="622">
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是</span><span lang="EN-US">top n</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">的意思，即为返回前面多少条的数据；</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 56.45pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #95b3d7; border-bottom-color: #95b3d7; border-left-color: #95b3d7; border-top: none; background: #dbe5f1; padding: 0cm 5.4pt;" valign="top" width="75">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">-g</span></strong></p>
+</td>
+<td style="width: 466.35pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; background: #dbe5f1; padding: 0cm 5.4pt;" valign="top" width="622">
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">后边可以写一个正则匹配模式，大小写不敏感的；</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 3; mso-yfti-lastrow: yes; height: 31.7pt;">
+<td style="width: 522.8pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #95b3d7; border-bottom-color: #95b3d7; border-left-color: #95b3d7; border-top: none; padding: 0cm 5.4pt; height: 31.7pt;" colspan="2" valign="top" width="697">
+<p class="MsoNormal"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">例子：</span></strong></p>
+<div style="mso-element: para-border-div; border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; mso-border-shadow: yes; background: #F2F2F2; mso-shading: windowtext; mso-pattern: gray-5 auto;">
+<p class="a"><span lang="EN-US">/path/mysqldumpslow -s r -t 10 /database/mysql/slow-log</span></p>
+</div>
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; mso-bidi-font-weight: bold;">得到返回记录集最多的</span><span lang="EN-US">10</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; mso-bidi-font-weight: bold;">个查询。</span></p>
+<div style="mso-element: para-border-div; border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; mso-border-shadow: yes; background: #F2F2F2; mso-shading: windowtext; mso-pattern: gray-5 auto;">
+<p class="a"><span lang="EN-US">/path/mysqldumpslow -s t -t 10 -g &ldquo;left </span></p>
+<p class="a"><span lang="EN-US">join&rdquo;/database/mysql/slow-log</span></p>
+</div>
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; mso-bidi-font-weight: bold;">得到按照时间排序的前</span><span lang="EN-US">10</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; mso-bidi-font-weight: bold;">条里面含有左连接的查询语句。</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>1.9.4 怎么保证binlog和redolog已提交事务的一致性</h3>
+<p><span>　　在没有开启binlog的时候，在执行commit，认为redo日志持久化到磁盘文件中，commit命令就成功。</span></p>
+<p>写binlog参数：</p>
+<div>
+<div class="cnblogs_code">
+<pre>mysql<span style="color: #808080;">></span> show variables <span style="color: #808080;">like</span> <span style="color: #ff0000;">'</span><span style="color: #ff0000;">%sync_binlog%</span><span style="color: #ff0000;">'</span><span style="color: #000000;">;
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------+-------+</span>
+<span style="color: #808080;">|</span> Variable_name <span style="color: #808080;">|</span> Value <span style="color: #808080;">|</span>
+<span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------+-------+</span>
+<span style="color: #808080;">|</span> sync_binlog   <span style="color: #808080;">|</span> <span style="color: #800000; font-weight: bold;">0</span>     <span style="color: #808080;">|</span>    #控制binlog <span style="color: #0000ff;">commit</span><span style="color: #000000;"> 阶段
+</span><span style="color: #808080;">+</span><span style="color: #008080;">--</span><span style="color: #008080;">-------------+-------+</span>
+<span style="color: #800000; font-weight: bold;">1</span> row <span style="color: #808080;">in</span> <span style="color: #0000ff;">set</span> (<span style="color: #800000; font-weight: bold;">0.00</span> sec)</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; sync_binlog 确保是否每个提交的事务都写到binlog中。</p>
+<h3>1.9.5 mysql中的双一标准：</h3>
+<p>　　innodb_flush_log_at_trx_commit和sync_binlog 两个参数是控制MySQL 磁盘写入策略以及数据安全性的关键参数。</p>
+<p><em><span style="text-decoration: underline;">参数意义说明：</span></em></p>
+<div>
+<div class="cnblogs_code">
+<pre>innodb_flush_log_at_trx_commit<span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">1</span></pre>
+</div>
+</div>
+<p>　　如果innodb_flush_log_at_trx_commit设置为0，log buffer将每秒一次地写入log file中，并且log file的flush(刷到磁盘)操作同时进行.该模式下，在事务提交的时候，不会主动触发写入磁盘的操作。</p>
+<p>　　如果innodb_flush_log_at_trx_commit设置为1，每次事务提交时MySQL都会把log buffer的数据写入log file，并且flush(刷到磁盘)中去.</p>
+<p>　　如果innodb_flush_log_at_trx_commit设置为2，每次事务提交时MySQL都会把log buffer的数据写入log file.但是flush(刷到磁盘)操作并不会同时进行。该模式下,MySQL会每秒执行一次 flush(刷到磁盘)操作。</p>
+<p><strong>注意：</strong></p>
+<div>
+<div class="cnblogs_code">
+<pre>由于进程调度策略问题,这个&ldquo;每秒执行一次 flush(刷到磁盘)操作&rdquo;并不是保证100<span style="color: #808080;">%</span>的&ldquo;每秒&rdquo;。</pre>
+</div>
+</div>
+<p><span style="background-color: #00ff00;"><em><span style="text-decoration: underline;">参数意义说明：</span></em></span></p>
+<div>
+<p class="ac">&nbsp;　　<span class="cnblogs_code">sync_binlog<span style="color: #808080;">=</span><span style="color: #800000; font-weight: bold;">1</span></span>&nbsp;</p>
+</div>
+<p>　　sync_binlog 的默认值是0，像操作系统刷其他文件的机制一样，MySQL不会同步到磁盘中去而是依赖操作系统来刷新binary log。</p>
+<p>　　当sync_binlog =N (N>0) ，MySQL 在每写 N次 二进制日志binary log时，会使用fdatasync()函数将它的写二进制日志binary log同步到磁盘中去。</p>
+<p><strong>注:</strong></p>
+<div>
+<p class="a3">　　如果启用了autocommit，那么每一个语句statement就会有一次写操作；否则每个事务对应一个写操作。</p>
+</div>
+<p><span style="color: #ff0000;"><strong>安全方面说明</strong></span></p>
+<p>　　当innodb_flush_log_at_trx_commit和sync_binlog 都为 1 时是最安全的，在mysqld 服务崩溃或者服务器主机crash的情况下，binary log 只有可能丢失最多一个语句或者一个事务。但是鱼与熊掌不可兼得，双11 会导致频繁的io操作，因此该模式也是最慢的一种方式。</p>
+<p>　　当innodb_flush_log_at_trx_commit设置为0，mysqld进程的崩溃会导致上一秒钟所有事务数据的丢失。</p>
+<p>　　当innodb_flush_log_at_trx_commit设置为2，只有在操作系统崩溃或者系统掉电的情况下，上一秒钟所有事务数据才可能丢失。</p>
+<p>　　双1适合数据安全性要求非常高，而且磁盘IO写能力足够支持业务，比如订单,交易,充值,支付消费系统。双1模式下，当磁盘IO无法满足业务需求时 比如11.11 活动的压力。推荐的做法是 innodb_flush_log_at_trx_commit=2 ，sync_binlog=N (N为500 或1000) 且使用带蓄电池后备电源的缓存cache，防止系统断电异常。</p>
+<p>　　系统性能和数据安全是业务系统高可用稳定的必要因素。我们对系统的优化需要寻找一个平衡点，合适的才是最好的，根据不同的业务场景需求，可以将两个参数做组合调整，以便是db系统的性能达到最优化。</p>
+<h2>1.10 参考文献</h2>
+<div>
+<div class="cnblogs_code">
+<pre>https:<span style="color: #808080;">//</span>www.cnblogs.com<span style="color: #808080;">/</span>wangdake<span style="color: #808080;">-</span>qq<span style="color: #808080;">/</span>p<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">7358322</span><span style="color: #000000;">.html
+http:</span><span style="color: #808080;">//</span>www.jb51.net<span style="color: #808080;">/</span>article<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">87653</span><span style="color: #000000;">.htm
+http:</span><span style="color: #808080;">//</span>www.mysqlops.com<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">2012</span><span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">04</span><span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">06</span><span style="color: #808080;">/</span>innodb<span style="color: #808080;">-</span><span style="color: #000000;">log1.html
+https:</span><span style="color: #808080;">//</span>www.cnblogs.com<span style="color: #808080;">/</span>Bozh<span style="color: #808080;">/</span>archive<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">2013</span><span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">03</span><span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">18</span><span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">2966494</span><span style="color: #000000;">.html
+https:</span><span style="color: #808080;">//</span>www.cnblogs.com<span style="color: #808080;">/</span>andy6<span style="color: #808080;">/</span>p<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">6626848</span><span style="color: #000000;">.html
+https:</span><span style="color: #808080;">//</span>www.cnblogs.com<span style="color: #808080;">/</span>xuanzhi201111<span style="color: #808080;">/</span>p<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">4128894</span>.html  Anemometer实现pt<span style="color: #808080;">-</span>query<span style="color: #808080;">-</span><span style="color: #000000;">digest 图形化
+http:</span><span style="color: #808080;">//</span>www.coooz.com<span style="color: #808080;">/</span>archives<span style="color: #808080;">/</span><span style="color: #800000; font-weight: bold;">771</span>         双一标准</pre>
+</div>
+<p>&nbsp;</p>
+</div>
+<p>&nbsp;</p>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="370" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/" rel="category tag">MySQL</a> <a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/" rel="category tag">数据库</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2017年12月27日<i class="i-time">10:22:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 18341 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx370.html" tppabs="http://clsn.io/clsn/lx370.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx370.html">MySQL的存储引擎与日志说明 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/12.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx382.html" tppabs="http://clsn.io/clsn/lx382.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>企业级PPTP服务器</span></a><a href="lx355.html" tppabs="http://clsn.io/clsn/lx355.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>Confluence 平台部署记录</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx382.html" tppabs="http://clsn.io/clsn/lx382.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx355.html" tppabs="http://clsn.io/clsn/lx355.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx370.html#respond" tppabs="http://clsn.io/clsn/lx370.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='370' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx900.html" tppabs="http://clsn.io/clsn/lx900.html" rel="bookmark">SSH服务详解</a></li> <li><a href="lx980.html" tppabs="http://clsn.io/clsn/lx980.html" rel="bookmark">Linux中常见问题（磁盘 定时任务）</a></li> <li><a href="lx480.html" tppabs="http://clsn.io/clsn/lx480.html" rel="bookmark">企业级LNMP架构搭建实例(基于Centos6.x)</a></li> <li><a href="lx287.html" tppabs="http://clsn.io/clsn/lx287.html" rel="bookmark">MySQL 优化实施方案</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx887.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx887.html'" tppabs="http://clsn.io/clsn/lx887.html" rel="bookmark">linux进程资源占用高原因分析命令记录</a></li> <li><a href="lx886.html" tppabs="http://clsn.io/clsn/lx886.html" rel="bookmark">用iptables 做NAT代理上网</a></li> <li><a href="lx28.html" tppabs="http://clsn.io/clsn/lx28.html" rel="bookmark">分布式文件系统&#8212;GlusterFS</a></li> <li><a href="lx941.html" tppabs="http://clsn.io/clsn/lx941.html" rel="bookmark">setup 命令中防火墙配置选项无法打开</a></li> <li><a href="lx1105.html" tppabs="http://clsn.io/clsn/lx1105.html" rel="bookmark">OpenSUSE 服务器系统部署</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1040.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1040.html'" tppabs="http://clsn.io/clsn/lx1040.html" rel="bookmark">服务器硬件基础</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx370.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx370.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx370.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

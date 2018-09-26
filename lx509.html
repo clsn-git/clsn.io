@@ -1,0 +1,416 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>memcached 缓存数据库应用实践 | 惨绿少年</title><meta name="description" content="缓存： 将数据存储到内存中，只有当磁盘胜任不了的时候，才会启用缓存" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx509.html" tppabs="http://clsn.io/clsn/lx509.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-509 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><i class="be be-arrowright"></i><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/" rel="category tag">NoSQL</a><i class="be be-arrowright"></i><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/" rel="category tag">数据库</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>memcached 缓存数据库应用实践 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-509" class="post-509 post type-post status-publish format-standard hentry category-linux category-nosql category-databases category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">memcached 缓存数据库应用实践</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2017年12月7日<i class="i-time">08:03:00</i></span><span class="comment"><a href="lx509.html#respond" tppabs="http://clsn.io/clsn/lx509.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="javascript:if(confirm('http://clsn.io/clsn/lx509.html?wpzmaction=add&postid=509  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx509.html?wpzmaction=add&postid=509'" tppabs="http://clsn.io/clsn/lx509.html?wpzmaction=add&postid=509" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h2>1.1 数据库对比</h2>
+<p><strong>缓存：</strong> 将数据存储到内存中，只有当磁盘胜任不了的时候，才会启用缓存</p>
+<p>&nbsp;&nbsp;　　&nbsp; 缺点：断电数据丢失(双电)，用缓存存储数据的目的只是为了应付大并发的业务。</p>
+<p><strong>数据库：</strong> mysql(关系型数据库，能够保证数据一致性，保证数据不丢失，当因为功能太多，导致性能不高) ===数据参考</p>
+<p><strong>缓存数据库： </strong>&nbsp;memcache redis(非关系型数据库，性能极高，但不保证数据完整性) === 业务的数据提供者</p>
+<p><strong>&nbsp;&nbsp;&nbsp;&nbsp;　　　　&nbsp;&nbsp; &nbsp;&nbsp;</strong>memcachedb 会将内存的数据写入到磁盘中</p>
+<p>　　　　　&nbsp; 　redis 主要工作场所是内存中，但是定期备份内存数据到硬盘</p>
+<h3>1.1.1 数据库的选择</h3>
+<p>　　数据存储，数据仓库选择mysql这种磁盘的数据库</p>
+<p>　　高并发，业务大的应用选择memcache这种内存数据库</p>
+<h3>1.1.2 数据库分类</h3>
+<p>　　关系型数据库&nbsp; mysql</p>
+<p>　　非关系型数据库（NOSQL） memcached redis MongoDB</p>
+<h2>1.2 memcached介绍</h2>
+<p>&nbsp; &nbsp;&nbsp;&nbsp; Memcached是一款开源的、高性能的纯内存缓存服务软件。Mem是内存的意思，cache是缓存的意思，d是daemon的意思。</p>
+<p>　　memcache 是项目名称，也是一款软件，其架构是<span style="background-color: #99cc00;"><strong>C/S</strong><strong>架构</strong>。</span></p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;memcached官网：http://memcached.org/</p>
+<h3>1.2.1 memcache优点</h3>
+<p>①&nbsp;&nbsp; 对于用户来讲，用户访问网站更快了，体验更好了。</p>
+<p>②对网站来说，数据库压力降低了。只有当内存没有数据时才会去请求数据库。第一次写入的数据也会请求数据库。一般公司没有预热，只有当用户读取过数据库才会放到Memcached中。</p>
+<p>②&nbsp;&nbsp; 提升了网站的并发访问，减少服务器数量。</p>
+<h2>1.3 Memcached在企业中使用场景</h2>
+<h3>1.3.1 作为数据库的前端缓存应用</h3>
+<p>　　　当数据库（mysql）承受不了大并发的请求时，可以将数据缓存到内存中（缓存数据库），然后就可以解决</p>
+<p>&nbsp;&nbsp; &nbsp;　　作为数据库的前端缓存最大目的：减少数据库被大量访问的压力</p>
+<h3>1.3.2 作为集群后端的session会话保持</h3>
+<p>&nbsp; &nbsp; 　&nbsp; session存储在文件，数据库，memcache，或内存等的服务端上，</p>
+<p>&nbsp;&nbsp;　　 cookie&nbsp; 存放在客户端浏览器上。</p>
+<p>&nbsp;&nbsp;　　 session是一个存在服务器上的类似于一个散列表格的文件。里面存有我们需要的信息，在我们需要用的时候可以从里面取出来。</p>
+<p><strong>　　　session</strong><strong>依赖cookie</strong><strong>存在</strong>，请求客户端到达服务端后，服务端会随机生成一个字符串，作为该用户的标识，该字符串通过cookie返回给客户端，客户端浏览器会以该字符串为key放到session id里面，随机字符串的key里面可以先没有值。如果用户再次提交，请求信息中的用户名密码等用户信息保存在随机字符串的value中，请求到达服务端，用户名密码正确，随机字符串会被授权，提一个标记给到sessionid中的随机字符串的value中，证明该用户已经是登录状态，客户端再次带着该随机字符串访问服务端，服务端会知道该用户已经登录不需验证，直接返回请求的信息。</p>
+<p><strong>session</strong><strong>和cookie</strong><strong>区别</strong></p>
+<p>　　1、cookie数据存放在用户的浏览器上，session数据存储在服务器上</p>
+<p>　　2、cookie在本地的浏览器中，可以被提取分析，安全性差。为了安全，登录账户等信息可以缓存在session中。</p>
+<p>　　3、session会在一定时间内保存在服务器上，访问量增大会给服务器带来压力，可以使用缓存工具，如memcache等</p>
+<h3>1.3.3 网站开发如何判断用户信息</h3>
+<p>　　最开始的技术方法：服务器在你的浏览器中写一个cookies，这个cookies就包含了你的用户名及登录信息。因为cookies是存储在本地浏览器中，所以第三方工具很容易盗取cookies信息。</p>
+<p><span style="background-color: #99cc00;"><strong>最开始：</strong></span></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cookies&nbsp;&nbsp; cookies名字：内容（用户名，登录信息）</p>
+<p><span style="background-color: #99cc00;"><strong>改进后：</strong></span></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 本地浏览器存放：</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cookies&nbsp;&nbsp; cookies名字：内容（session id 编号）</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 服务器存放：</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; session&nbsp;&nbsp; session id：内容（用户名，登录信息）</p>
+<p><span style="background-color: #99cc00;"><strong>主流使用场景：cookies + session</strong></span></p>
+<h3>1.3.4 session共享的不同解决方案</h3>
+<p>&nbsp;&nbsp;　　 1、session文件提供NFS共享</p>
+<p>&nbsp;　　&nbsp; 2、session文件提供rsync&nbsp; scp共享</p>
+<p>&nbsp;&nbsp;　　 3、将session的内容存放在数据库（mysql）中，所有的机器都可以通过ip：port读取</p>
+<p>　&nbsp; &nbsp;　4、将session的内容存放在缓存数据库中，所有的机器都可以通过ip：port读取</p>
+<p>&nbsp;&nbsp;　　 好处：利用断电、重启丢失数据的特性。定时清理数据；提高并发</p>
+<h3>1.3.5 memcache原理优点</h3>
+<p>　　启动Memcached吋，根据指定的内存大小参数，会被分配一个内存个间。当我们读取数据库的各类业务数据后，数据会同吋放入Memcached缓存中，，下一次用户请求同样的数据，程序直接去Memcached取数据返回给用户。</p>
+<p>&nbsp;优点：</p>
+<p>　　①&nbsp;&nbsp; &nbsp;对于用户来讲，用户访问网站更快了，体验更好了。#</p>
+<p>　　②&nbsp;&nbsp; 对网站来说，数据库压力降低了。只有当内存没有数据时才会去请求数据库。第一次写入的数据 也会请求数据库。一般公司没有预热，只有，用户读取过数据库才会放到Memcached中。</p>
+<p>　　③&nbsp;&nbsp; 提升了网站的并发访问，减少服务器数最。</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171207155429206-1734759516.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="memcached 缓存数据库应用实践" alt="" /></p>
+
+<p align="center"><strong>原理图</strong></p>
+<h2>1.4 Memcached分布式缓存集群</h2>
+<p>　　memcached天生不支持分布式集群,需要通过程序支持分布式存储</p>
+<h3>1.4.1 Memcached分布式缓存集群的特点</h3>
+<p>&nbsp;&nbsp;　　 1. 所有MC服务器内存的内容都是不一样的。这些服务器内容加起来接近数据库的容量。比如1T的数据库，一台缓存数据库的内存没有那么大，因此分成10台缓存服务器。</p>
+<p>&nbsp;　　&nbsp; 2. 通过在客户端(Web)程序或者MC的负载均衡器上用HASH算法，让同一内容都分配到一个MC服务器。</p>
+<p>　　&nbsp;&nbsp; 3. 普通的HASH算法对于节点宕机会带来大量的数据流动(失效)，可能会引起雪崩效应。</p>
+<p>&nbsp;　　&nbsp; 4. 一致性HASH可以让节点宕机对节点的数据流动(失效)降到最低。</p>
+<p><strong><em>普通的hash</em></strong><strong><em>算法</em></strong></p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171207155447738-175574885.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="memcached 缓存数据库应用实践" alt="" /></p>
+
+<p>　　首先将key处理为一个32位字符串，取前8位，在经过hash计算处理成整数并返回，然后映射到其中一台服务器这样得到其中一台服务器的配置，利用这个配置完成分布式部署。在服务器数量不发生变化的情况下，普通hash分布可以很好的运作，当服务器的数量发生变化，问题就来了。试想，增加一台服务器，同一个key经过hash之后，与服务器取模的结果和没增加之前的结果肯定不一样，这就导致了，之前保存的数据丢失。</p>
+<p><span style="background-color: #99cc00;"><strong><em>一致性hash</em></strong><strong><em>算法</em></strong></span></p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171207155459363-1160784505.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="memcached 缓存数据库应用实践" alt="" />&nbsp;</p>
+
+<p>一致性哈希算法</p>
+<p>　　优点：在分布式的cache缓存中，其中一台宕机，迁移key效率最高</p>
+<p>　　将服务器列表进行排序，根据mHash($key) 匹配相邻服务器</p>
+<p><strong>一致性hash</strong><strong>算法&nbsp; </strong><strong>将数据流动降到最低</strong></p>
+<div>
+<p class="a">参考资料</p>
+<div class="cnblogs_code">
+<pre>http:<span style="color: #008000;">//</span><span style="color: #008000;">blog.csdn.net/cywosp/article/details/23397179</span>
+http:<span style="color: #008000;">//</span><span style="color: #008000;">blog.csdn.net/zhangskd/article/details/50256111</span></pre>
+</div>
+</div>
+<h1>第2章 memcached使用</h1>
+<h2>2.1 安装memcached</h2>
+<h3>2.1.1 环境说明</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cab8a5a5be8aa9aba9a2affafb">[email&#160;protected]</a> ~]# cat /etc/redhat-<span style="color: #000000;">release
+CentOS Linux release </span><span style="color: #800080;">7.4</span>.<span style="color: #800080;">1708</span><span style="color: #000000;"> (Core) 
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a4d6cbcbd0e4c7c5c7ccc19495">[email&#160;protected]</a> </span>~]# uname -<span style="color: #000000;">r
+</span><span style="color: #800080;">3.10</span>.<span style="color: #800080;">0</span>-<span style="color: #800080;">693</span><span style="color: #000000;">.el7.x86_64
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d1a3bebea591b2b0b2b9b4e1e0">[email&#160;protected]</a> </span>~<span style="color: #000000;">]# getenforce
+Disabled
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cebca1a1ba8eadafada6abfeff">[email&#160;protected]</a> </span>~<span style="color: #000000;">]# systemctl status firewalld.service 
+● firewalld.service </span>- firewalld - <span style="color: #0000ff;">dynamic</span><span style="color: #000000;"> firewall daemon
+   Loaded: loaded (</span>/usr/lib/systemd/system/<span style="color: #000000;">firewalld.service; disabled; vendor preset: enabled)
+   Active: inactive (dead)
+     Docs: man:firewalld(</span><span style="color: #800080;">1</span><span style="color: #000000;">)
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ddafb2b2a99dbebcbeb5b8edec">[email&#160;protected]</a> </span>~]# hostname -<span style="color: #000000;">I
+</span><span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.21</span> <span style="color: #800080;">172.16</span>.<span style="color: #800080;">1.21</span></pre>
+</div>
+</div>
+<h3>2.1.2 安装memcached</h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8efce1e1faceedefede6ebbebf">[email&#160;protected]</a> ~]# yum -y install memcached</pre>
+</div>
+<h3>2.1.3 查看配置</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="592b36362d193a383a313c6968">[email&#160;protected]</a> ~]# cat /etc/sysconfig/<span style="color: #000000;">memcached 
+PORT</span>=<span style="color: #800000;">"</span><span style="color: #800000;">11211</span><span style="color: #800000;">"</span><span style="color: #000000;">
+USER</span>=<span style="color: #800000;">"</span><span style="color: #800000;">memcached</span><span style="color: #800000;">"</span><span style="color: #000000;">
+MAXCONN</span>=<span style="color: #800000;">"</span><span style="color: #800000;">1024</span><span style="color: #800000;">"</span><span style="color: #000000;">
+CACHESIZE</span>=<span style="color: #800000;">"</span><span style="color: #800000;">64</span><span style="color: #800000;">"</span><span style="color: #000000;">
+OPTIONS</span>=<span style="color: #800000;">""</span></pre>
+</div>
+</div>
+<h3>2.1.4 查看启动脚本</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="25574a4a51654644464d401514">[email&#160;protected]</a> ~]# cat /usr/lib/systemd/system/<span style="color: #000000;">memcached.service 
+[Unit]
+Description</span>=<span style="color: #000000;">Memcached 
+Before</span>=<span style="color: #000000;">httpd.service
+After</span>=<span style="color: #000000;">network.target
+
+[Service]
+Type</span>=<span style="color: #000000;">simple
+EnvironmentFile</span>=-/etc/sysconfig/<span style="color: #000000;">memcached
+ExecStart</span>=/usr/bin/memcached -u $USER -p $PORT -m $CACHESIZE -<span style="color: #000000;">c $MAXCONN $OPTIONS
+
+[Install]
+WantedBy</span>=multi-user.target</pre>
+</div>
+</div>
+<h3>2.1.5 启动服务</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="12607d7d66527173717a772223">[email&#160;protected]</a> ~]# systemctl start memcached.service</pre>
+</div>
+</div>
+<h2>2.2 管理memcached</h2>
+<h3>2.2.1 memcached数据库语法格式</h3>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">set</span>              key   <span style="color: #800080;">0</span>        <span style="color: #800080;">0</span>           <span style="color: #800080;">10</span>
+
+<command name>  <key> <flags> <exptime> <bytes>\r\n</pre>
+</div>
+</div>
+<p>&nbsp; \n 换行且光标移至行首</p>
+<p>&nbsp; \r 光标移至行首，但不换行</p>
+<div align="center">
+<div align="center">
+<table class="MsoTable15Grid4Accent5" style="border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 127.35pt; border-top-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-top-color: #4bacc6; border-bottom-color: #4bacc6; border-left-color: #4bacc6; border-right: none; background: #4bacc6; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 5;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">参数</span></strong></p>
+</td>
+<td style="width: 395.45pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: #4bacc6; border-right-color: #4bacc6; border-bottom-color: #4bacc6; border-left: none; background: #4bacc6; padding: 0cm 5.4pt;" width="527">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 1;"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #92cddc; border-bottom-color: #92cddc; border-left-color: #92cddc; border-top: none; background: #daeef3; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span lang="EN-US"><flags></span></strong></p>
+</td>
+<td style="width: 395.45pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #92cddc; border-right-width: 1pt; border-right-color: #92cddc; background: #daeef3; padding: 0cm 5.4pt;" width="527">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是在取回内容时，与数据和发送块一同保存服务器上的任意</span><span lang="EN-US">16</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">位无符号整形（用十进制来书写）。客户端可以用它作为&ldquo;位域&rdquo;来存储一些特定的信息；它对服务器是不透明的。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #92cddc; border-bottom-color: #92cddc; border-left-color: #92cddc; border-top: none; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span lang="EN-US"><exptime></span></strong></p>
+</td>
+<td style="width: 395.45pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #92cddc; border-right-width: 1pt; border-right-color: #92cddc; padding: 0cm 5.4pt;" width="527">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是终止时间。如果为</span><span lang="EN-US">0</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">，该项永不过期</span><span lang="EN-US">(</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">虽然它可能被删除，以便为其他缓存项目腾出位置</span><span lang="EN-US">)</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">。如果非</span><span lang="EN-US">0</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">（</span><span lang="EN-US">Unix</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">时间戳或当前时刻的秒偏移），到达终止时间后，客户端无法再获得这项内容</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #92cddc; border-bottom-color: #92cddc; border-left-color: #92cddc; border-top: none; background: #daeef3; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span lang="EN-US"><bytes></span></strong></p>
+</td>
+<td style="width: 395.45pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #92cddc; border-right-width: 1pt; border-right-color: #92cddc; background: #daeef3; padding: 0cm 5.4pt;" width="527">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是随后的数据区块的字节长度，不包括用于分页的&ldquo;</span><span lang="EN-US">\r\n</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">&rdquo;。它可以是</span><span lang="EN-US">0</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">（这时后面跟随一个空的数据区块）。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #92cddc; border-bottom-color: #92cddc; border-left-color: #92cddc; border-top: none; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span lang="EN-US"><data block>\r\n</span></strong></p>
+</td>
+<td style="width: 395.45pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #92cddc; border-right-width: 1pt; border-right-color: #92cddc; padding: 0cm 5.4pt;" width="527">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US"><data block> </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">是大段的</span><span lang="EN-US">8</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">位数据，其长度由前面的命令行中的</span><span lang="EN-US"><bytes></span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">指定。</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3>2.2.2 数据库使用</h3>
+<p>写入读取数据</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="91e3fefee5d1f2f0f2f9f4a1a0">[email&#160;protected]</a> ~]# printf <span style="color: #800000;">"</span><span style="color: #800000;">set key008 0 0 10\r\noldboy0987\r\n</span><span style="color: #800000;">"</span>|nc <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.21</span> <span style="color: #800080;">11211</span><span style="color: #000000;">
+STORED
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1b6974746f5b787a78737e2b2a">[email&#160;protected]</a> </span>~]# printf <span style="color: #800000;">"</span><span style="color: #800000;">get key008\r\n</span><span style="color: #800000;">"</span>|nc <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.21</span> <span style="color: #800080;">11211</span><span style="color: #000000;">
+VALUE key008 </span><span style="color: #800080;">0</span> <span style="color: #800080;">10</span><span style="color: #000000;">
+oldboy0987
+END</span></pre>
+</div>
+</div>
+<p>写入数据长度不符合，定义过大</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="65170a0a11250604060d005554">[email&#160;protected]</a> ~]# printf <span style="color: #800000;">"</span><span style="color: #800000;">set key009 0 0 11\r\noldboy0987\r\n</span><span style="color: #800000;">"</span>|nc <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.21</span> <span style="color: #800080;">11211</span><span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1765787863577476747f722726">[email&#160;protected]</a> </span>~]# printf <span style="color: #800000;">"</span><span style="color: #800000;">get key009\r\n</span><span style="color: #800000;">"</span>|nc <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.21</span> <span style="color: #800080;">11211</span><span style="color: #000000;">
+END</span></pre>
+</div>
+</div>
+<p>写入数据长度不符合，定义过小</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="384a57574c785b595b505d0809">[email&#160;protected]</a> ~]# printf <span style="color: #800000;">"</span><span style="color: #800000;">set key010 0 0 9\r\noldboy0987\r\n</span><span style="color: #800000;">"</span>|nc <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.21</span> <span style="color: #800080;">11211</span><span style="color: #000000;">
+CLIENT_ERROR bad data chunk
+ERROR
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8af8e5e5fecae9ebe9e2efbabb">[email&#160;protected]</a> </span>~]# printf <span style="color: #800000;">"</span><span style="color: #800000;">get key010\r\n</span><span style="color: #800000;">"</span>|nc <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.21</span> <span style="color: #800080;">11211</span><span style="color: #000000;">
+END</span></pre>
+</div>
+</div>
+<p>时效性</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ec9e838398ac8f8d8f8489dcdd">[email&#160;protected]</a> ~]# printf <span style="color: #800000;">"</span><span style="color: #800000;">set key011 0 10 10\r\noldboy0987\r\n</span><span style="color: #800000;">"</span>|nc <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.21</span> <span style="color: #800080;">11211</span><span style="color: #000000;">
+STORED
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="80f2efeff4c0e3e1e3e8e5b0b1">[email&#160;protected]</a> </span>~]# printf <span style="color: #800000;">"</span><span style="color: #800000;">get key011\r\n</span><span style="color: #800000;">"</span>|nc <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.21</span> <span style="color: #800080;">11211</span><span style="color: #000000;">
+VALUE key011 </span><span style="color: #800080;">0</span> <span style="color: #800080;">10</span><span style="color: #000000;">
+oldboy0987
+END
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a3d1ccccd7e3c0c2c0cbc69392">[email&#160;protected]</a> </span>~]# printf <span style="color: #800000;">"</span><span style="color: #800000;">get key011\r\n</span><span style="color: #800000;">"</span>|nc <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.21</span> <span style="color: #800080;">11211</span><span style="color: #000000;">
+END</span></pre>
+</div>
+</div>
+<p>删除数据</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5d2f3232291d3e3c3e35386d6c">[email&#160;protected]</a> ~]# printf <span style="color: #800000;">"</span><span style="color: #800000;">delete key008\r\n</span><span style="color: #800000;">"</span>|nc <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.21</span> <span style="color: #800080;">11211</span><span style="color: #000000;">
+DELETED
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cdbfa2a2b98daeacaea5a8fdfc">[email&#160;protected]</a> </span>~]# printf <span style="color: #800000;">"</span><span style="color: #800000;">get key008\r\n</span><span style="color: #800000;">"</span>|nc <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.21</span> <span style="color: #800080;">11211</span><span style="color: #000000;">
+END</span></pre>
+</div>
+</div>
+<h2>2.3 memcache php版本客户端安装使用</h2>
+<p><em><span style="text-decoration: underline;">命令集</span></em></p>
+<div>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">#编译进去php_mem
+tar zxvf memcache</span>-<span style="color: #800080;">2.2</span>.<span style="color: #800080;">5</span><span style="color: #000000;">.tgz
+cd memcache</span>-<span style="color: #800080;">2.2</span>.<span style="color: #800080;">5</span>
+/application/php/bin/<span style="color: #000000;">phpize
+.</span>/configure --enable-memcache --with-php-config=/application/php/bin/php-config --with-zlib-<span style="color: #000000;">dir
+make
+make install
+# 激活php_memcached
+sed </span>-i <span style="color: #800000;">'</span><span style="color: #800000;">$a extension=memcache.so</span><span style="color: #800000;">'</span> /application/php/lib/<span style="color: #000000;">php.ini
+pkill php
+</span>/application/php/sbin/php-fpm -<span style="color: #000000;">t
+</span>/application/php/sbin/php-<span style="color: #000000;">fpm
+</span>/application/php/bin/php -m|grep memcache</pre>
+</div>
+</div>
+<p>检查当前环境</p>
+<div>
+<p class="a1">查看php的模块</p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('333e383e-76e0-4e18-8635-8bcec6402e58')"><img id="code_img_closed_333e383e-76e0-4e18-8635-8bcec6402e58" class="code_img_closed" src="ContractedBlock-12.gif" tppabs="http://clsn.io/wp-content/uploads/2018/03/ContractedBlock-12.gif" alt="memcached 缓存数据库应用实践" alt="" /><img id="code_img_opened_333e383e-76e0-4e18-8635-8bcec6402e58" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('333e383e-76e0-4e18-8635-8bcec6402e58',event)" data-original="http://clsn.io/wp-content/uploads/2018/03/ExpandedBlockStart-12.gif" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="memcached 缓存数据库应用实践" alt="" /></p>
+
+<div id="cnblogs_code_open_333e383e-76e0-4e18-8635-8bcec6402e58" class="cnblogs_code_hide">
+<pre><span style="color: #008080;"> 1</span> <span style="color: #000000;">查看php的模块
+</span><span style="color: #008080;"> 2</span> [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="60120f0f14201705025056">[email&#160;protected]</a> ~]# /application/php/bin/php -<span style="color: #000000;">m
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;">[PHP Modules]
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">bcmath
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">Core
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">ctype
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">curl
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">date
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">dom
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">ereg
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">fileinfo
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">filter
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">ftp
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">gd
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">hash
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">iconv
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">json
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">libxml
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">mbstring
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">mcrypt
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">mhash
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">mysql
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">mysqlnd
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">openssl
+</span><span style="color: #008080;">25</span> <span style="color: #000000;">pcntl
+</span><span style="color: #008080;">26</span> <span style="color: #000000;">pcre
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">PDO
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">pdo_mysql
+</span><span style="color: #008080;">29</span> <span style="color: #000000;">pdo_sqlite
+</span><span style="color: #008080;">30</span> <span style="color: #000000;">Phar
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">posix
+</span><span style="color: #008080;">32</span> <span style="color: #000000;">Reflection
+</span><span style="color: #008080;">33</span> <span style="color: #000000;">session
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">shmop
+</span><span style="color: #008080;">35</span> <span style="color: #000000;">SimpleXML
+</span><span style="color: #008080;">36</span> <span style="color: #000000;">soap
+</span><span style="color: #008080;">37</span> <span style="color: #000000;">sockets
+</span><span style="color: #008080;">38</span> <span style="color: #000000;">SPL
+</span><span style="color: #008080;">39</span> <span style="color: #000000;">sqlite3
+</span><span style="color: #008080;">40</span> <span style="color: #000000;">standard
+</span><span style="color: #008080;">41</span> <span style="color: #000000;">sysvsem
+</span><span style="color: #008080;">42</span> <span style="color: #000000;">tokenizer
+</span><span style="color: #008080;">43</span> <span style="color: #000000;">xml
+</span><span style="color: #008080;">44</span> <span style="color: #000000;">xmlreader
+</span><span style="color: #008080;">45</span> <span style="color: #000000;">xmlrpc
+</span><span style="color: #008080;">46</span> <span style="color: #000000;">xmlwriter
+</span><span style="color: #008080;">47</span> <span style="color: #000000;">xsl
+</span><span style="color: #008080;">48</span> <span style="color: #000000;">zlib
+</span><span style="color: #008080;">49</span> 
+<span style="color: #008080;">50</span> [Zend Modules]</pre>
+</div>
+<p><span class="cnblogs_code_collapse">View Code 查看php的模块</span></div>
+</div>
+<p><strong><em><span style="text-decoration: underline;">执行过程</span></em></strong></p>
+<p>编译安装</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="83f1ececf7c3f4e6e1b3b5">[email&#160;protected]</a> memcache-<span style="color: #800080;">2.2</span>.<span style="color: #800080;">5</span><span style="color: #000000;">]# make install
+Installing shared extensions:     </span>/application/php-<span style="color: #800080;">5.5</span>.<span style="color: #800080;">32</span>/lib/php/extensions/no-debug-non-zts-<span style="color: #800080;">20121212</span>/<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d6a4b9b9a296a1b3b4e6e0">[email&#160;protected]</a> memcache</span>-<span style="color: #800080;">2.2</span>.<span style="color: #800080;">5</span>]# ls /application/php/lib/php/extensions/no-debug-non-zts-<span style="color: #800080;">20121212</span>/<span style="color: #000000;">
+memcache.so
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7f0d10100b3f081a1d4f49">[email&#160;protected]</a> memcache</span>-<span style="color: #800080;">2.2</span>.<span style="color: #800080;">5</span>]# sed -i <span style="color: #800000;">'</span><span style="color: #800000;">$a extension=memcache.so</span><span style="color: #800000;">'</span> /application/php/lib/<span style="color: #000000;">php.ini
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c7b5a8a8b387b0a2a5f7f1">[email&#160;protected]</a> memcache</span>-<span style="color: #800080;">2.2</span>.<span style="color: #800080;">5</span><span style="color: #000000;">]# pkill php
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d3a1bcbca793a4b6b1e3e5">[email&#160;protected]</a> memcache</span>-<span style="color: #800080;">2.2</span>.<span style="color: #800080;">5</span>]# /application/php/sbin/php-fpm -<span style="color: #000000;">t
+[</span><span style="color: #800080;">17</span>-Nov-<span style="color: #800080;">2017</span> <span style="color: #800080;">11</span>:<span style="color: #800080;">39</span>:<span style="color: #800080;">13</span>] NOTICE: configuration file /application/php-<span style="color: #800080;">5.5</span>.<span style="color: #800080;">32</span>/etc/php-fpm.conf test <span style="color: #0000ff;">is</span><span style="color: #000000;"> successful
+
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ef9d80809baf988a8ddfd9">[email&#160;protected]</a> memcache</span>-<span style="color: #800080;">2.2</span>.<span style="color: #800080;">5</span>]# /application/php/sbin/php-<span style="color: #000000;">fpm
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cfbda0a0bb8fb8aaadfff9">[email&#160;protected]</a> memcache</span>-<span style="color: #800080;">2.2</span>.<span style="color: #800080;">5</span>]# /application/php/bin/php -m|<span style="color: #000000;">grep memcache
+memcache</span></pre>
+</div>
+</div>
+<h3>2.3.1 编写测试文件</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d6a4b9b9a296a1b3b4e6e7">[email&#160;protected]</a> blog]# cat /application/nginx/html/blog/<span style="color: #000000;">mc.php
+</span><?<span style="color: #000000;">php
+    $memcache </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Memcache;
+    $memcache</span>->connect(<span style="color: #800000;">'</span><span style="color: #800000;">10.0.0.21</span><span style="color: #800000;">'</span>, <span style="color: #800080;">11211</span>) or die (<span style="color: #800000;">"</span><span style="color: #800000;">Could not connect</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+    $memcache</span>-><span style="color: #0000ff;">set</span>(<span style="color: #800000;">'</span><span style="color: #800000;">key20171117</span><span style="color: #800000;">'</span>, <span style="color: #800000;">'</span><span style="color: #800000;">hello,world</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+    $get_value </span>= $memcache-><span style="color: #0000ff;">get</span>(<span style="color: #800000;">'</span><span style="color: #800000;">key20171117</span><span style="color: #800000;">'</span><span style="color: #000000;">);
+    echo $get_value;
+</span>?></pre>
+</div>
+</div>
+<p>浏览器访问</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171207155911878-447894378.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="memcached 缓存数据库应用实践" alt="" />&nbsp;</p>
+
+<p>数据库读取测试</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fb8994948fbb989a98939ecbca">[email&#160;protected]</a> ~]# printf <span style="color: #800000;">"</span><span style="color: #800000;">get key20171117 \r\n</span><span style="color: #800000;">"</span>|nc <span style="color: #800080;">10.0</span>.<span style="color: #800080;">0.21</span> <span style="color: #800080;">11211</span><span style="color: #000000;"> 
+VALUE key20171117 </span><span style="color: #800080;">0</span> <span style="color: #800080;">11</span><span style="color: #000000;">
+hello,world
+END</span></pre>
+</div>
+</div>
+<h2>2.4 web管理memcached</h2>
+<p>　　使用的软件memadmin</p>
+<p>　　官网：http://www.junopen.com/memadmin/</p>
+<p>将程序包放如站点目录，浏览器进行访问即可</p>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="99ebf6f6edd9eefcfba9af">[email&#160;protected]</a> tools]# tar xf memadmin-<span style="color: #800080;">1.0</span>.<span style="color: #800080;">12</span>.tar.gz -C /application/nginx/html/blog/</pre>
+</div>
+</div>
+<p>&nbsp;&nbsp; 默认用户名密码为admin</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171207160010097-70003361.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="memcached 缓存数据库应用实践" alt="" />&nbsp;</p>
+
+<p>&nbsp;&nbsp; 添加一个新的memcached服务器</p>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171207160024222-645669662.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="memcached 缓存数据库应用实践" alt="" />&nbsp;</p>
+
+<p>&nbsp;&nbsp; web界面管理全中文，较为简单</p>
+<p align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171207160031722-1722233913.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="memcached 缓存数据库应用实践" alt="" /></p>
+
+<h2>2.5 memcached数据缓存</h2>
+<p>通过程序实现</p>
+<h3>2.5.1 blog站点实现memcached存储</h3>
+<div>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7a0815150e3a0d1f184a4c">[email&#160;protected]</a> ~]# cat /application/nginx/html/blog/wp-content/<span style="color: #0000ff;">object</span>-cache.php</pre>
+</div>
+</div>
+<p align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171207160048659-177631846.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="memcached 缓存数据库应用实践" alt="" />&nbsp;</p>
+
+<h2>2.6 memcached session共享</h2>
+<p>方法1：</p>
+<p>　　通过程序实现，web01只需要往memcahce写session，web02从memcahce读session<strong>（更具有通用性）</strong></p>
+<p>方法2：</p>
+<p>　　通过php的配置文件，让php默认将session存储在文件中，修改为存储在memcached中</p>
+<div>
+<div class="cnblogs_code">
+<pre>sed -i <span style="color: #800000;">'</span><span style="color: #800000;">s#session.save_handler = files#session.save_handler = memcache#;$a session.save_path = "tcp://10.0.0.21:11211"</span><span style="color: #800000;">'</span> /application/php/lib/php.ini</pre>
+</div>
+<p>　　使用这个功能，需要使用php的session函数</p>
+<p style="text-align: right;">&nbsp;&nbsp;<strong>&nbsp;本文出自&ldquo;惨绿少年&rdquo;，欢迎转载，转载请注明出处！http://blog.znix.top</strong></p>
+</div>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="509" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/" rel="category tag">NoSQL</a> <a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/" rel="category tag">数据库</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2017年12月7日<i class="i-time">08:03:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 7411 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx509.html" tppabs="http://clsn.io/clsn/lx509.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx509.html">memcached 缓存数据库应用实践 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/3.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="javascript:if(confirm('http://clsn.io/clsn/lx520.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx520.html'" tppabs="http://clsn.io/clsn/lx520.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>Shell编程基础篇-上</span></a><a href="lx494.html" tppabs="http://clsn.io/clsn/lx494.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>Shell编程基础篇-下</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="javascript:if(confirm('http://clsn.io/clsn/lx520.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx520.html'" tppabs="http://clsn.io/clsn/lx520.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx494.html" tppabs="http://clsn.io/clsn/lx494.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx509.html#respond" tppabs="http://clsn.io/clsn/lx509.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='509' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx766.html" tppabs="http://clsn.io/clsn/lx766.html" rel="bookmark">用户管理下</a></li> <li><a href="lx494.html" tppabs="http://clsn.io/clsn/lx494.html" rel="bookmark">Shell编程基础篇-下</a></li> <li><a href="lx768.html" tppabs="http://clsn.io/clsn/lx768.html" rel="bookmark">在windows上搭建镜像yum站的方法（附bat脚本）</a></li> <li><a href="lx945.html" tppabs="http://clsn.io/clsn/lx945.html" rel="bookmark">服务器路由配置&#8211;Route</a></li> <li><a href="lx247.html" tppabs="http://clsn.io/clsn/lx247.html" rel="bookmark">MongoDB的备份与恢复</a></li> <li><a href="lx243.html" tppabs="http://clsn.io/clsn/lx243.html" rel="bookmark">SVN服务实战应用指南</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx918.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx918.html'" tppabs="http://clsn.io/clsn/lx918.html" rel="bookmark">ssh密钥创建分发(端口号非22)&#038;脚本实现自动创建分发密钥</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1040.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1040.html'" tppabs="http://clsn.io/clsn/lx1040.html" rel="bookmark">服务器硬件基础</a></li> <li><a href="lx992.html" tppabs="http://clsn.io/clsn/lx992.html" rel="bookmark">linux中重要目录</a></li> <li><a href="lx906.html" tppabs="http://clsn.io/clsn/lx906.html" rel="bookmark">sersync实现数据实时同步</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx509.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx509.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx509.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

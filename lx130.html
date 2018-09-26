@@ -1,0 +1,895 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>AWK常用技巧 | 惨绿少年</title><meta name="description" content="似于C 语言。在代码块中只有一条 print 命令。在awk 中，如果只出现 print 命令，那么将打印当前行的全部内容。" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx130.html" tppabs="http://clsn.io/clsn/lx130.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-130 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/" rel="category tag">Shell编程</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>AWK常用技巧 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-130" class="post-130 post type-post status-publish format-standard hentry category-linux category-dev-shell category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">AWK常用技巧</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2018年2月5日<i class="i-time">12:43:00</i></span><span class="comment"><a href="lx130.html#respond" tppabs="http://clsn.io/clsn/lx130.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="javascript:if(confirm('http://clsn.io/clsn/lx130.html?wpzmaction=add&postid=130  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx130.html?wpzmaction=add&postid=130'" tppabs="http://clsn.io/clsn/lx130.html?wpzmaction=add&postid=130" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h2>1.1 <span style="font-family: '微软雅黑',sans-serif;">介绍</span></h2>
+<p style="text-indent: 21.0pt;">awk<span style="font-family: '微软雅黑',sans-serif;">其名称得自于它的创始人</span> Alfred Aho <span style="font-family: '微软雅黑',sans-serif;">、</span>Peter Weinberger <span style="font-family: '微软雅黑',sans-serif;">和</span> Brian Kernighan <span style="font-family: '微软雅黑',sans-serif;">姓氏的首个字母。实际上</span> AWK <span style="font-family: '微软雅黑',sans-serif;">的确拥有自己的语言：</span> AWK <span style="font-family: '微软雅黑',sans-serif;">程序设计语言</span> <span style="font-family: '微软雅黑',sans-serif;">，</span> <span style="font-family: '微软雅黑',sans-serif;">三位创建者已将它正式定义为&ldquo;样式扫描和处理语言&rdquo;。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">它允许您创建简短的程序，这些程序读取输入文件、为数据排序、处理数据、对输入执行计算以及生成报表，还有无数其他的功能。</span></p>
+<p style="text-indent: 21.0pt;">awk <span style="font-family: '微软雅黑',sans-serif;">是一种很棒的语言，它适合文本处理和报表生成，其语法较为常见，借鉴了某些语言的一些精华，如</span> C <span style="font-family: '微软雅黑',sans-serif;">语言等。在</span> linux <span style="font-family: '微软雅黑',sans-serif;">系统日常处理工作中，发挥很重要的作用，掌握了</span> awk<span style="font-family: '微软雅黑',sans-serif;">将会使你的工作变的高大上。</span></p>
+<h3>1.1.1 AWK<span style="font-family: '微软雅黑',sans-serif;">原理</span></h3>
+<p style="margin-left: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">这需要一个例子来说明，你将会见到</span>/etc/passwd <span style="font-family: '微软雅黑',sans-serif;">文件的内容出现在眼前。</span></p>
+<div class="cnblogs_code">
+<pre>awk <span style="color: #800000;">'</span><span style="color: #800000;">{print $0}</span><span style="color: #800000;">'</span> /etc/<span style="color: #000000;">passwd
+echo clsn</span>|awk <span style="color: #800000;">'</span><span style="color: #800000;">{print "hello,world"}</span><span style="color: #800000;">'</span><span style="color: #000000;">
+awk </span><span style="color: #800000;">'</span><span style="color: #800000;">{ print "clsn" }</span><span style="color: #800000;">'</span> /etc/passwd</pre>
+</div>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">现在，解释</span> awk <span style="font-family: '微软雅黑',sans-serif;">做了些什么。调用</span> awk<span style="font-family: '微软雅黑',sans-serif;">时，我们指定</span>/etc/passwd <span style="font-family: '微软雅黑',sans-serif;">作为输入文件。执行</span> awk <span style="font-family: '微软雅黑',sans-serif;">时，它依次对</span>/etc/passwd <span style="font-family: '微软雅黑',sans-serif;">中的每一行执行</span> print <span style="font-family: '微软雅黑',sans-serif;">命令。所有输出都发送到</span> stdout<span style="font-family: '微软雅黑',sans-serif;">，所得到的结果与执行</span> cat /etc/passwd <span style="font-family: '微软雅黑',sans-serif;">完全相同。现在，解释</span>{ print }<span style="font-family: '微软雅黑',sans-serif;">代码块。在</span> awk <span style="font-family: '微软雅黑',sans-serif;">中，花括号用于将几块代码组合到一起，这一点类</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">似于</span>C <span style="font-family: '微软雅黑',sans-serif;">语言。在代码块中只有一条</span> print <span style="font-family: '微软雅黑',sans-serif;">命令。在</span>awk <span style="font-family: '微软雅黑',sans-serif;">中，如果只出现</span> print <span style="font-family: '微软雅黑',sans-serif;">命令，那么将打印当前行的全部内容。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">再次说明，</span>awk <span style="font-family: '微软雅黑',sans-serif;">对输入文件中的每一行都执行这个脚本。</span></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180205204316029-486521233.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="AWK常用技巧" alt="" />&nbsp;</p>
+
+<h2>1.2 AWK<span style="font-family: '微软雅黑',sans-serif;">常用速查表</span></h2>
+<h3>1.2.1 AWK<span style="font-family: '微软雅黑',sans-serif;">运算符</span></h3>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">运算符</span></strong></p>
+</td>
+<td style="width: 63.44%; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="63%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">说明</span></strong></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 100%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #95b3d7; padding: 0cm 5.4pt; height: 1pt;" colspan="2" valign="top" width="100%">
+<p><em><span style="font-family: '微软雅黑',sans-serif;">赋值运算符</span></em></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p><strong>= += -= *= /= %= ^= **=</strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">赋值语句</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 100%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #fabf8f; padding: 0cm 5.4pt; height: 1pt;" colspan="2" valign="top" width="100%">
+<p><em><span style="font-family: '微软雅黑',sans-serif;">逻辑运算符</span></em></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p><strong>||</strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">逻辑或</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p><strong>&&</strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">逻辑与</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 100%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #92d050; padding: 0cm 5.4pt; height: 1pt;" colspan="2" valign="top" width="100%">
+<p><em><span style="font-family: '微软雅黑',sans-serif;">正则运算符</span></em></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p><strong>~&nbsp;!~</strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">匹配正则表达式和不匹配正则表达式</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 100%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #ffc000; padding: 0cm 5.4pt; height: 1pt;" colspan="2" valign="top" width="100%">
+<p><em><span style="font-family: '微软雅黑',sans-serif;">关系运算符</span></em></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p><strong>< <= > >= != ==</strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">关系运算符</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 100%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #d99594; padding: 0cm 5.4pt; height: 1pt;" colspan="2" valign="top" width="100%">
+<p><em><span style="font-family: '微软雅黑',sans-serif;">算术运算符</span></em></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p><strong>+&nbsp;-</strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">加，减</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p><strong>* / &</strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">乘，除与求余</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p><strong>+ - !</strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">一元加，减和逻辑非</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p><strong>^ ***</strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">求幂</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p><strong>++ --</strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">增加或减少，作为前缀或后缀</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 100%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #b2a1c7; padding: 0cm 5.4pt; height: 1pt;" colspan="2" valign="top" width="100%">
+<p><em><span style="font-family: '微软雅黑',sans-serif;">其他运算符</span></em></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p><strong>$</strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">字段引用</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">空格</span></strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">字符串链接符</span></p>
+</td>
+</tr>
+<tr style="height: 3.15pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 3.15pt;" valign="top" width="36%">
+<p><strong>?:</strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 3.15pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">三目运算符</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 36.56%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" valign="top" width="36%">
+<p><strong>In</strong></p>
+</td>
+<td style="width: 63.44%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" valign="top" width="63%">
+<p><span style="font-family: '微软雅黑',sans-serif;">数组中是否存在某键值</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>1.2.2 <span style="font-family: '微软雅黑',sans-serif;">常用</span>AWK<span style="font-family: '微软雅黑',sans-serif;">内置变量</span></h3>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr style="height: 22.6pt;">
+<td style="width: 16.68%; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt; height: 22.6pt;" width="16%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">变量名</span></strong></p>
+</td>
+<td style="width: 83.32%; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt; height: 22.6pt;" width="83%">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">属</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";   color: white;">性</span></strong></p>
+</td>
+</tr>
+<tr style="height: 22.6pt;">
+<td style="width: 16.68%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 22.6pt;" width="16%">
+<p style="text-align: center;" align="center"><strong>$0</strong></p>
+</td>
+<td style="width: 83.32%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 22.6pt;" width="83%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">当前记录</span></p>
+</td>
+</tr>
+<tr style="height: 22.6pt;">
+<td style="width: 16.68%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 22.6pt;" width="16%">
+<p style="text-align: center;" align="center"><strong>$1~$n</strong></p>
+</td>
+<td style="width: 83.32%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 22.6pt;" width="83%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">当前记录的第</span> n <span style="font-family: '微软雅黑',sans-serif;">个字段</span></p>
+</td>
+</tr>
+<tr style="height: 22.6pt;">
+<td style="width: 16.68%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 22.6pt;" width="16%">
+<p style="text-align: center;" align="center"><strong>FS</strong></p>
+</td>
+<td style="width: 83.32%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 22.6pt;" width="83%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">输入字段分隔符</span> <span style="font-family: '微软雅黑',sans-serif;">默认是空格</span></p>
+</td>
+</tr>
+<tr style="height: 22.6pt;">
+<td style="width: 16.68%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 22.6pt;" width="16%">
+<p style="text-align: center;" align="center"><strong>RS</strong></p>
+</td>
+<td style="width: 83.32%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 22.6pt;" width="83%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">输入记录分割符</span> <span style="font-family: '微软雅黑',sans-serif;">默认为换行符</span></p>
+</td>
+</tr>
+<tr style="height: 22.6pt;">
+<td style="width: 16.68%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 22.6pt;" width="16%">
+<p style="text-align: center;" align="center"><strong>NF</strong></p>
+</td>
+<td style="width: 83.32%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 22.6pt;" width="83%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">当前记录中的字段个数，就是有多少列</span></p>
+</td>
+</tr>
+<tr style="height: 22.6pt;">
+<td style="width: 16.68%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 22.6pt;" width="16%">
+<p style="text-align: center;" align="center"><strong>NR</strong></p>
+</td>
+<td style="width: 83.32%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 22.6pt;" width="83%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">已经读出的记录数，就是行号，从</span> 1 <span style="font-family: '微软雅黑',sans-serif;">开始</span></p>
+</td>
+</tr>
+<tr style="height: 22.6pt;">
+<td style="width: 16.68%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 22.6pt;" width="16%">
+<p style="text-align: center;" align="center"><strong>OFS</strong></p>
+</td>
+<td style="width: 83.32%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 22.6pt;" width="83%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">输出字段分隔符</span> <span style="font-family: '微软雅黑',sans-serif;">默认也是空格</span></p>
+</td>
+</tr>
+<tr style="height: 22.6pt;">
+<td style="width: 16.68%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 22.6pt;" width="16%">
+<p style="text-align: center;" align="center"><strong>ORS</strong></p>
+</td>
+<td style="width: 83.32%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 22.6pt;" width="83%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">输出的记录分隔符</span> <span style="font-family: '微软雅黑',sans-serif;">默认为换行符</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>1.2.3 awk<span style="font-family: '微软雅黑',sans-serif;">中的正则</span></h3>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">元字符</span></strong></p>
+</td>
+<td style="width: 27.58%; border-top: solid #9BBB59 1.0pt; border-left: none; border-bottom: solid #9BBB59 1.0pt; border-right: none; background: #9BBB59; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">功能</span></strong></p>
+</td>
+<td style="width: 20.34%; border-top: solid #9BBB59 1.0pt; border-left: none; border-bottom: solid #9BBB59 1.0pt; border-right: none; background: #9BBB59; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">示例</span></strong></p>
+</td>
+<td style="width: 41.74%; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt; height: 1pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">解释</span></strong></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>^</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">行首定位符</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/^root/</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配所有以</span> root <span style="font-family: '微软雅黑',sans-serif;">开头的行</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>$</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">行尾定位符</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/root$/</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配所有以</span> root <span style="font-family: '微软雅黑',sans-serif;">结尾的行</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>.</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配任意单个字符</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/r..t/</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配字母</span> r,<span style="font-family: '微软雅黑',sans-serif;">然后两个任意字符，再以</span> l</p>
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">结尾的行，比如</span> root,r33l <span style="font-family: '微软雅黑',sans-serif;">等</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>*</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配</span> 0 <span style="font-family: '微软雅黑',sans-serif;">个或多个前导字符</span>(<span style="font-family: '微软雅黑',sans-serif;">包括回车</span>)</p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/a*ool/</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配</span> 0 <span style="font-family: '微软雅黑',sans-serif;">个或多个</span> a <span style="font-family: '微软雅黑',sans-serif;">之后紧跟着</span> ool <span style="font-family: '微软雅黑',sans-serif;">的行，比如</span> ool<span style="font-family: '微软雅黑',sans-serif;">，</span>aaaaool <span style="font-family: '微软雅黑',sans-serif;">等</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>+</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配</span> 1 <span style="font-family: '微软雅黑',sans-serif;">个或多个前导字符</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/a+b/</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配</span> 1 <span style="font-family: '微软雅黑',sans-serif;">个或多个</span> a <span style="font-family: '微软雅黑',sans-serif;">加</span> b <span style="font-family: '微软雅黑',sans-serif;">的行，比如</span></p>
+<p style="text-align: justify; text-justify: inter-ideograph;">ab,aab <span style="font-family: '微软雅黑',sans-serif;">等</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>?</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配</span> 0 <span style="font-family: '微软雅黑',sans-serif;">个或</span> 1 <span style="font-family: '微软雅黑',sans-serif;">个前导字符</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/a?b/</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配</span> b <span style="font-family: '微软雅黑',sans-serif;">或</span> ab <span style="font-family: '微软雅黑',sans-serif;">的行</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>[]</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配指定字符组内的任意一个字符</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/^[abc]</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配以字母</span> a <span style="font-family: '微软雅黑',sans-serif;">或</span>b <span style="font-family: '微软雅黑',sans-serif;">或</span> c <span style="font-family: '微软雅黑',sans-serif;">开头的行</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>[^]</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配不在指定字符组内任意一个字符</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/^[^abc]/</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配不以字母</span> a <span style="font-family: '微软雅黑',sans-serif;">或</span> b <span style="font-family: '微软雅黑',sans-serif;">或</span> c <span style="font-family: '微软雅黑',sans-serif;">开头的行</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>()</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">子表达式组合</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/(rool)+/</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">表示一个或多个</span> rool <span style="font-family: '微软雅黑',sans-serif;">组合，当有一些字符需要组合时，使用括号括起来</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>|</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">或者的意思</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/(root)|B/</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配</span>root <span style="font-family: '微软雅黑',sans-serif;">或者</span> B <span style="font-family: '微软雅黑',sans-serif;">的行</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>\</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">转义字符</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/a\/\//</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配</span> a//</p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>~,!~</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配，不匹配的条件语句</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">$1~/root/</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">匹配第一个字段包含字符</span>root <span style="font-family: '微软雅黑',sans-serif;">的所有记录</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>x{m}</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;">x <span style="font-family: '微软雅黑',sans-serif;">重复</span>m <span style="font-family: '微软雅黑',sans-serif;">次</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/(root){3}/</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">需要注意一点的是，</span>root <span style="font-family: '微软雅黑',sans-serif;">加括号和不</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>x{m,}</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;">x <span style="font-family: '微软雅黑',sans-serif;">重复至少</span>m <span style="font-family: '微软雅黑',sans-serif;">次</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/(root){3,}/</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">加括号的区别，</span>x <span style="font-family: '微软雅黑',sans-serif;">可以表示字符串也</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>X{m,n}</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;">x <span style="font-family: '微软雅黑',sans-serif;">重复至少</span> m <span style="font-family: '微软雅黑',sans-serif;">次，</span></p>
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">但不超过</span> n <span style="font-family: '微软雅黑',sans-serif;">次</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/(root){5,6}/</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">可以只是一个字符，所以</span>/root\{5\}/</p>
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">表示匹配</span>roo <span style="font-family: '微软雅黑',sans-serif;">再加上</span>5 <span style="font-family: '微软雅黑',sans-serif;">个</span>t<span style="font-family: '微软雅黑',sans-serif;">，及</span>roottttt</p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 10.34%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" width="10%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong>&nbsp;</strong></p>
+</td>
+<td style="width: 27.58%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="27%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">需要指定参数：</span></p>
+<p style="text-align: justify; text-justify: inter-ideograph;">-posix&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">或者</span></p>
+<p style="text-align: justify; text-justify: inter-ideograph;">--re-interval&nbsp;&nbsp; &nbsp;<span style="font-family: '微软雅黑',sans-serif;">没</span> <span style="font-family: '微软雅黑',sans-serif;">有该参数不能使用该模式</span></p>
+</td>
+<td style="width: 20.34%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="20%">
+<p style="text-align: justify; text-justify: inter-ideograph;">cat&nbsp;&nbsp; rex.txt smierth,harry smierth,reru robin,tom</p>
+</td>
+<td style="width: 41.74%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="41%">
+<p style="text-align: justify; text-justify: inter-ideograph;">/\(root\)\{2,\}/&nbsp;<span style="font-family: '微软雅黑',sans-serif;">则</span>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">表</span> <span style="font-family: '微软雅黑',sans-serif;">示</span> <span style="font-family: '微软雅黑',sans-serif;">匹</span> <span style="font-family: '微软雅黑',sans-serif;">配</span></p>
+<p style="text-align: justify; text-justify: inter-ideograph;">rootrootrootroot <span style="font-family: '微软雅黑',sans-serif;">等</span></p>
+<p style="text-align: justify; text-justify: inter-ideograph;">awk -posix '/er\{1,2\}/' rex.text smierth,harry</p>
+<p style="text-align: justify; text-justify: inter-ideograph;">smierth,reru</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>1.2.4 awk <span style="font-family: '微软雅黑',sans-serif;">常用函数表</span></h3>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr style="height: 1.0pt;">
+<td style="width: 25.32%; border-top: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: 1pt solid #9bbb59; border-right: none; background: #9bbb59; padding: 0cm 5.4pt; height: 1pt;" width="25%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">函数</span></strong></p>
+</td>
+<td style="width: 74.68%; border-top: 1pt solid #9bbb59; border-right: 1pt solid #9bbb59; border-bottom: 1pt solid #9bbb59; border-left: none; background: #9bbb59; padding: 0cm 5.4pt; height: 1pt;" width="74%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";color: white;">说明</span></strong></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 25.32%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" width="25%">
+<p style="text-align: justify; text-justify: inter-ideograph;">gsub( Ere, Repl, [ In ] )</p>
+</td>
+<td style="width: 74.68%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="74%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">除了正则表达式所有具体值被替代这点，它和</span> sub <span style="font-family: '微软雅黑',sans-serif;">函数完全一样地执行，。</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 25.32%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" width="25%">
+<p style="text-align: justify; text-justify: inter-ideograph;">sub( Ere, Repl, [ In ] )</p>
+</td>
+<td style="width: 74.68%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="74%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">用</span> Repl <span style="font-family: '微软雅黑',sans-serif;">参数指定的字符串替换</span> In <span style="font-family: '微软雅黑',sans-serif;">参数指定的字符串中的由</span> Ere<span style="font-family: '微软雅黑',sans-serif;">参数指定的扩展正则表达式的第一个具体值。</span>sub <span style="font-family: '微软雅黑',sans-serif;">函数返回替换的数量。出现在</span> Repl <span style="font-family: '微软雅黑',sans-serif;">参数指定的字符串中的</span> &<span style="font-family: '微软雅黑',sans-serif;">（和符号）由</span> In <span style="font-family: '微软雅黑',sans-serif;">参数指定的与</span> Ere <span style="font-family: '微软雅黑',sans-serif;">参数的指定的扩展正则表达式匹配的字符串替换。如果未指定</span> In <span style="font-family: '微软雅黑',sans-serif;">参数，缺省值是整个记录（</span>$0&nbsp;<span style="font-family: '微软雅黑',sans-serif;">记录变量）。</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 25.32%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" width="25%">
+<p style="text-align: justify; text-justify: inter-ideograph;">index( String1, String2 )</p>
+</td>
+<td style="width: 74.68%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="74%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">在由</span> String1 <span style="font-family: '微软雅黑',sans-serif;">参数指定的字符串（其中有出现</span> String2 <span style="font-family: '微软雅黑',sans-serif;">指定的参数）中，返回位置，从</span> 1 <span style="font-family: '微软雅黑',sans-serif;">开始编号。如果</span> String2 <span style="font-family: '微软雅黑',sans-serif;">参数不在</span> String1 &nbsp;<span style="font-family: '微软雅黑',sans-serif;">参数中出现，则返回</span> 0<span style="font-family: '微软雅黑',sans-serif;">（零）。</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 25.32%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" width="25%">
+<p style="text-align: justify; text-justify: inter-ideograph;">length [(String)]</p>
+</td>
+<td style="width: 74.68%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="74%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">返回</span> String &nbsp;<span style="font-family: '微软雅黑',sans-serif;">参数指定的字符串的长度（字符形式）。如果未给出</span></p>
+<p style="text-align: justify; text-justify: inter-ideograph;">String &nbsp;<span style="font-family: '微软雅黑',sans-serif;">参数，则返回整个记录的长度（</span>$0 &nbsp;<span style="font-family: '微软雅黑',sans-serif;">记录变量）。</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 25.32%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 1pt;" width="25%">
+<p style="text-align: justify; text-justify: inter-ideograph;">blength [(String)]</p>
+</td>
+<td style="width: 74.68%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="74%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">返回</span> String &nbsp;<span style="font-family: '微软雅黑',sans-serif;">参数指定的字符串的长度（以字节为单位）。如果未给出</span></p>
+<p style="text-align: justify; text-justify: inter-ideograph;">String &nbsp;<span style="font-family: '微软雅黑',sans-serif;">参数，则返回整个记录的长度（</span>$0 &nbsp;<span style="font-family: '微软雅黑',sans-serif;">记录变量）。</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 25.32%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" width="25%">
+<p style="text-align: justify; text-justify: inter-ideograph;">substr( String, M, [ N ] )</p>
+</td>
+<td style="width: 74.68%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="74%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">返回具有</span> N <span style="font-family: '微软雅黑',sans-serif;">参数指定的字符数量子串。子串从</span> String <span style="font-family: '微软雅黑',sans-serif;">参数指定的字符串取得，其字符以</span> M <span style="font-family: '微软雅黑',sans-serif;">参数指定的位置开始。</span>M <span style="font-family: '微软雅黑',sans-serif;">参数指定为将</span></p>
+<p style="text-align: justify; text-justify: inter-ideograph;">String <span style="font-family: '微软雅黑',sans-serif;">参数中的第一个字符作为编号</span> 1<span style="font-family: '微软雅黑',sans-serif;">。如果未指定</span> N <span style="font-family: '微软雅黑',sans-serif;">参数，则子串的长度将是</span> M <span style="font-family: '微软雅黑',sans-serif;">参数指定的位置到</span> String <span style="font-family: '微软雅黑',sans-serif;">参数的末尾</span> <span style="font-family: '微软雅黑',sans-serif;">的长度。</span></p>
+</td>
+</tr>
+<tr style="height: 75.05pt;">
+<td style="width: 25.32%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; background: #eaf1dd; padding: 0cm 5.4pt; height: 75.05pt;" width="25%">
+<p style="text-align: justify; text-justify: inter-ideograph;">match( String, Ere )</p>
+</td>
+<td style="width: 74.68%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt; height: 75.05pt;" width="74%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">在</span> String &nbsp;<span style="font-family: '微软雅黑',sans-serif;">参数指定的字符串（</span>Ere &nbsp;<span style="font-family: '微软雅黑',sans-serif;">参数指定的扩展正则表达式出现在其中）中返回位置（字符形式），从</span> 1 &nbsp;<span style="font-family: '微软雅黑',sans-serif;">开始编号，或如果</span> Ere &nbsp;<span style="font-family: '微软雅黑',sans-serif;">参数不出现，则返回</span> 0<span style="font-family: '微软雅黑',sans-serif;">（零）。</span>RSTART &nbsp;<span style="font-family: '微软雅黑',sans-serif;">特殊变量设置为返回值。</span>RLENGTH<span style="font-family: '微软雅黑',sans-serif;">特殊变量设置为匹配的字符串的长度，或如果未找到任何匹配，则设置为</span> -1<span style="font-family: '微软雅黑',sans-serif;">（负一）。</span></p>
+</td>
+</tr>
+<tr style="height: 1.0pt;">
+<td style="width: 25.32%; border-right: 1pt solid #c2d69b; border-bottom: 1pt solid #c2d69b; border-left: 1pt solid #c2d69b; border-top: none; padding: 0cm 5.4pt; height: 1pt;" width="25%">
+<p style="text-align: justify; text-justify: inter-ideograph;">split( String, A, [Ere] )</p>
+</td>
+<td style="width: 74.68%; border-top: none; border-left: none; border-bottom: solid #C2D69B 1.0pt; border-right: solid #C2D69B 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 1.0pt;" width="74%">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">将</span> String <span style="font-family: '微软雅黑',sans-serif;">参数指定的参数分割为数组元素</span> A[1], A[2], . . ., A[n]<span style="font-family: '微软雅黑',sans-serif;">，并返回</span> n&nbsp;<span style="font-family: '微软雅黑',sans-serif;">变量的值。此分隔可以通过</span> Ere &nbsp;<span style="font-family: '微软雅黑',sans-serif;">参数指定的扩展正则表达式进行，或用当前字段分隔符（</span>FS <span style="font-family: '微软雅黑',sans-serif;">特殊变量）来进行（如果没有给出</span> Ere<span style="font-family: '微软雅黑',sans-serif;">参数）。除非上下文指明特定的元素还应具有一个数字值，否则</span> A &nbsp;<span style="font-family: '微软雅黑',sans-serif;">数</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>1.3 AWK<span style="font-family: '微软雅黑',sans-serif;">实践</span></h2>
+<h3>1.3.1 <span style="font-family: '微软雅黑',sans-serif;">函数的简单使用</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bcced3d3c8fcdfd0cfd28a">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '{gsub(/[0-9]+/,"");print}' /tmp/passwd </span>
+root:x:::root:/root:/bin/<span style="color: #000000;">bash
+bin:x:::bin:</span>/bin:/sbin/<span style="color: #000000;">nologin
+daemon:x:::daemon:</span>/sbin:/sbin/<span style="color: #000000;">nologin
+adm:x:::adm:</span>/var/adm:/sbin/<span style="color: #000000;">nologin
+lp:x:::lp:</span>/var/spool/lpd:/sbin/<span style="color: #000000;">nologin
+sync:x:::sync:</span>/sbin:/bin/<span style="color: #000000;">sync
+&middot;&middot;&middot;</span></pre>
+</div>
+<h3>1.3.2 <span style="font-family: '微软雅黑',sans-serif;">统计系统中的</span>secure<span style="font-family: '微软雅黑',sans-serif;">文件中谁在破解你的密码</span></h3>
+<p>1<span style="font-family: '微软雅黑',sans-serif;">、找到谁在破解密码</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="02706d6d7642616e716c34">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/Failed/{print $(NF-3)}' secure-20161219 |sort |uniq -c  |sort -nk1</span>
+      1 103.237.144.68
+      1 122.228.238.66
+      1 195.20.3.210
+      1 85.93.5.71<span style="color: #000000;">
+&middot;&middot;&middot;</span></pre>
+</div>
+<p>2<span style="font-family: '微软雅黑',sans-serif;">、过滤出包含</span>Failed password<span style="font-family: '微软雅黑',sans-serif;">的行</span> <span style="font-family: '微软雅黑',sans-serif;">并统计每个</span>ip<span style="font-family: '微软雅黑',sans-serif;">地址出现的次数</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="60120f0f1420030c130e56">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/Failed/{fa[$(NF-3)]++}END{for(pol in fa)print pol,fa[pol]}' secure-20161219 |sort -rnk2</span>
+218.65.30.25 68652
+218.65.30.53 34326
+218.87.109.154 21201
+112.85.42.103 18065
+112.85.42.99 17164
+218.87.109.151 17163</pre>
+</div>
+<h3>1.3.3 <span style="font-family: '微软雅黑',sans-serif;">统计</span>secure<span style="font-family: '微软雅黑',sans-serif;">文件中每个用户，被同一</span>ip<span style="font-family: '微软雅黑',sans-serif;">破解多少次</span></h3>
+<p>1<span style="font-family: '微软雅黑',sans-serif;">、进破解使用的用户及地址定向到文件中</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="52203d3d2612313e213c64">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/Failed/{print $(NF-5),$(NF-3)}' secure-20161219 >user-ip.log</span></pre>
+</div>
+<p>2<span style="font-family: '微软雅黑',sans-serif;">、对文件进行去重排序测</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d0a2bfbfa490b3bca3bee6">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '{h[$1" "$2]++}END{for(p in h) print p,h<div class="section-content"></p></div><p>}' user-ip.log |head </span>
+export 209.126.122.70 3<span style="color: #000000;">
+cvsadmin </span>209.126.122.70 3<span style="color: #000000;">
+user1 </span>209.126.122.70 1<span style="color: #000000;">
+dasusr1 </span>209.126.122.70 4
+1 118.100.251.170 1<span style="color: #000000;">
+git </span>209.126.122.70 5<span style="color: #000000;">
+boss </span>195.154.50.61 1<span style="color: #000000;">
+user1 </span>46.139.219.84 2<span style="color: #000000;">
+www </span>123.31.34.165 2<span style="color: #000000;">
+webmaster </span>195.154.50.61 1</pre>
+</div>
+<p>3<span style="font-family: '微软雅黑',sans-serif;">、操作日志文件，取出数据</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cab8a5a5be8aa9a6b9a4fc">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/Failed/{h[$(NF-5)" "$(NF-3)]++}END{for(p in h) print p,h<div class="section-content"></p></div><p>}'  secure-20161219 |head</span>
+export 209.126.122.70 3<span style="color: #000000;">
+cvsadmin </span>209.126.122.70 3<span style="color: #000000;">
+user1 </span>209.126.122.70 1<span style="color: #000000;">
+dasusr1 </span>209.126.122.70 4
+1 118.100.251.170 1</pre>
+</div>
+<h3>1.3.4 <span style="font-family: '微软雅黑',sans-serif;">统计</span>nginx access.log<span style="font-family: '微软雅黑',sans-serif;">文件中对</span>ip<span style="font-family: '微软雅黑',sans-serif;">地址去重并统计重复数</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7c0e1313083c1f100f124a">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '{h[$1]++}END{for(i in h) print i,h[i]}' access.log |sort -nrk2 |head </span>
+58.220.223.62 12049
+112.64.171.98 10856
+114.83.184.139 1982</pre>
+</div>
+<h3>1.3.5 <span style="font-family: '微软雅黑',sans-serif;">统计</span>access.log<span style="font-family: '微软雅黑',sans-serif;">文件中每个</span>ip<span style="font-family: '微软雅黑',sans-serif;">地址使用了多少流量</span></h3>
+<p>1<span style="font-family: '微软雅黑',sans-serif;">、流量总计</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b0c2dfdfc4f0d3dcc3de86">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '{sum=sum+$10}END{print sum}' access.log </span>
+2478496663<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f98b96968db99a958a97cf">[email&#160;protected]</a> awk]</span><span style="color: #008000;">#</span><span style="color: #008000;"> awk '{sum=sum+$10}END{print sum/1024^3}' access.log </span>
+2.30828</pre>
+</div>
+<p>2<span style="font-family: '微软雅黑',sans-serif;">、每个</span>ip<span style="font-family: '微软雅黑',sans-serif;">使用的流量</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0f7d60607b4f6c637c6139">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '{h[$1]=h[$1]+$10}END{for(p in h) print p,h<div class="section-content"></p></div><p>/1024^2 }' access.log |sort -rnk2|column -t |head </span>
+114.83.184.139   29.91
+117.136.66.10    21.3922
+116.216.30.47    20.4716
+223.104.5.197    20.4705
+116.216.0.60     18.2584</pre>
+</div>
+<h3>1.3.6 <span style="font-family: '微软雅黑',sans-serif;">统计</span>access.log<span style="font-family: '微软雅黑',sans-serif;">文件中每个</span>ip<span style="font-family: '微软雅黑',sans-serif;">地址使用了多少流量和每个</span>ip<span style="font-family: '微软雅黑',sans-serif;">地址的出现次数</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c2e3333281c3f302f326a">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '{count[$1]++;sum[$1]=sum[$1]+$10}END{for(pol in sum)print pol,count[pol],sum[pol]}' access.log |sort -nrk2 |column -t |head </span>
+58.220.223.62    12049  12603075
+112.64.171.98    10856  15255013
+114.83.184.139   1982   31362956
+117.136.66.10    1662   22431302
+115.29.245.13    1318   1161468
+223.104.5.197    961    21464856
+116.216.0.60     957    19145329</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">格式化命令</span></p>
+<div class="cnblogs_code">
+<pre>awk <span style="color: #800000;">'</span><span style="color: #800000;">{</span>
+  count[$1]++<span style="color: #000000;">
+  sum[$</span>1]+=$10<span style="color: #000000;">
+}END{
+  </span><span style="color: #0000ff;">for</span>(pol <span style="color: #0000ff;">in</span><span style="color: #000000;"> sum)
+  </span><span style="color: #0000ff;">print</span><span style="color: #000000;"> pol,count[pol],sum[pol]
+}</span><span style="color: #800000;">'</span><span style="color: #800000;"> access.log |sort -nrk3 |head</span></pre>
+</div>
+<p style="text-indent: 24.0pt;"><span style="font-family: '微软雅黑',sans-serif;">格式化后执行</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="03716c6c7743606f706d35">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '{</span>
+  count[$1]++<span style="color: #000000;">
+  sum[$</span>1]+=$10<span style="color: #000000;">
+}END{
+  </span><span style="color: #0000ff;">for</span>(pol <span style="color: #0000ff;">in</span><span style="color: #000000;"> sum)
+  </span><span style="color: #0000ff;">print</span><span style="color: #000000;"> pol,count[pol],sum[pol]
+}</span><span style="color: #800000;">'</span><span style="color: #800000;"> access.log |column -t|  sort -nrk3 |head </span>
+114.83.184.139   1982   31362956
+117.136.66.10    1662   22431302
+116.216.30.47    506    21466000
+223.104.5.197    961    21464856
+116.216.0.60     957    19145329
+114.141.164.180  695    17219553
+114.111.166.22   753    17121524
+223.104.5.202    871    16911512
+116.228.21.187   596    15969887
+112.64.171.98    10856  15255013</pre>
+</div>
+<h3>1.3.7 <span style="font-family: '微软雅黑',sans-serif;">按要求得到最后面的格式的结果</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">文件内容</span></p>
+<div class="cnblogs_code">
+<pre>cat >next2.txg<<<span style="color: #000000;"> EOF
+web01[</span>192.168.2.100<span style="color: #000000;">]
+httpd            ok
+tomcat            ok
+sendmail          ok
+web02[</span>192.168.2.101<span style="color: #000000;">]
+httpd            ok
+postfix           ok
+web03[</span>192.168.2.102<span style="color: #000000;">]
+mysqld           ok
+httpd            ok
+EOF</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">想要的结果</span>:</p>
+<div class="cnblogs_code">
+<pre>web01[192.168.2.100<span style="color: #000000;">] httpd            ok
+web01[</span>192.168.2.100<span style="color: #000000;">] tomcat           ok
+web01[</span>192.168.2.100<span style="color: #000000;">] sendmail          ok
+web02[</span>192.168.2.101<span style="color: #000000;">] httpd            ok
+web02[</span>192.168.2.101<span style="color: #000000;">] postfix           ok
+web03[</span>192.168.2.102<span style="color: #000000;">] mysqld           ok
+web03[</span>192.168.2.102] httpd            ok</pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">方法一</span>:</strong></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="25574a4a51654649564b13">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/^web/{tmp=$0} !/^web/{print tmp,$0}' next.txt </span>
+web01[192.168.2.100<span style="color: #000000;">] httpd            ok
+web01[</span>192.168.2.100<span style="color: #000000;">] tomcat           ok
+web01[</span>192.168.2.100<span style="color: #000000;">] sendmail         ok
+web02[</span>192.168.2.101<span style="color: #000000;">] httpd            ok
+web02[</span>192.168.2.101<span style="color: #000000;">] postfix          ok
+web03[</span>192.168.2.102<span style="color: #000000;">] mysqld           ok
+web03[</span>192.168.2.102] httpd            ok</pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">方法二：</span></strong></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="45372a2a31052629362b73">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/^web/{tmp=$0;next}{print tmp,$0}' next.txt </span>
+web01[192.168.2.100<span style="color: #000000;">] httpd            ok
+web01[</span>192.168.2.100<span style="color: #000000;">] tomcat           ok
+web01[</span>192.168.2.100<span style="color: #000000;">] sendmail         ok
+web02[</span>192.168.2.101<span style="color: #000000;">] httpd            ok
+web02[</span>192.168.2.101<span style="color: #000000;">] postfix          ok
+web03[</span>192.168.2.102<span style="color: #000000;">] mysqld           ok
+web03[</span>192.168.2.102] httpd            ok</pre>
+</div>
+<p><strong><span style="background: yellow;">next:</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new"; background: yellow;">停止处理当前行，从头开始处理下一行</span></strong></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="88fae7e7fcc8ebe4fbe6be">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> seq 5 |awk 'NR==3{next}{print NR,$0}'</span>
+1 1
+2 2
+4 4
+5 5<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4b3924243f0b282738257d">[email&#160;protected]</a> awk]</span><span style="color: #008000;">#</span><span style="color: #008000;"> seq 5 |awk 'NR==1{next}{print NR,$0}'</span>
+2 2
+3 3
+4 4
+5 5</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">跳过偶数行</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="64160b0b10240708170a52">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> seq 5 |awk 'NR%2==0{next}{print NR,$0}'</span>
+1 1
+3 3
+5 5</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">跳过奇数行</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d4a6bbbba094b7b8a7bae2">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> seq 5 |awk 'NR%2==1{next}{print NR,$0}'</span>
+2 2
+4 4</pre>
+</div>
+<h3>1.3.8 <span style="font-family: '微软雅黑',sans-serif;">统计每个学生的总成绩和平均成绩</span></h3>
+<p><strong><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">成绩文件</span></strong></p>
+<div class="cnblogs_code">
+<pre>cat > chengji.txt <<<span style="color: #000000;">EOF
+cc </span>90 98 98 96 96 92<span style="color: #000000;">
+ll </span>70 77 85 83 70 89<span style="color: #000000;">
+ss </span>85 92 78 94 88 91<span style="color: #000000;">
+nn </span>89 90 85 94 90 95<span style="color: #000000;">
+bb </span>84 88 80 92 84 82<span style="color: #000000;">
+gg </span>64 80 60 60 61 62<span style="color: #000000;">
+EOF</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">算出总和</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="691b06061d290a051a075f">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;">  awk '{sum=0;for(i=2;i<=NF;i++)sum+=$i;print $1,sum}' chengji.txt </span>
+cc 570<span style="color: #000000;">
+ll </span>474<span style="color: #000000;">
+ss </span>528<span style="color: #000000;">
+nn </span>543<span style="color: #000000;">
+bb </span>510<span style="color: #000000;">
+gg </span>387</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">算出平均数</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="24564b4b50644748574a12">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;">  awk '{sum=0;for(i=2;i<=NF;i++)sum+=$i;avg=sum/(NF-1);print $1,sum,avg}' chengji.txt </span>
+cc 570 95<span style="color: #000000;">
+ll </span>474 79<span style="color: #000000;">
+ss </span>528 88<span style="color: #000000;">
+nn </span>543 90.5<span style="color: #000000;">
+bb </span>510 85<span style="color: #000000;">
+gg </span>387 64.5</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">格式化命令</span></p>
+<div class="cnblogs_code">
+<pre>awk <span style="color: #800000;">'</span><span style="color: #800000;">{</span>
+    sum=<span style="color: #000000;">0
+    </span><span style="color: #0000ff;">for</span>(i=2;i<=NF;i++<span style="color: #000000;">)
+    sum</span>+=<span style="color: #000000;">$i
+    avg</span>=sum/(NF-1<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">print</span> $1<span style="color: #000000;">,sum,avg
+}</span><span style="color: #800000;">'</span><span style="color: #800000;"> chengji.txt</span></pre>
+</div>
+<h3>1.3.9 <span style="font-family: '微软雅黑',sans-serif;">打印下面语句中字符数小于</span>6<span style="font-family: '微软雅黑',sans-serif;">的单词</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">文件内容</span></p>
+<div class="cnblogs_code">
+<pre>echo <span style="color: #800000;">"</span><span style="color: #800000;">I am clsn ops,I very like linux hahahaha.</span><span style="color: #800000;">"</span> > text.txt</pre>
+</div>
+<p><span style="background: yellow;">shell</span><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">方法</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="04766b6b70446768776a32">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> for i in `sed  's#,# #g' text.txt`</span>
+><span style="color: #000000;"> do 
+</span>>    [ ${<span style="color: #008000;">#</span><span style="color: #008000;">i} -lt 6 ] && echo $i</span>
+><span style="color: #000000;"> done
+I
+am
+clsn
+ops
+I
+very
+like
+linux</span></pre>
+</div>
+<p><span style="background: yellow;">grep </span><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">方法</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7d0f1212093d1e110e134b">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> egrep -wo '[a-Z]{,6}' text.txt </span>
+<span style="color: #000000;">I
+am
+clsn
+ops
+I
+very
+like
+linux</span></pre>
+</div>
+<p><span style="background: yellow;">awk</span><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new";background: yellow;">方法</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f4869b9b80b49798879ac2">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> echo clsn |awk '{print length($1)}'</span>
+4<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dfadb0b0ab9fbcb3acb1e9">[email&#160;protected]</a> awk]</span><span style="color: #008000;">#</span><span style="color: #008000;"> awk -F "[, ]" '{for(i=1;i<=NF;i++) if (length($i)<6) print $i}'   text.txt </span>
+<span style="color: #000000;">I
+am
+clsn
+ops
+I
+very
+like
+linux</span></pre>
+</div>
+<h2>1.4 <span style="font-family: '微软雅黑',sans-serif;">附录</span></h2>
+<h3>1.4.1 sort<span style="font-family: '微软雅黑',sans-serif;">命令的使用</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8efce1e1faceede2fde0b8">[email&#160;protected]</a> awk]<span style="color: #008000;">#</span><span style="color: #008000;"> du -sh /* 2>/dev/null|sort -hr</span>
+1.1G    /<span style="color: #000000;">usr
+214M    </span>/<span style="color: #000000;">lib
+120M    </span>/<span style="color: #000000;">var
+109M    </span>/<span style="color: #000000;">root
+38M    </span>/<span style="color: #000000;">boot
+&middot;&middot;&middot;</span></pre>
+</div>
+<h3>1.4.2 <span style="font-family: '微软雅黑',sans-serif;">统计流量使用的命令</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="067469697246656a756830">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> yum install htop iotop iftop atop nethogs -y</span>
+<span style="color: #008000;">#</span><span style="color: #008000;"> iftop 总体流量使用情况</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> nethogs 显示进行级别的流量使用</span></pre>
+</div>
+<h3>1.4.3 <span style="font-family: '微软雅黑',sans-serif;">其他日志分析方法</span></h3>
+<div class="cnblogs_code">
+<pre>awstat，piwiki，elk</pre>
+</div>
+<h2>1.5 <span style="font-family: '微软雅黑',sans-serif;">参考文献</span></h2>
+<blockquote>
+<p>[1]&nbsp;<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.gnu.org/software/gawk/manual/gawk.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.gnu.org/software/gawk/manual/gawk.html'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.gnu.org/software/gawk/manual/gawk.html" >https://www.gnu.org/software/gawk/manual/gawk.html</a></p>
+<p>[2]&nbsp;<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.cnblogs.com/ginvip/p/6352157.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.cnblogs.com/ginvip/p/6352157.html'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=https://www.cnblogs.com/ginvip/p/6352157.html" >https://www.cnblogs.com/ginvip/p/6352157.html</a></p>
+</blockquote>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="130" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/" rel="category tag">Shell编程</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2018年2月5日<i class="i-time">12:43:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 5806 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx130.html" tppabs="http://clsn.io/clsn/lx130.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx130.html">AWK常用技巧 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/17.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx132.html" tppabs="http://clsn.io/clsn/lx132.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>OpenStack云计算之路-Mitaka 版本</span></a><a href="lx110.html" tppabs="http://clsn.io/clsn/lx110.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>ESXI 6.5 从载到安装</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx132.html" tppabs="http://clsn.io/clsn/lx132.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx110.html" tppabs="http://clsn.io/clsn/lx110.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx130.html#respond" tppabs="http://clsn.io/clsn/lx130.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='130' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx287.html" tppabs="http://clsn.io/clsn/lx287.html" rel="bookmark">MySQL 优化实施方案</a></li> <li><a href="lx854.html" tppabs="http://clsn.io/clsn/lx854.html" rel="bookmark">全站HTTPS简单实践</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx993.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx993.html'" tppabs="http://clsn.io/clsn/lx993.html" rel="bookmark">Linux系统优化</a></li> <li><a href="lx957.html" tppabs="http://clsn.io/clsn/lx957.html" rel="bookmark">交换机 路由器 OSI7层模型</a></li> <li><a href="lx370.html" tppabs="http://clsn.io/clsn/lx370.html" rel="bookmark">MySQL的存储引擎与日志说明</a></li> <li><a href="lx948.html" tppabs="http://clsn.io/clsn/lx948.html" rel="bookmark">ARP 地址分类 NAT技术</a></li> <li><a href="lx906.html" tppabs="http://clsn.io/clsn/lx906.html" rel="bookmark">sersync实现数据实时同步</a></li> <li><a href="lx989.html" tppabs="http://clsn.io/clsn/lx989.html" rel="bookmark">运行级别，压缩命令，单引号与双引号运用</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx399.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx399.html'" tppabs="http://clsn.io/clsn/lx399.html" rel="bookmark">MySQL 索引管理与执行计划</a></li> <li><a href="lx992.html" tppabs="http://clsn.io/clsn/lx992.html" rel="bookmark">linux中重要目录</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx130.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx130.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx130.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

@@ -1,0 +1,634 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>SSH服务详解 | 惨绿少年</title><meta name="description" content="v1漏洞： 密钥不更换" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx900.html" tppabs="http://clsn.io/clsn/lx900.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-900 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/" rel="category tag">玩转Linux</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>SSH服务详解 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-900" class="post-900 post type-post status-publish format-standard hentry category-linux category-play-linux category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">SSH服务详解</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2017年10月22日<i class="i-time">12:29:00</i></span><span class="comment"><a href="lx900.html#respond" tppabs="http://clsn.io/clsn/lx900.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="javascript:if(confirm('http://clsn.io/clsn/lx900.html?wpzmaction=add&postid=900  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx900.html?wpzmaction=add&postid=900'" tppabs="http://clsn.io/clsn/lx900.html?wpzmaction=add&postid=900" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h1>第1章 SSH<span style="font-family: '微软雅黑',sans-serif;">服务</span></h1>
+<h2>1.1 SSH<span style="font-family: '微软雅黑',sans-serif;">服务协议说明</span></h2>
+<p style="text-indent: 21.0pt;">SSH <span style="font-family: '微软雅黑',sans-serif;">是</span> <strong><span style="text-decoration: underline;">Secure Shell Protocol </span></strong><span style="font-family: '微软雅黑',sans-serif;">的简写，由</span> IETF <span style="font-family: '微软雅黑',sans-serif;">网络工作小组（</span>Network Working Group )<span style="font-family: '微软雅黑',sans-serif;">制定；在进行数据传输之前，</span>S<span style="text-decoration: underline;">SH</span><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">先对联机数据包通过加密技术进行<span style="background: yellow;">加密</span>处理，加密后在进行数据传输。确保了传递的数据安全。</span></span></p>
+<p style="text-indent: 21.0pt;">SSH<span style="font-family: '微软雅黑',sans-serif;">是专为远程登录会话和其他网络服务提供的安全性协议。利用</span> SSH <span style="font-family: '微软雅黑',sans-serif;">协议可以有效的防止远程管理过程中的信息泄露问题，在当前的生产环境运维工作中，绝大多数企业普遍采用</span>SSH<span style="font-family: '微软雅黑',sans-serif;">协议服务来代替传统的不安全的远程联机服务软件，如</span>telnet(23<span style="font-family: '微软雅黑',sans-serif;">端口，非加密的</span>)<span style="font-family: '微软雅黑',sans-serif;">等。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">在默认状态下，</span>SSH<span style="font-family: '微软雅黑',sans-serif;">服务主要提供两个服务功能：</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">n&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">一是提供类似</span>telnet<span style="font-family: '微软雅黑',sans-serif;">远程联机服务器的服务，即上面提到的</span>SSH<span style="font-family: '微软雅黑',sans-serif;">服务。</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">n&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">另一个是类似</span>FTP<span style="font-family: '微软雅黑',sans-serif;">服务的</span>sftp-server,<span style="font-family: '微软雅黑',sans-serif;">借助</span>SSH<span style="font-family: '微软雅黑',sans-serif;">协议来传输数据的</span>.<span style="font-family: '微软雅黑',sans-serif;">提供更安全的</span>SFTP<span style="font-family: '微软雅黑',sans-serif;">服务</span>(vsftp<span style="font-family: '微软雅黑',sans-serif;">，</span>proftp)<span style="font-family: '微软雅黑',sans-serif;">。</span></p>
+<h3>1.1.1 ssh<span style="font-family: '微软雅黑',sans-serif;">远程连接排错过程</span></h3>
+<p style="text-align: center;"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180207115703841-746875870.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="SSH服务详解" alt="" /></p>
+
+<h2>1.2 SSH<span style="font-family: '微软雅黑',sans-serif;">加密技术说明</span></h2>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">简单的说，</span>SSH<span style="font-family: '微软雅黑',sans-serif;">加密技术就是将人类可以看得懂的数据，通过一些特殊的程序算法，把这些数据变成杂乱的无意义的信怠，然后，通过网络进行传输，而当到了目的地后，在通过对应的解密算法，把传过来的加密的数据信怠解密成加密前的可读的正常数据。因此，当数据在互联网上传输时即使被有心的黑客监听窃取了，也很难获取到真正黑要的数据。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">当前，网络上的数据包加密技术一般是通过所谓的一对公钥与私钥（</span>PublickeyandPivatekey)<span style="font-family: '微软雅黑',sans-serif;">组合成的密钥对进行加密与解密操作。如下图，</span>A-Server<span style="font-family: '微软雅黑',sans-serif;">要给</span>B_Client<span style="font-family: '微软雅黑',sans-serif;">传数据，首先会通过本地的公钥加密后再到发到网络上传输。而加密的数据到达</span>B_Client<span style="font-family: '微软雅黑',sans-serif;">端后，再经由</span>B_Client<span style="font-family: '微软雅黑',sans-serif;">本地的私钥将加密的数据解密出来。由于在</span>intemet<span style="font-family: '微软雅黑',sans-serif;">上传输过程中的数据是加密过的，所以，传输的数据内容一般来说是比较安全的。</span></p>
+<p style="text-indent: 21pt; text-align: center;"><span style="font-family: '微软雅黑',sans-serif;"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171022203136474-1909748064.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="SSH服务详解" alt="" /></span></p>
+
+<p style="text-align: center;" align="center">&nbsp;</p>
+<p style="margin-top: 6.0pt; margin-right: 0cm; margin-bottom: 6.0pt; margin-left: 7.1pt; text-align: center; text-indent: 0cm;" align="center">图1-1 ssh<span style="font-family: '微软雅黑',sans-serif;">认证连接的过程</span></p>
+<h3>1.2.2 ssh<span style="font-family: '微软雅黑',sans-serif;">实现安全链接建立，利用要是和锁头</span></h3>
+<p style="margin-left: 21.0pt; text-indent: -21.0pt;">1.&nbsp;<span style="font-family: '微软雅黑',sans-serif;">钥匙</span>=<span style="font-family: '微软雅黑',sans-serif;">私钥</span>&nbsp;<span style="font-family: '微软雅黑',sans-serif;">锁头</span>=<span style="font-family: '微软雅黑',sans-serif;">公钥，私钥可以解密公钥</span></p>
+<p style="margin-left: 21.0pt; text-indent: -21.0pt;">2.&nbsp;<span style="font-family: '微软雅黑',sans-serif;">公钥可以再网络中传输，私钥再本地主机保存</span></p>
+<h3>1.2.3 ssh<span style="font-family: '微软雅黑',sans-serif;">加密算法</span></h3>
+<p>v1<span style="font-family: '微软雅黑',sans-serif;">漏洞：</span> <span style="font-family: '微软雅黑',sans-serif;">密钥不更换</span></p>
+<p>v2 <span style="font-family: '微软雅黑',sans-serif;">定期更换密钥</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">利用</span>Diffie-Hellman<span style="font-family: '微软雅黑',sans-serif;">机制定期更新密钥</span></p>
+<h2>1.3 ssh<span style="font-family: '微软雅黑',sans-serif;">知识要点</span><span style="font-family: '微软雅黑',sans-serif;">：</span></h2>
+<blockquote>
+<p>ssh是安全的<strong>加密</strong>协议，用于远程链接linux服务器</p>
+<p>ssh&nbsp;默认<strong>端口是</strong><strong>22</strong>，安全协议版本sshv2，出来2之外还有1（有漏洞）</p>
+<p>ssh服务端主要包括两个服务功能&nbsp;<strong>ssh</strong><strong>远程链接和sftp</strong><strong>服务</strong></p>
+<p>linux ssh&nbsp;客户端包括ssh&nbsp;远程链接命令，以及<strong>远程拷贝</strong><strong>scp</strong><strong>命令</strong>等</p>
+</blockquote>
+<h2>1.4 SSH<span style="font-family: '微软雅黑',sans-serif;">服务软件详细说明</span></h2>
+<h3>1.4.1 <span style="font-family: '微软雅黑',sans-serif;">什么是</span>ssh<span style="font-family: '微软雅黑',sans-serif;">服务</span></h3>
+<p style="text-indent: 21.0pt;">SSH<span style="font-family: '微软雅黑',sans-serif;">服务端是一个守护讲程</span> (daemon).<span style="font-family: '微软雅黑',sans-serif;">他在后台运行并响应来自客户端的连接请求。</span> SSH<span style="font-family: '微软雅黑',sans-serif;">服务端的讲程名为</span>sshd<span style="font-family: '微软雅黑',sans-serif;">，负责实时监听远程</span>SSH<span style="font-family: '微软雅黑',sans-serif;">客户端的远程连接请求，并进行处理，一般包括公共密钥认证、密钥交换、对称密钥加密和非安全连接等。这个</span>SSH<span style="font-family: '微软雅黑',sans-serif;">服务就是我们前面基础系统优化中保留开机自启动的服务之。</span></p>
+<p style="text-indent: 21.0pt;">ssh<span style="font-family: '微软雅黑',sans-serif;">客户端包含</span>ssh<span style="font-family: '微软雅黑',sans-serif;">以及像</span><span style="font-size: 10.5pt;">scp(</span><span style="font-size: 10.5pt; font-family: '微软雅黑',sans-serif;">远程拷贝）</span><span style="font-size: 10.5pt;"> slogin(</span><span style="font-size: 10.5pt; font-family: '微软雅黑',sans-serif;">远程登陆</span><span style="font-size: 10.5pt;">) sftp(</span><span style="font-size: 10.5pt; font-family: '微软雅黑',sans-serif;">安全</span><span style="font-size: 10.5pt;">FTP</span><span style="font-size: 10.5pt; font-family: '微软雅黑',sans-serif;">文件传输）</span><span style="font-family: '微软雅黑',sans-serif;">等应用程序。</span></p>
+<p style="text-indent: 21.0pt;">ssh<span style="font-family: '微软雅黑',sans-serif;">的工作机制大致是本地的</span>ssh<span style="font-family: '微软雅黑',sans-serif;">客户端先发送一个连接请求到远程的</span>ssh<span style="font-family: '微软雅黑',sans-serif;">服务端，服务端检查连接的客户端发送的数据包和</span>IP<span style="font-family: '微软雅黑',sans-serif;">地址，如果确认合法，就会发送密钥给</span> SSH<span style="font-family: '微软雅黑',sans-serif;">的客户端，此时，客户端本地再将密钥发回给服务端，自此连接建立。</span></p>
+<h3>1.4.2 ssh<span style="font-family: '微软雅黑',sans-serif;">软件安装</span></h3>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">客户端</span></strong></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6614090912260800155657">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rpm -qf `which ssh`</span>
+openssh-clients-5.3p1-122.el6.x86_64</pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">服务端软件</span></strong></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0e7c61617a4e60687d3e3f">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rpm -qf `which sshd`</span>
+openssh-server-5.3p1-122.el6.x86_64</pre>
+</div>
+<h3>1.4.3 openssh-clinets <span style="font-family: '微软雅黑',sans-serif;">软件的主要内容：</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="80f2efeff4c0eee6f3b0b1">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rpm -ql openssh-clients</span>
+/etc/ssh/ssh_config         <span style="color: #008000;">#</span><span style="color: #008000;">ssh客户端配置文件</span>
+/usr/bin/<span style="color: #000000;">.ssh.hmac
+</span>/usr/bin/scp                  <span style="color: #008000;">#</span><span style="color: #008000;">远程复制命令</span>
+/usr/bin/sftp                 <span style="color: #008000;">#</span><span style="color: #008000;">远程文件传输服务</span>
+/usr/bin/slogin              <span style="color: #008000;">#</span><span style="color: #008000;">远程登陆命令</span>
+/usr/bin/ssh                  <span style="color: #008000;">#</span><span style="color: #008000;">ssh远程登陆管理主机</span>
+/usr/bin/ssh-<span style="color: #000000;">add
+</span>/usr/bin/ssh-<span style="color: #000000;">agent
+</span>/usr/bin/ssh-copy-id        <span style="color: #008000;">#</span><span style="color: #008000;">ssh服务分发公钥命令</span>
+/usr/bin/ssh-keyscan</pre>
+</div>
+<h3>1.4.4 openssh-server <span style="font-family: '微软雅黑',sans-serif;">软件的主要内容</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8ffde0e0fbcfe1e9fcbfbe">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rpm -ql openssh-server</span>
+/etc/rc.d/init.d/sshd      <span style="color: #008000;">#</span><span style="color: #008000;">ssh服务启动脚本</span>
+/etc/ssh/sshd_config       <span style="color: #008000;">#</span><span style="color: #008000;">ssh服务配置文件</span>
+/etc/sysconfig/sshd        <span style="color: #008000;">#</span><span style="color: #008000;">ssh创建密钥有关</span>
+/usr/sbin/.sshd.hmac       <span style="color: #008000;">#</span><span style="color: #008000;">ssh加密算法有关文件</span>
+/usr/sbin/sshd             <span style="color: #008000;">#</span><span style="color: #008000;">ssh服务进程启动命令</span></pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">注意：</span></strong><span style="font-family: '微软雅黑',sans-serif;">使用</span>sshd<span style="font-family: '微软雅黑',sans-serif;">采用绝对路径进行启动</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e795888893a793829493">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> sshd</span>
+sshd re-<span style="color: #0000ff;">exec</span> requires execution with an absolute path</pre>
+</div>
+<h2>1.5 ssh<span style="font-family: '微软雅黑',sans-serif;">服务配置文件说明：</span></h2>
+<p>01. <span style="font-family: '微软雅黑',sans-serif;">配置文件中所有注释信息，表示默认参数配置</span></p>
+<p>02. <span style="font-family: '微软雅黑',sans-serif;">配置文件中</span>#<span style="font-family: '微软雅黑',sans-serif;">空格</span> <span style="font-family: '微软雅黑',sans-serif;">后面内容表示说明信息</span></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; #<span style="font-family: '微软雅黑',sans-serif;">参数</span> <span style="font-family: '微软雅黑',sans-serif;">表示配置参数信息</span></p>
+<p>03. <span style="font-family: '微软雅黑',sans-serif;">配置文件参数信息修改后，一旦变为注释，即还原为默认配置</span></p>
+<h3>1.5.1 ssh<span style="font-family: '微软雅黑',sans-serif;">服务的配置文件路径</span></h3>
+<div class="cnblogs_code">
+<pre>vim  /etc/ssh/sshd_config</pre>
+</div>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">修改</span>SSH<span style="font-family: '微软雅黑',sans-serif;">服务的运行参数，是通过修改配置文件</span><strong><span style="font-size: 10.5pt;">/etc/ssh/sshd_config</span></strong><span style="font-family: '微软雅黑',sans-serif;">实现的。</span></p>
+<p style="margin-left: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">一般来说</span>SSH<span style="font-family: '微软雅黑',sans-serif;">服务使用默认的配置已经能够很好的工作了，如果对安全要求不高，仅仅提供</span>SSH<span style="font-family: '微软雅黑',sans-serif;">服务的情况，可以不需要修改任何配置。</span></p>
+<h3>1.5.2 <span style="font-family: '微软雅黑',sans-serif;">配置文件中常用配置说明</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7e0c11110a3e0a1b0d0a">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> vim /etc/ssh/sshd_config</span><span style="color: #008000;">
+#</span><span style="color: #008000;">       $OpenBSD: sshd_config,v 1.80 2008/07/02 02:24:18 djm Exp $</span>
+ 
+<span style="color: #008000;">#</span><span style="color: #008000;"> This is the sshd server system-wide configuration file.  See</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> sshd_config(5) for more information.</span>
+ 
+<span style="color: #008000;">#</span><span style="color: #008000;"> This sshd was compiled with PATH=/usr/local/bin:/bin:/usr/bin</span>
+ 
+<span style="color: #008000;">#</span><span style="color: #008000;"> The strategy used for options in the default sshd_config shipped with</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> OpenSSH is to specify options with their default value where</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> possible, but leave them commented.  Uncommented options change a</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> default value.</span>
+ 
+<span style="color: #008000;">#</span><span style="color: #008000;"> OpenSSH is to specify options with their default value where</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> possible, but leave them commented.  Uncommented options change a</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> default value.</span>
+<span style="color: #000000;"> 
+Port </span>25113                   <span style="color: #008000;">#</span><span style="color: #008000;">端口</span>
+ListenAddress 10.0.0.41   <span style="color: #008000;">#</span><span style="color: #008000;">监听地址（本地网卡地址），指定本地网卡那个网卡提供服务</span>
+PermitRootLogin no         <span style="color: #008000;">#</span><span style="color: #008000;">是否允许root用户登陆</span><span style="color: #008000;">
+#</span><span style="color: #008000;">PermitEmptyPasswords no  #禁止空密码登陆</span><span style="color: #008000;">
+#</span><span style="color: #008000;">UseDNS no                   #不使用DNS</span>
+GSSAPIAuthentication no    <span style="color: #008000;">#</span><span style="color: #008000;">API认证</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 连接慢的解决</span><span style="color: #008000;">
+#</span><span style="color: #008000;">AddressFamily any         #指定监听ipv4地址，或是ipv6地址，或者所有都监听</span></pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">配置文件内容说明：</span></strong></p>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2; margin-left: 28.3pt; margin-right: 83.75pt;">
+<p style="margin: 1pt 0cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;"><span style="font-family: '微软雅黑',sans-serif;">井号</span>(<strong>#</strong>)<span style="font-family: '微软雅黑',sans-serif;">注释的<span style="color: #0070c0;">参数</span>信息为默认配置</span></p>
+<p style="margin: 1pt 0cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;"><span style="font-family: '微软雅黑',sans-serif;">井号</span>(<strong>#</strong>)<span style="font-family: '微软雅黑',sans-serif;">后面<span style="color: #00b050;">有空格</span>的为描述信息</span></p>
+<p style="margin: 1pt 0cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;"><span style="font-family: '微软雅黑',sans-serif;">井号</span>(<strong>#</strong>)<span style="font-family: '微软雅黑',sans-serif;">后面<span style="background: yellow;">没有空格</span>的为参数信息</span></p>
+<p style="margin: 1pt 0cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;"><strong><span style="font-family: '微软雅黑',sans-serif;">另外：</span></strong><span style="font-family: '微软雅黑',sans-serif;">配置文件参数信息修改后，一旦变为注释，即还原为默认配置</span></p>
+</div>
+<h3>1.5.3 <span style="font-family: '微软雅黑',sans-serif;">配置文件语法检查方法</span></h3>
+<p style="margin-left: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">使用</span>sshd -t <span style="font-family: '微软雅黑',sans-serif;">命令</span> <span style="font-family: '微软雅黑',sans-serif;">对配置文件的语法进行检查</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">正确&darr;
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a0d2cfcfd4e0c2c1c3cbd5d0">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> sshd -t /etc/ssh/sshd</span>
+Extra argument /etc/ssh/<span style="color: #000000;">sshd.
+语法格式有错误  &darr;
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="483a27273c083c2d3b3c">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> sshd -t /etc/ssh/sshd_config</span>
+/etc/ssh/sshd_config: line 50<span style="color: #000000;">: Bad configuration option: uthorizedKeysFile
+</span>/etc/ssh/sshd_config: terminating, 1 bad configuration options</pre>
+</div>
+<h3>1.5.4 ListenAddress <span style="font-family: '微软雅黑',sans-serif;">监听地址的说明</span></h3>
+<p style="text-align: center;"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180207115833623-1635791272.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="SSH服务详解" alt="" /></p>
+
+<p style="text-align: center;" align="center"><span style="text-indent: 0cm;">图1-2 ssh</span><span style="font-family: '微软雅黑',sans-serif;">服务监听参数说明</span></p>
+<p style="margin-left: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">如图所示，</span>sshd_config<span style="font-family: '微软雅黑',sans-serif;">配置文件中实际监听本地的网卡，并非网络地址</span></p>
+<p style="margin-left: 21.0pt; text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">监听地址只能监听本地网卡上配置的地址，<strong>监听的网卡可以对请求做出相应</strong>，为未监听的网卡不响应请求。</span></p>
+<h3>1.5.5 SSH<span style="font-family: '微软雅黑',sans-serif;">配置文件相关参数详细说明</span></h3>
+<table style="border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 169.85pt; border-width: 1pt; border-style: solid; border-color: windowtext; background: #a6a6a6; padding: 0cm 5.4pt;" width="226">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif;">命令参数</span></strong></p>
+</td>
+<td style="width: 352.95pt; border-top: 1pt solid windowtext; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: none; background: #a6a6a6; padding: 0cm 5.4pt;" width="471">
+<p style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-family: '微软雅黑',sans-serif;">参数说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 169.85pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="226">
+<p style="text-align: justify; text-justify: inter-ideograph;">Port</p>
+</td>
+<td style="width: 352.95pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="471">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">指定</span>sshd<span style="font-family: '微软雅黑',sans-serif;">进程监听的端口号，默认为</span>22.<span style="font-family: '微软雅黑',sans-serif;">可以使用多条指令监听多个端口</span>.</p>
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">默认将在本机的所有网络接□上监听，但是可以通过</span>ListenAddress<span style="font-family: '微软雅黑',sans-serif;">指走只在某个特定的接口上监听</span>.</p>
+</td>
+</tr>
+<tr>
+<td style="width: 169.85pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="226">
+<p style="text-align: justify; text-justify: inter-ideograph;">PermitEmptyPasswords</p>
+</td>
+<td style="width: 352.95pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="471">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">是否允许密码为空的用户远程登录</span>.<span style="font-family: '微软雅黑',sans-serif;">默认为</span>"no"</p>
+</td>
+</tr>
+<tr>
+<td style="width: 169.85pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="226">
+<p style="text-align: justify; text-justify: inter-ideograph;">PermitRootLogin</p>
+</td>
+<td style="width: 352.95pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="471">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">是否允许</span>root<span style="font-family: '微软雅黑',sans-serif;">登录</span>.<span style="font-family: '微软雅黑',sans-serif;">可用值如下：</span>"yes"(<span style="font-family: '微软雅黑',sans-serif;">默认）表示允许</span>."no"<span style="font-family: '微软雅黑',sans-serif;">表示禁止</span>.</p>
+<p style="text-align: justify; text-justify: inter-ideograph;">"without-password"<span style="font-family: '微软雅黑',sans-serif;">表示禁止使用密码认证登录</span>."forced-commands-only"<span style="font-family: '微软雅黑',sans-serif;">表示只有在指走了</span>command<span style="font-family: '微软雅黑',sans-serif;">选项的情况下才允许使用公钥认证登录</span>.<span style="font-family: '微软雅黑',sans-serif;">同时其它认证方法全部被禁止</span>.<span style="font-family: '微软雅黑',sans-serif;">这个值常用于做远程备份之类的事情</span>.</p>
+<blockquote>
+<p>1.多开一个窗口</p>
+<p>2.临时多部署一条连接方式</p>
+<p>3.给普通用户sudo权限</p>
+</blockquote>
+</td>
+</tr>
+<tr>
+<td style="width: 169.85pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="226">
+<p style="text-align: justify; text-justify: inter-ideograph;">UseDNS</p>
+</td>
+<td style="width: 352.95pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="471">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">指定定</span>sshd<span style="font-family: '微软雅黑',sans-serif;">是否应该对远程主机名进行反向解折，以检查此主机名是否与其</span>IP<span style="font-family: '微软雅黑',sans-serif;">地址真实对应</span>.<span style="font-family: '微软雅黑',sans-serif;">默认值为</span>"yes&rdquo;.</p>
+</td>
+</tr>
+<tr>
+<td style="width: 169.85pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="226">
+<p style="text-align: justify; text-justify: inter-ideograph;">ListenAddress</p>
+</td>
+<td style="width: 352.95pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="471">
+<p style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif;">指定监听并提供服务相应的网卡地址信息</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>1.5.6 <span style="font-family: '微软雅黑',sans-serif;">快速修改配置参数</span></h3>
+<div class="cnblogs_code">
+<pre>sed -i <span style="color: #800000;">'</span><span style="color: #800000;">13 iPort 52113\nPermitRootLogin no\nPermitEmptyPasswords no\nUseDNS no\nGSSAPIAuthentication no</span><span style="color: #800000;">'</span>  /etc/ssh/sshd_config</pre>
+</div>
+<h2>1.6 ssh<span style="font-family: '微软雅黑',sans-serif;">服务认证类型</span></h2>
+<p style="margin-left: 24.0pt;">01. <span style="font-family: '微软雅黑',sans-serif;">基于口令认证方式</span></p>
+<p style="margin-left: 24.0pt;">02. <span style="font-family: '微软雅黑',sans-serif;">基于密钥认证方式</span></p>
+<h3>1.6.1 <span style="font-family: '微软雅黑',sans-serif;">基于密码的认证类型</span></h3>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">基于口令的安全验证的方式就是大家现在一直在用的，只要知道服务器的</span>SSH<span style="font-family: '微软雅黑',sans-serif;">连接帐号和口令</span>(<span style="font-family: '微软雅黑',sans-serif;">当然也要知道对应服务器的</span> IP<span style="font-family: '微软雅黑',sans-serif;">及开放的</span> SSH<span style="font-family: '微软雅黑',sans-serif;">端口，默认为</span>22 ),<span style="font-family: '微软雅黑',sans-serif;">就可以通过</span> ssh<span style="font-family: '微软雅黑',sans-serif;">客户端登录到这台远程主机。此时，联机过程中所有传输的数据都是加密的。</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">演示了</span> SecureCR<span style="font-family: '微软雅黑',sans-serif;">及</span>ssh<span style="font-family: '微软雅黑',sans-serif;">客户端连接，口令验证的测试。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="80f2efeff4c0f4e5f3f4">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ssh 10.0.0.250</span>
+The authenticity of host <span style="color: #800000;">'</span><span style="color: #800000;">10.0.0.250 (10.0.0.250)</span><span style="color: #800000;">'</span> can<span style="color: #800000;">'</span><span style="color: #800000;">t be established.</span>
+RSA key fingerprint <span style="color: #0000ff;">is</span> d3:41:bb:0d:43:88:da:a3:2c:e8:36:91:11<span style="color: #000000;">:c9:e4:9c.
+Are you sure you want to </span><span style="color: #0000ff;">continue</span> connecting (yes/<span style="color: #000000;">no)? yes
+Warning: Permanently added </span><span style="color: #800000;">'</span><span style="color: #800000;">10.0.0.250</span><span style="color: #800000;">'</span><span style="color: #000000;"> (RSA) to the list of known hosts.
+<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9deff2f2e9dd">[email&#160;protected]</a></span>10.0.0.250<span style="color: #800000;">'</span><span style="color: #800000;">s password:    #需要输入密码</span>
+Last login: Mon Oct 16 21:13:58 2017 <span style="color: #0000ff;">from</span> 10.0.0.1<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="27554848536753425453">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span></pre>
+</div>
+<h3>1.6.2 <span style="font-family: '微软雅黑',sans-serif;">基于密钥的安全认证方法</span></h3>
+<p style="margin-left: 21.0pt; text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">基于密钥的安全验证方式是指，需要依靠密钥，也就是必须事先建立一对密钥对，然后把公用密钥</span>(<span style="font-family: '微软雅黑',sans-serif;">锁头</span>)<span style="font-family: '微软雅黑',sans-serif;">（</span>Public key)<span style="font-family: '微软雅黑',sans-serif;">放在需要访问的目标服务器上，另外，还需要把私有密钥（钥匙）（</span>Private key<span style="font-family: '微软雅黑',sans-serif;">）放到</span>SSH<span style="font-family: '微软雅黑',sans-serif;">的客户端或对应的窖户端服务器上。</span></p>
+<blockquote>
+<p style="margin-left: 21pt; text-indent: 21pt; text-align: center;"><span style="text-indent: 0px; background-color: initial;">私钥不能在网络中传输---私钥可以解密公钥</span></p>
+<p style="margin-left: 21pt; text-indent: 21pt; text-align: center;"><span style="text-indent: 0px; background-color: initial;">公钥可以再网路中传输---公钥不能解密私钥</span>&nbsp;</p>
+</blockquote>
+<p style="margin-left: 21.0pt; text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">此时，如果要想连接到这个带有公用密钥的</span>SSH<span style="font-family: '微软雅黑',sans-serif;">服务器，客户端</span>SSH<span style="font-family: '微软雅黑',sans-serif;">软件或者客户端服务器就会向</span>SSH<span style="font-family: '微软雅黑',sans-serif;">服务器发出请求，请求用联机的用户密钥进行安全验证。</span>SSH<span style="font-family: '微软雅黑',sans-serif;">服务器收到请求之后，会先在该</span>SSH<span style="font-family: '微软雅黑',sans-serif;">服务器上连接的用户的家目录下寻找事先放上去的对应用户的公用密钥，然后把它和连接的</span>SSH<span style="font-family: '微软雅黑',sans-serif;">客户端发送过来的公用密钥进行比较。如果两个密钥一致，</span>SSH<span style="font-family: '微软雅黑',sans-serif;">服务器就用公用密钥加密</span>"<span style="font-family: '微软雅黑',sans-serif;">质询</span>"<span style="font-family: '微软雅黑',sans-serif;">（</span>challenge)<span style="font-family: '微软雅黑',sans-serif;">并把它发送给</span>SSH<span style="font-family: '微软雅黑',sans-serif;">客户端。</span></p>
+<h2>1.7 <span style="font-family: '微软雅黑',sans-serif;">基于秘钥登录配置</span></h2>
+<p style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180208084052545-103769867.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="SSH服务详解" alt="" /></p>
+
+<h3>1.7.1 <span style="font-family: '微软雅黑',sans-serif;">环境准备</span></h3>
+<div align="center">
+<table style="border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 84.8pt; border-width: 1pt; border-style: solid; border-color: windowtext; background: #bfbfbf; padding: 0cm 5.4pt;" width="113">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif;">作用</span></strong></p>
+</td>
+<td style="width: 78pt; border-top: 1pt solid windowtext; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: none; background: #bfbfbf; padding: 0cm 5.4pt;" width="104">
+<p style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif;">主机名</span></strong></p>
+</td>
+<td style="width: 106.3pt; border-top: 1pt solid windowtext; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: none; background: #bfbfbf; padding: 0cm 5.4pt;" width="142">
+<p style="text-align: center;" align="center"><strong>ip</strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 84.8pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="113">
+<p style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif;">管理服务器</span></p>
+</td>
+<td style="width: 78.0pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="104">
+<p style="text-align: center;" align="center">m01</p>
+</td>
+<td style="width: 106.3pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="142">
+<p style="text-align: center;" align="center">10.0.0.61</p>
+</td>
+</tr>
+<tr>
+<td style="width: 84.8pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="113">
+<p style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif;">备份服务器</span></p>
+</td>
+<td style="width: 78.0pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="104">
+<p style="text-align: center;" align="center">backup</p>
+</td>
+<td style="width: 106.3pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="142">
+<p style="text-align: center;" align="center">10.0.0.41</p>
+</td>
+</tr>
+<tr>
+<td style="width: 84.8pt; border-right: 1pt solid windowtext; border-bottom: 1pt solid windowtext; border-left: 1pt solid windowtext; border-top: none; padding: 0cm 5.4pt;" width="113">
+<p style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif;">存储服务器</span></p>
+</td>
+<td style="width: 78.0pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="104">
+<p style="text-align: center;" align="center">nfs01</p>
+</td>
+<td style="width: 106.3pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="142">
+<p style="text-align: center;" align="center">10.0.0.31</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3>1.7.2 <span style="font-family: '微软雅黑',sans-serif;">第一个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">在备份服务器上创建密钥对</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="91e3fefee5d1f3f0f2fae4e1">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ssh-keygen -t rsa</span>
+Generating public/<span style="color: #000000;">private rsa key pair.
+Enter file </span><span style="color: #0000ff;">in</span> which to save the key (/root/.ssh/id_rsa):   <span style="color: #008000;">#</span><span style="color: #008000;">指定密钥对的保存路径</span>
+Enter passphrase (empty <span style="color: #0000ff;">for</span> no passphrase):        <span style="color: #008000;">#</span><span style="color: #008000;">为密钥对创建密码</span>
+Enter same passphrase again:                          <span style="color: #008000;">#</span><span style="color: #008000;">确认为密钥对创建的密码</span>
+Your identification has been saved <span style="color: #0000ff;">in</span> /root/.ssh/<span style="color: #000000;">id_rsa.
+Your public key has been saved </span><span style="color: #0000ff;">in</span> /root/.ssh/<span style="color: #000000;">id_rsa.pub.
+The key fingerprint </span><span style="color: #0000ff;">is</span><span style="color: #000000;">:
+</span>72:48:65:1d:25:69:e1:4c:ae:2b:6f:a5:aa:70:96<span style="color: #000000;">:1e <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7604191902361417151d0306">[email&#160;protected]</a>
+The key</span><span style="color: #800000;">'</span><span style="color: #800000;">s randomart image is:</span>
++--[ RSA 2048]----+     <span style="color: #008000;">#</span><span style="color: #008000;">2048表示加密的位数为2048位 </span>
+|        o.==.      |
+|       o =+.       |
+|      .  .+        |
+|     . . .         |
+|      o S           |
+|     . o ..        |
+|  . E . .o         |
+|   = . oo           |
+|    o..o.           |
++-----------------+</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">参数说明：</span></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -t <span style="font-family: '微软雅黑',sans-serif;">指定创建密钥对的类型，可以创建的类型如下&darr;</span></p>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2; margin-left: 42.0pt; margin-right: 62.5pt;">
+<p style="margin-right: 0cm; text-indent: 21pt; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">Specifies the type of key to create.&nbsp; The possible values are <span style="font-family: '微软雅黑',sans-serif;">&ldquo;</span><strong>rsa1</strong>&rdquo; for protocol version 1 and &ldquo;<strong>dsa</strong>&rdquo;, &ldquo;<strong>ecdsa</strong>&rdquo; or &ldquo;<strong>rsa</strong>&rdquo; for protocol version 2.</p>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">查看创建出来的密钥对：</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b5c7dadac1f5d7d4d6dec0c5">[email&#160;protected]</a> ssh]<span style="color: #008000;">#</span><span style="color: #008000;"> ll ~/.ssh/</span>
+total 12
+-rw------- 1 root root 1675 Oct 18 11:07 id_rsa         <span style="color: #008000;">#</span><span style="color: #008000;">私钥文件</span>
+-rw-r--r-- 1 root root  393 Oct 18 11:07 id_rsa.pub    <span style="color: #008000;">#</span><span style="color: #008000;">公钥文件</span>
+-rw-r--r-- 1 root root  784 Oct 11 16:27 known_hosts</pre>
+</div>
+<h3>1.7.3 <span style="font-family: '微软雅黑',sans-serif;">第二个里程：将公钥分发给存储服务器</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0a7865657e4a686b69617f7a">[email&#160;protected]</a> ssh]<span style="color: #008000;">#</span><span style="color: #008000;"> ssh-copy-id -i ~/.ssh/id_rsa.pub 172.16.1.31 #用户使用当前用户</span>
+<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="87f5e8e8f3c7b6b0b5a9b6b1a9b6a9b4b6">[email&#160;protected]</a><span style="color: #800000;">'</span><span style="color: #800000;">s password:   #注意：首次分发密钥需要输入对端服务器的用户密码</span>
+Now <span style="color: #0000ff;">try</span> logging into the machine, with <span style="color: #800000;">"</span><span style="color: #800000;">ssh '172.16.1.31'</span><span style="color: #800000;">"</span>, <span style="color: #0000ff;">and</span> check <span style="color: #0000ff;">in</span><span style="color: #000000;">:
+  .ssh</span>/authorized_keys    <span style="color: #008000;">#</span><span style="color: #008000;">公钥分发到对端后进行改名</span>
+<span style="color: #000000;">
+to make sure we haven</span><span style="color: #800000;">'</span><span style="color: #800000;">t added extra keys that you weren</span><span style="color: #800000;">'</span>t expecting.</pre>
+</div>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2; margin-left: 42.5pt; margin-right: 69.6pt;">
+<p style="margin: 1pt 0cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">Formatting page, please wait...</p>
+<p style="margin: 1pt 0cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">SSH-COPY-ID(1)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SSH-COPY-ID(1)</p>
+<p style="margin: 1pt 0cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">NAME</p>
+<p style="margin: 1pt 0cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ssh-copy-id&nbsp; -&nbsp; install&nbsp; your&nbsp; public&nbsp; key in a remote machine's autho-</p>
+<p style="margin: 1pt 0cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rized_keys</p>
+<p style="margin: 1pt 0cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">SYNOPSIS</p>
+<p style="margin: 1pt 0cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color: red;">ssh-copy-id [-i [identity_file]] [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a9dcdaccdbe9">[email&#160;protected]</a>]machine</span></p>
+</div>
+<h3>1.7.4 <span style="font-family: '微软雅黑',sans-serif;">第三个里程碑：进行登录测试</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2a5845455e6a484b49415f5a">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ssh nfs01</span>
+Last login: Wed Oct 18 10:13:17 2017 <span style="color: #0000ff;">from</span> 10.0.0.1<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="53213c3c27133d35206362">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span> </pre>
+</div>
+<h2>1.8 telnet<span style="font-family: '微软雅黑',sans-serif;">服务简介</span></h2>
+<h3>1.8.1 <span style="font-family: '微软雅黑',sans-serif;">部署</span>telnet<span style="font-family: '微软雅黑',sans-serif;">服务</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">第一个里程碑：安装</span>telnet<span style="font-family: '微软雅黑',sans-serif;">服务软件</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bac8d5d5cefacedfc9ce">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> yum install telnet telnet-server -y</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第二个里程碑：设置开机自启动</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="16647979625662736562">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> vim /etc/xinetd.d/telnet</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">修改</span>xinetd<span style="font-family: '微软雅黑',sans-serif;">下的配置文件，从而管理</span>telnet<span style="font-family: '微软雅黑',sans-serif;">服务</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2b5944445f6b5f4e585f">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> vim /etc/xinetd.d/telnet </span><span style="color: #008000;">
+#</span><span style="color: #008000;"> default: on</span><span style="color: #008000;">
+#</span><span style="color: #008000;"> description: The telnet server serves telnet sessions; it uses \</span><span style="color: #008000;">
+#</span><span style="color: #008000;">       unencrypted username/password pairs for authentication.</span>
+<span style="color: #000000;">service telnet
+{
+        flags           </span>=<span style="color: #000000;"> REUSE
+        socket_type     </span>=<span style="color: #000000;"> stream
+        wait            </span>=<span style="color: #000000;"> no
+        user            </span>=<span style="color: #000000;"> root
+        server          </span>= /usr/sbin/<span style="color: #0000ff;">in</span><span style="color: #000000;">.telnetd
+        log_on_failure  </span>+=<span style="color: #000000;"> USERID
+        disable         </span>=<span style="color: #000000;"> no
+}</span></pre>
+</div>
+<p><span style="font-size: 10.5pt; font-family: '微软雅黑',sans-serif;">第三个里程碑：</span> <span style="font-size: 10.5pt; font-family: '微软雅黑',sans-serif;">启动</span><span style="font-size: 10.5pt;">xinetd </span><span style="font-size: 10.5pt; font-family: '微软雅黑',sans-serif;">服务，让</span><span style="font-size: 10.5pt;">telnet</span><span style="font-size: 10.5pt; font-family: '微软雅黑',sans-serif;">能够开机自启动</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5a2835352e1a2e3f292e">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> /etc/init.d/xinetd start</span>
+Starting xinetd:                                           [  OK  ]</pre>
+</div>
+<h3>1.8.2 <span style="font-family: '微软雅黑',sans-serif;">客户端测试</span></h3>
+<p style="margin-left: 15.75pt;"><span style="font-family: '微软雅黑',sans-serif;">说明：</span></p>
+<p style="margin-left: 15.75pt;">&nbsp;&nbsp;&nbsp; telnet<span style="font-family: '微软雅黑',sans-serif;">服务默认不支持</span>root<span style="font-family: '微软雅黑',sans-serif;">用户直接登陆。</span></p>
+<div class="cnblogs_code">
+<pre>[C:\]$ telnet 10.0.0.250<span style="color: #000000;">
+Connecting to </span>10.0.0.250:23<span style="color: #000000;">...
+Connection established.
+To escape to local shell, press </span><span style="color: #800000;">'</span><span style="color: #800000;">Ctrl+Alt+]</span><span style="color: #800000;">'</span><span style="color: #000000;">.
+CentOS release </span>6.9<span style="color: #000000;"> (Final)
+Kernel </span>2.6.32-696<span style="color: #000000;">.el6.x86_64 on an x86_64
+test login: oldboy
+Password: 
+Last login: Wed Oct </span>18 09:41:19 <span style="color: #0000ff;">from</span> 10.0.0.1<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0b64676f6964724b7f6e787f">[email&#160;protected]</a> </span>~]$</pre>
+</div>
+<h3>1.8.3 ssh<span style="font-family: '微软雅黑',sans-serif;">与</span>telnet<span style="font-family: '微软雅黑',sans-serif;">区别</span><span style="font-family: '微软雅黑',sans-serif;">（对比示意图）</span></h3>
+<p>01<span style="font-family: '微软雅黑',sans-serif;">．</span>ssh<span style="font-family: '微软雅黑',sans-serif;">是加密的服务协议，</span>telnet<span style="font-family: '微软雅黑',sans-serif;">服务是非加密的</span></p>
+<p>02.ssh<span style="font-family: '微软雅黑',sans-serif;">服务默认支持</span>root<span style="font-family: '微软雅黑',sans-serif;">用户登陆，</span>telnet<span style="font-family: '微软雅黑',sans-serif;">用户默认不支持</span>root<span style="font-family: '微软雅黑',sans-serif;">用户登陆</span></p>
+<p style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20180208084557560-495058018.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="SSH服务详解" alt="" /></p>
+
+<h2>1.9 <span style="font-family: '微软雅黑',sans-serif;">进行免密码</span>scp<span style="font-family: '微软雅黑',sans-serif;">传输测试</span></h2>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d2a0bdbda692b0b3b1b9a7a2">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> scp -rp  /etc/hosts nfs01:/tmp/</span>
+hosts                                         100%  357     0.4KB/s   00:00  </pre>
+</div>
+<h3>1.9.1 scp<span style="font-family: '微软雅黑',sans-serif;">的基本语法使用：</span></h3>
+<div class="cnblogs_code">
+<pre>scp -<span style="color: #000000;"> secure copy (remote file copy program)
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 每次都是全量拷贝，增量拷贝rsync</span></pre>
+</div>
+<p><strong><em><span style="font-family: '微软雅黑',sans-serif;">推：</span>PUSH</em></strong></p>
+<div class="cnblogs_code">
+<pre>scp -P22 -rp /tmp/clsn <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d0b3bca3be90e1e0fee0fee0fee1e4e3">[email&#160;protected]</a>:/tmp</pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">参数说明：</span></strong></p>
+<p style="margin-left: 28.3pt;"><- -P<span style="font-family: '微软雅黑',sans-serif;">（大写，注意和</span>ssh<span style="font-family: '微软雅黑',sans-serif;">命令的不同）接端口，默认</span>22<span style="font-family: '微软雅黑',sans-serif;">端口时可以省略</span>-P22;</p>
+<p style="margin-left: 28.3pt;"><- -r<span style="font-family: '微软雅黑',sans-serif;">递归，表示拷贝目录</span>;</p>
+<p style="margin-left: 28.3pt;"><- -p<span style="font-family: '微软雅黑',sans-serif;">表示在拷贝前后保持文件或目录属性</span>;</p>
+<p style="margin-left: 28.3pt;"><- -l limit <span style="font-family: '微软雅黑',sans-serif;">限制速度。</span></p>
+<p style="margin-left: 28.3pt;"><- /tmp/clsn<span style="font-family: '微软雅黑',sans-serif;">为本地的目录。&ldquo;</span>@<span style="font-family: '微软雅黑',sans-serif;">&rdquo;前为用户名，&ldquo;</span>@<span style="font-family: '微软雅黑',sans-serif;">&rdquo;后为要连接的服务器的</span>IP<span style="font-family: '微软雅黑',sans-serif;">。</span>IP<span style="font-family: '微软雅黑',sans-serif;">后的</span>:/tmp<span style="font-family: '微软雅黑',sans-serif;">目录，为远端的目标目录。</span></p>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">说明：</span></strong></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">以上命令作用是把本地</span>/tmp/clsn<span style="font-family: '微软雅黑',sans-serif;">拷贝到远端服务器</span>10.0.0.143<span style="font-family: '微软雅黑',sans-serif;">的</span>/tmp<span style="font-family: '微软雅黑',sans-serif;">目录</span>;</p>
+<p><strong><em><span style="font-family: '微软雅黑',sans-serif;">拉：</span>PULL</em></strong></p>
+<div class="cnblogs_code">
+<pre>scp -P22 -rp <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a8dac7c7dce8999886988698869f">[email&#160;protected]</a>:/tmp/clsn /opt/</pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">说明：</span></strong></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">还可以把远端目录抓到本地</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">结论：</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">scp为远程拷贝文件或目录的命令，更多用法，请man scp；
+拷贝权限为连接的用户对应的权限。</span></pre>
+</div>
+<h2>1.10 <span style="font-family: '微软雅黑',sans-serif;">使用</span>sftp<span style="font-family: '微软雅黑',sans-serif;">进行基于密钥的文件传输</span></h2>
+<h3>1.10.1 sftp<span style="font-family: '微软雅黑',sans-serif;">简介</span></h3>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2; margin-left: 42.5pt; margin-right: 34.2pt;">
+<p style="margin: 1pt 0cm; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">sftp<span style="font-family: '微软雅黑',sans-serif;">是</span>Secure File Transfer Protocol<span style="font-family: '微软雅黑',sans-serif;">的缩写，安全文件传送协议。可以为传输文件提供一种安全的网络的加密方法。</span>sftp <span style="font-family: '微软雅黑',sans-serif;">与</span> ftp <span style="font-family: '微软雅黑',sans-serif;">有着几乎一样的语法和功能。</span><strong>SFTP </strong><strong><span style="font-family: '微软雅黑',sans-serif;">为</span> SSH</strong><strong><span style="font-family: '微软雅黑',sans-serif;">的其中一部分</span></strong>.</p>
+</div>
+<h3>1.10.2 sftp<span style="font-family: '微软雅黑',sans-serif;">命令说明</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a9dbc6c6dde9c49998">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> sftp -oPort=22  172.16.1.31</span>
+Connecting to 172.16.1.31<span style="color: #000000;">...
+sftp</span>></pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">说明：</span></strong></p>
+<p><strong>&nbsp;&nbsp; </strong>-o&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;<span style="font-family: '微软雅黑',sans-serif;">连接的时候指定选项</span></p>
+<p style="text-indent: 21.0pt;">Port=22 &nbsp;<span style="font-family: '微软雅黑',sans-serif;">端口指定为</span>22<span style="font-family: '微软雅黑',sans-serif;">、</span></p>
+<h3>1.10.3 sftp<span style="font-family: '微软雅黑',sans-serif;">使用参数说明</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">操作远程服务器</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">ls    显示远端主机的列表
+cd   切换远程的工作目录
+pwd  显示远程的工作目录</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">操作本地服务器</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">lls   显示本地主机的列表
+lcd   切换本地的工作目录
+lpwd  查看本地目录信息</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">上传下载文件参数</span></p>
+<div class="cnblogs_code">
+<pre>get   ---<span style="color: #000000;"> 表示从远程服务器下载数据（单个文件）
+mget  </span>---<span style="color: #000000;"> 表示下载多个文件
+put   </span>---<span style="color: #000000;"> 表示从本地服务器上传数据（单个文件）
+mput  </span>--- 表示上传多个文件</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">查看帮助的方式：</span></p>
+<div class="cnblogs_code">
+<pre>sftp> help       显示帮助信息</pre>
+</div>
+<h2>1.11 ssh<span style="font-family: '微软雅黑',sans-serif;">相关重点知识总结</span></h2>
+<blockquote>
+<p>* ssh协议：sshd---远程连接（sshd),sftp<br />* 为加密的远程连接协议，相关软件有openssh.openssh---https。<br />* 默认端口22<br />* 协议版本1X和2.x,2.x更安全。了解SSH协议原理（ssh连接过程X<br />* 服务端ssh远程连接服务，sftp服务。sshd守护进程，开机要自启动。<br />* ssh客户端包含ssh,scp,sftp命令。<br />* ssh安全验证方式：口令和密钥，这两种都是基于口令的，SSH密钥登录的原理。<br />* ssh服务安全优化，修改默认端口22,禁止root远程连接，禁止dns,SSH只监听内网IP<br />* ssh密钥对，公钥(publickey)在服务器端，比喻就是锁头，私钥（privatekey)在客户端，比喻就是钥匙。</p>
+</blockquote>
+<h1>第2章 <span style="font-family: '微软雅黑',sans-serif;">重点知识补充</span></h1>
+<h2>2.1 <span style="font-family: '微软雅黑',sans-serif;">一个服务始终无法启动</span></h2>
+<p>　　01.<span style="font-family: '微软雅黑',sans-serif;">服务的查日志</span>/<span style="font-family: '微软雅黑',sans-serif;">系统日志</span></p>
+<p>　　02.<span style="font-family: '微软雅黑',sans-serif;">检查服务端口有没有冲突</span></p>
+<h2>2.2 <span style="font-family: '微软雅黑',sans-serif;">给你一个端口如何命令行查出对应的服务是什么</span>?</h2>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">测试服务端口有没有开启</span></strong></p>
+<div class="cnblogs_code">
+<pre>ss -lntup|grep 22<span style="color: #000000;">
+netstat </span>-lntup|grep -w <span style="color: #800000;">"</span><span style="color: #800000;">22</span><span style="color: #800000;">"</span><span style="color: #000000;">
+lsof </span>-i:22<span style="color: #000000;">
+grep  </span><span style="color: #800000;">"</span><span style="color: #800000;">\b22/\b</span><span style="color: #800000;">"</span> /etc/<span style="color: #000000;">services
+nmap </span>-p 22 172.16.1.41<span style="color: #000000;">
+nc </span>172.16.1.41 22<span style="color: #000000;">
+telnet </span>172.16.1.41 22</pre>
+</div>
+<h3>2.2.1 <span style="font-family: '微软雅黑',sans-serif;">根据进程名查看对应的端口是什么？</span></h3>
+<div class="cnblogs_code">
+<pre>netstat/ss &ndash;lntup|grep 进程或服务名字</pre>
+</div>
+<h2>2.3 ssh<span style="font-family: '微软雅黑',sans-serif;">入侵案例说明</span></h2>
+<p><span style="font-family: '微软雅黑',sans-serif;">被入侵实例http://phenixikki.blog.51cto.com/7572938/1546669</span></p>
+<p>IP<span style="font-family: '微软雅黑',sans-serif;">何防止</span>SSH<span style="font-family: '微软雅黑',sans-serif;">登录入侵小结：</span></p>
+<blockquote>
+<p>1、用密钥登录，不用密码登陆</p>
+<p>2、牤牛阵法：解决SSH安全问题</p>
+<p>　　a.防火墙封闭SSH,指定源IP限制(局域网、信任公网)</p>
+<p>　　b.开启&nbsp;SSH&nbsp;只监听本地内网&nbsp;IP ( ListenAddress 172.16.1.61 )</p>
+<p>3、尽量不给服务器外网ip</p>
+<p>4、最小化(软件安装-授权)</p>
+<p>5、给系统的重要文件或命令做一个指纹</p>
+<p>6、给他锁上&nbsp;chattr&nbsp;+i&nbsp;+a</p>
+</blockquote>
+<h1>第3章 <span style="font-family: '微软雅黑',sans-serif;">扩展问题</span></h1>
+<h2>3.1 <span style="font-family: '微软雅黑',sans-serif;">服务端端口号变化了，如何基于秘钥连接</span></h2>
+<h3>3.1.1 <span style="font-family: '微软雅黑',sans-serif;">环境准备</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">实验环境：</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="76041919023602130502">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat /etc/redhat-release</span>
+CentOS release 6.9 (Final)</pre>
+</div>
+<p style="margin-left: 21.0pt;"><span style="font-family: '微软雅黑',sans-serif;">将一台服务器的</span>ssh<span style="font-family: '微软雅黑',sans-serif;">服务端口修改为</span>63389</p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1a6875756e5a6e7f696e">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> netstat -lntup|grep sshd</span>
+tcp        0      0 0.0.0.0:63389  0.0.0.0:*         LISTEN      5083/<span style="color: #000000;">sshd           
+tcp        0      0 :::</span>63389         :::*              LISTEN      5083/sshd    </pre>
+</div>
+<h3>3.1.2 <span style="font-family: '微软雅黑',sans-serif;">通过另外一台服务器创建并分发密钥</span></h3>
+<p><span style="font-family: '微软雅黑',sans-serif;">第一个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">现创建密钥使用</span> ssh-keygen</p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7b0914140f3b191a18100e0b">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ssh-keygen -t rsa</span>
+Generating public/<span style="color: #000000;">private rsa key pair.
+Enter file </span><span style="color: #0000ff;">in</span> which to save the key (/root/.ssh/id_rsa):   <span style="color: #008000;">#</span><span style="color: #008000;">指定密钥对的保存路径</span>
+Enter passphrase (empty <span style="color: #0000ff;">for</span> no passphrase):        <span style="color: #008000;">#</span><span style="color: #008000;">为密钥对创建密码</span>
+Enter same passphrase again:                          <span style="color: #008000;">#</span><span style="color: #008000;">确认为密钥对创建的密码</span>
+Your identification has been saved <span style="color: #0000ff;">in</span> /root/.ssh/<span style="color: #000000;">id_rsa.
+Your public key has been saved </span><span style="color: #0000ff;">in</span> /root/.ssh/<span style="color: #000000;">id_rsa.pub.
+The key fingerprint </span><span style="color: #0000ff;">is</span><span style="color: #000000;">:
+</span>72:48:65:1d:25:69:e1:4c:ae:2b:6f:a5:aa:70:96<span style="color: #000000;">:1e <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ddafb2b2a99dbfbcbeb6a8ad">[email&#160;protected]</a>
+The key</span><span style="color: #800000;">'</span><span style="color: #800000;">s randomart image is:</span>
++--[ RSA 2048]----+     <span style="color: #008000;">#</span><span style="color: #008000;">2048表示加密的位数为2048位 </span>
+|        o.==.      |
+|       o =+.       |
+|      .  .+        |
+|     . . .         |
+|      o S          |
+|     . o ..        |
+|  . E . .o         |
+|   = . oo          |
+|    o..o.          |
++-----------------+</pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第二个里程碑：分发密钥，注意</span>ssh<span style="font-family: '微软雅黑',sans-serif;">的端口</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="285a47475c684a494b435d58">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ssh-copy-id  -i ~/.ssh/id_rsa.pub "-p63389 172.16.1.250"</span>
+The authenticity of host <span style="color: #800000;">'</span><span style="color: #800000;">[172.16.1.250]:63389 ([172.16.1.250]:63389)</span><span style="color: #800000;">'</span> can<span style="color: #800000;">'</span><span style="color: #800000;">t be established.</span>
+RSA key fingerprint <span style="color: #0000ff;">is</span> d3:41:bb:0d:43:88:da:a3:2c:e8:36:91:11<span style="color: #000000;">:c9:e4:9c.
+Are you sure you want to </span><span style="color: #0000ff;">continue</span> connecting (yes/<span style="color: #000000;">no)? yes
+Warning: Permanently added </span><span style="color: #800000;">'</span><span style="color: #800000;">[172.16.1.250]:63389</span><span style="color: #800000;">'</span><span style="color: #000000;"> (RSA) to the list of known hosts.
+<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fb8994948fbb">[email&#160;protected]</a></span>172.16.1.250<span style="color: #800000;">'</span><span style="color: #800000;">s password: </span>
+Now <span style="color: #0000ff;">try</span> logging into the machine, with <span style="color: #800000;">"</span><span style="color: #800000;">ssh '-p63389 172.16.1.250'</span><span style="color: #800000;">"</span>, <span style="color: #0000ff;">and</span> check <span style="color: #0000ff;">in</span><span style="color: #000000;">:
+  .ssh</span>/authorized_keys   <span style="color: #008000;">#</span><span style="color: #008000;">分发到对端服务器后进行改名</span>
+<span style="color: #000000;">
+to make sure we haven</span><span style="color: #800000;">'</span><span style="color: #800000;">t added extra keys that you weren</span><span style="color: #800000;">'</span>t expecting.</pre>
+</div>
+<p><strong><span style="font-family: '微软雅黑',sans-serif;">说明：</span></strong></p>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">通过</span> man <span style="font-family: '微软雅黑',sans-serif;">手册找到密钥分发的命令格式。</span></p>
+<p>&nbsp;&nbsp; -i <span style="font-family: '微软雅黑',sans-serif;">参数指定</span> <span style="font-family: '微软雅黑',sans-serif;">公钥文件的存放位置</span></p>
+<p style="text-indent: 21.0pt;">[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6c191f092c">[email&#160;protected]</a>]<span style="font-family: '微软雅黑',sans-serif;">表示使用的用户，默认使用当前登陆的用户</span></p>
+<p style="text-indent: 21.0pt;">-p <span style="font-family: '微软雅黑',sans-serif;">指定端口，主要要在双引号之间（通过&nbsp;<span class="cnblogs_code">cat `which ssh-copy-id`</span>&nbsp;</span><span style="font-size: 10.5pt;">&nbsp;</span><span style="font-size: 10.5pt; font-family: '微软雅黑',sans-serif;">命令</span><span style="font-family: '微软雅黑',sans-serif;">脚本内容得知）</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0f7d60607b4f6d6e6c647a7f">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> man ssh-copy-id </span>
+<span style="color: #000000;">Formatting page, please wait...
+SSH</span>-COPY-ID(1)                                                  SSH-COPY-ID(1<span style="color: #000000;">)
+NAME
+       ssh</span>-copy-id  -  install  your  public  key <span style="color: #0000ff;">in</span> a remote machine<span style="color: #800000;">'</span><span style="color: #800000;">s autho-</span>
+<span style="color: #000000;">       rized_keys
+SYNOPSIS</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">第三个里程碑：</span> <span style="font-family: '微软雅黑',sans-serif;">测试密钥登陆</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="790b16160d391b181a120c09">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ssh 172.16.1.250 -p 63389</span>
+Last login: Wed Oct 18 15:42:05 2017 <span style="color: #0000ff;">from</span> 10.0.0.41<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0c7e6363784c78697f78">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span></pre>
+</div>
+<h2>3.2 <span style="font-family: '微软雅黑',sans-serif;">如何实现自动创建秘钥对，同时分发公钥（编写脚本实现）</span></h2>
+<p><span style="font-family: '微软雅黑',sans-serif;">脚本内容：</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5725383823173a6766">[email&#160;protected]</a> ~]# vim /server/scripts/piliang_fenfa.<span style="color: #0000ff;">sh</span><span style="color: #000000;"> 
+#</span>!/bin/<span style="color: #000000;">bash
+#</span><span style="color: #0000ff;">make</span><span style="color: #000000;"> key
+\</span><span style="color: #0000ff;">rm</span> -f /root/.<span style="color: #0000ff;">ssh</span>/<span style="color: #000000;">id_dsa
+</span><span style="color: #0000ff;">ssh-keygen</span> -t dsa -f /root/.<span style="color: #0000ff;">ssh</span>/id_dsa -P <span style="color: #800000;">""</span> -<span style="color: #000000;">q
+#fengfagongyao
+</span><span style="color: #0000ff;">for</span> ip <span style="color: #0000ff;">in</span> <span style="color: #800080;">8</span> <span style="color: #800080;">31</span> <span style="color: #800080;">41</span>
+<span style="color: #0000ff;">do</span>
+<span style="color: #0000ff;">echo</span> ====fenfa key to host <span style="color: #800080;">172.16</span>.<span style="color: #800080;">1</span>.$ip====<span style="color: #000000;">
+sshpass </span>-p123456 <span style="color: #0000ff;">ssh</span>-copy-<span style="color: #0000ff;">id</span> -i /root/.<span style="color: #0000ff;">ssh</span>/id_dsa.pub <span style="color: #800000;">"</span><span style="color: #800000;">-o StrictHostKeyChecking=no <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fa8895958ebacbcdc8d4cbccd4cbd4">[email&#160;protected]</a>$ip</span><span style="color: #800000;">"</span>
+<span style="color: #0000ff;">echo</span> ===============fenfa end==============
+<span style="color: #0000ff;">echo</span> <span style="color: #800000;">""</span>
+<span style="color: #0000ff;">done</span></pre>
+</div>
+<p><span style="font-family: '微软雅黑',sans-serif;">脚本说明：</span></p>
+<div class="cnblogs_code">
+<pre>   <span style="color: #0000ff;">ssh-keygen</span> -t dsa -f /root/.<span style="color: #0000ff;">ssh</span>/id_dsa -P <span style="color: #800000;">""</span> -q</pre>
+</div>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">创建密钥，</span>-f<span style="font-family: '微软雅黑',sans-serif;">指定存放位置，</span>-P <span style="font-family: '微软雅黑',sans-serif;">密钥加密的密码</span>&nbsp; -q <span style="font-family: '微软雅黑',sans-serif;">减少信息输出</span></p>
+<div class="cnblogs_code">
+<pre>sshpass -p123456 <span style="color: #0000ff;">ssh</span>-copy-<span style="color: #0000ff;">id</span> -i /root/.<span style="color: #0000ff;">ssh</span>/id_dsa.pub <span style="color: #800000;">"</span><span style="color: #800000;">-o StrictHostKeyChecking=no <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a9dbc6c6dde9989e9b87989f879887">[email&#160;protected]</a>$ip</span><span style="color: #800000;">"</span></pre>
+</div>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">这里需要安装一个软件</span><span style="font-size: 10.5pt;"> yum install sshpass -y </span><span style="font-family: '微软雅黑',sans-serif;">用来提供中户密码</span></p>
+<p style="text-indent: 21.0pt;">ssh-copy-id <span style="font-family: '微软雅黑',sans-serif;">命令来分发密钥</span> -i <span style="font-family: '微软雅黑',sans-serif;">指定密钥本地存放的路径</span></p>
+<p style="text-indent: 21.0pt;">-o StrictHostKeyChecking=no <span style="font-family: '微软雅黑',sans-serif;">在登陆其他服务器是不选择</span>yes/no</p>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">for</span> ip <span style="color: #0000ff;">in</span> <span style="color: #800080;">8</span> <span style="color: #800080;">31</span> <span style="color: #800080;">41</span></pre>
+</div>
+<p>&nbsp;&nbsp; <span style="font-family: '微软雅黑',sans-serif;">这里使用</span>for<span style="font-family: '微软雅黑',sans-serif;">循环来对</span>ip<span style="font-family: '微软雅黑',sans-serif;">地址进行变化。</span></p>
+<h2>系统负载过高，无法连接ssh怎么办?</h2>
+<p>&nbsp;　　可以通过修改 进程优先级的方法来是sshd服务能够更多的使用资源，保证sshd的连接</p>
+<h3>修改进程优先级的方法：</h3>
+<p> 　　优先系数由系统内核决定，不可更改<br />　　nice值可以手动更改，范围是<span style="background-color: #00ffff;"> -20~19</span><br />　　优先级的值越低，优先级越高；优先级的值越高，优先级越低。<br />　　所以想调整成最高优先级的话，就将nice值设为-20；想调整成最低优先级的话，将nice值设为19。</p>
+<p> 1、任务未运行前进行调整</p>
+<div class="cnblogs_code">
+<pre>shell> nice -n-20 sh clsn.sh   <span style="color: #008000;">#</span><span style="color: #008000;">以最高优先级运行clsn.sh这个脚本</span>
+shell> nice -n19 sh clsn.sh    <span style="color: #008000;">#</span><span style="color: #008000;">以最低优先级运行clsn.sh这个脚本</span></pre>
+</div>
+<p>2、任务已经开始运行的情况下调整<br />①方法一</p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;"> top                        #查看系统当前进程运行情况</span>
+> r                          <span style="color: #008000;">#</span><span style="color: #008000;">键入小r</span>
+> PID to renice:             <span style="color: #008000;">#</span><span style="color: #008000;">提示输入运行的进程的pid</span>
+> Renice PID 23302 to value: <span style="color: #008000;">#</span><span style="color: #008000;">把这个进程的nice值设置为多少,根据需要进行调整</span></pre>
+</div>
+<p>② 方法二</p>
+<div class="cnblogs_code">
+<pre>shell> renice -20 PID    <span style="color: #008000;">#</span><span style="color: #008000;">将进程的nice值改为-20</span>
+shell> renice 19 PID     <span style="color: #008000;">#</span><span style="color: #008000;">将进程的nice值改为19</span></pre>
+</div>
+<p>&nbsp;查看进程优先级</p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7e0c11110a3e1d120d10">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ps -lef |grep sshd </span>
+5 S root      1050     1  0  61 <span style="background-color: #ffff00;">-19</span> - 16560 poll_s Feb04 ?        00:00:00 /usr/sbin/<span style="color: #000000;">sshd
+</span>4 S root     21018  1050  0  80   0 - 25003 poll_s 17:21 ?        00:00:00 sshd: <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8bf9e4e4ffcbfbfff8">[email&#160;protected]</a>/<span style="color: #000000;">0 
+0 S root     </span>22852 21022  0  80   0 - 25829 pipe_w 20:47 pts/0    00:00:00<span style="color: #000000;"> grep sshd
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="20524f4f5460434c534e">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span> </pre>
+</div>
+<p>&nbsp;</p>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="900" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/" rel="category tag">玩转Linux</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2017年10月22日<i class="i-time">12:29:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 8378 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx900.html" tppabs="http://clsn.io/clsn/lx900.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx900.html">SSH服务详解 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/20.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx906.html" tppabs="http://clsn.io/clsn/lx906.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>sersync实现数据实时同步</span></a><a href="lx899.html" tppabs="http://clsn.io/clsn/lx899.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>NTP时间服务器 搭建</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx906.html" tppabs="http://clsn.io/clsn/lx906.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx899.html" tppabs="http://clsn.io/clsn/lx899.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx900.html#respond" tppabs="http://clsn.io/clsn/lx900.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='900' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx899.html" tppabs="http://clsn.io/clsn/lx899.html" rel="bookmark">NTP时间服务器 搭建</a></li> <li><a href="lx27.html" tppabs="http://clsn.io/clsn/lx27.html" rel="bookmark">Nginx软件优化</a></li> <li><a href="lx254.html" tppabs="http://clsn.io/clsn/lx254.html" rel="bookmark">MongoDB 分片集群技术</a></li> <li><a href="lx28.html" tppabs="http://clsn.io/clsn/lx28.html" rel="bookmark">分布式文件系统&#8212;GlusterFS</a></li> <li><a href="lx755.html" tppabs="http://clsn.io/clsn/lx755.html" rel="bookmark">FTP&#038;samba 服务简单部署</a></li> <li><a href="lx1105.html" tppabs="http://clsn.io/clsn/lx1105.html" rel="bookmark">OpenSUSE 服务器系统部署</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx889.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx889.html'" tppabs="http://clsn.io/clsn/lx889.html" rel="bookmark">定制rpm包-Yum环境搭建</a></li> <li><a href="lx999.html" tppabs="http://clsn.io/clsn/lx999.html" rel="bookmark">Linux系统安装_Centos6.9</a></li> <li><a href="lx130.html" tppabs="http://clsn.io/clsn/lx130.html" rel="bookmark">AWK常用技巧</a></li> <li><a href="lx886.html" tppabs="http://clsn.io/clsn/lx886.html" rel="bookmark">用iptables 做NAT代理上网</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx900.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx900.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx900.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

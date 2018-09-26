@@ -1,0 +1,1017 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>企业架构规划及服务器优化参数 | 惨绿少年</title><meta name="description" content="第1章 企业架构规划" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx966.html" tppabs="http://clsn.io/clsn/lx966.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-966 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/" rel="category tag">安全</a><i class="be be-arrowright"></i><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/" rel="category tag">玩转Linux</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>企业架构规划及服务器优化参数 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-966" class="post-966 post type-post status-publish format-standard hentry category-linux category-acl category-play-linux category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">企业架构规划及服务器优化参数</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2017年10月1日<i class="i-time">07:06:00</i></span><span class="comment"><a href="lx966.html#respond" tppabs="http://clsn.io/clsn/lx966.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="lx966.html" tppabs="http://clsn.io/clsn/lx966.html?wpzmaction=add&postid=966" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h1><a name="_Toc495427828"></a><!--[if !supportLists]--><span lang="EN-US">第1章 企业</span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; mso-effects-shadow-color: black; mso-effects-shadow-alpha: 100.0%; mso-effects-shadow-dpiradius: 4.0pt; mso-effects-shadow-dpidistance: 4.0pt; mso-effects-shadow-angledirection: 5400000; mso-effects-shadow-align: center; mso-effects-shadow-pctsx: 0%; mso-effects-shadow-pctsy: 0%; mso-effects-shadow-anglekx: 0; mso-effects-shadow-angleky: 0;">架构规划</span></h1>
+<h2 style="margin-top: 8.15pt; margin-right: 0cm; margin-bottom: 8.15pt; margin-left: 25.1pt; mso-list: l1 level2 lfo1;"><a name="_Toc495427829"></a><!--[if !supportLists]--><span lang="EN-US">1.1 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">架构图</span></h2>
+<p style="text-align: center;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171026145815336-87584272.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="企业架构规划及服务器优化参数" alt="" /></span></p>
+
+<h3><a name="_Toc495427830"></a><!--[if !supportLists]--><span lang="EN-US">1.1.1 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">用户访问网站组成</span></h3>
+<table class="MsoTable15Grid5DarkAccent3" style="border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 127.35pt; border-top-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-top-color: white; border-bottom-color: white; border-left-color: white; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 5;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">类型</span></strong></p>
+</td>
+<td style="width: 177.2pt; border-top-width: 1pt; border-top-color: white; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="236">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">作用</span></strong></p>
+</td>
+<td style="width: 218.25pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: white; border-right-color: white; border-bottom-color: white; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="291">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">实现方式</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: 微软雅黑, sans-serif;">顾客</span><span lang="EN-US">-</span></strong><strong><span style="font-family: 微软雅黑, sans-serif;">用户</span></strong></p>
+</td>
+<td style="width: 177.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="236">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">访问网站的人员</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">@</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="font-family: 微软雅黑, sans-serif;">保安</span><span lang="EN-US">-</span></strong><strong><span style="font-family: 微软雅黑, sans-serif;">防火墙</span></strong></p>
+</td>
+<td style="width: 177.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="236">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">安全策略控制；正确的流量通过，攻击者的流量组织</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">硬件</span><span lang="EN-US">- </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">华为</span> <span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">思科</span><span lang="EN-US"> juniper</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">厂商</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">软件</span><span lang="EN-US">-iptables</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: 微软雅黑, sans-serif;">迎宾</span><span lang="EN-US">-</span></strong><strong><span style="font-family: 微软雅黑, sans-serif;">负载均衡服务器</span></strong></p>
+</td>
+<td style="width: 177.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="236">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">提供访问者请求调度作用</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">nginx</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">反向代理负载均衡服务器</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">LVS haproxy</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="font-family: 微软雅黑, sans-serif;">服务员</span><span lang="EN-US">-web</span></strong><strong><span style="font-family: 微软雅黑, sans-serif;">服务器</span></strong></p>
+</td>
+<td style="width: 177.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="236">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">根据</span><span lang="EN-US">http</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">原理，回复给访问者相应的页面信息</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><strong><span lang="EN-US">nginx</span></strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">网站服务技术</span><span lang="EN-US">&nbsp; apache </span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><strong><span lang="EN-US">tomcat</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: 微软雅黑, sans-serif;">厨师</span><span lang="EN-US">-</span></strong><strong><span style="font-family: 微软雅黑, sans-serif;">数据库服务器</span></strong></p>
+</td>
+<td style="width: 177.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="236">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">返回给</span><span lang="EN-US">web</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">服务器，相应用户数据的信息（字符串信息）</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">mysql oracle</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="font-family: 微软雅黑, sans-serif;">厨师</span><span lang="EN-US">&shy;-</span></strong><strong><span style="font-family: 微软雅黑, sans-serif;">存储服务器</span></strong></p>
+</td>
+<td style="width: 177.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="236">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">返回给</span><span lang="EN-US">web</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">服务器，相应用户的视频、图片、附件等数据信息</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">NFS</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">存储服务器</span><span lang="EN-US">&nbsp; </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">分布式储存</span><span lang="EN-US">mfs </span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">fastdfs</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: 微软雅黑, sans-serif;">厨师</span><span lang="EN-US">-</span></strong><strong><span style="font-family: 微软雅黑, sans-serif;">备份服务器</span></strong></p>
+</td>
+<td style="width: 177.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="236">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">备份全网架构服务器的重要资料</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">定时备份</span><span lang="EN-US">rsync+</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">定时任务</span><span lang="EN-US">&nbsp; </span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">实时备份</span><span lang="EN-US"> inotify/sersync+rsync</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="font-family: 微软雅黑, sans-serif;">厨师</span><span lang="EN-US">-</span></strong><strong><span style="font-family: 微软雅黑, sans-serif;">缓存服务器</span></strong></p>
+</td>
+<td style="width: 177.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="236">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">将数据存储到内存当中，提升读取效率</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">memcache&nbsp; </span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">redis</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">&nbsp;mongodb</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 68;"><strong><span style="font-family: 微软雅黑, sans-serif;">心跳线</span></strong></p>
+</td>
+<td style="width: 177.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="236">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">&nbsp;keepalived </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">高可用</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">&nbsp;</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 127.35pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="170">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 4;"><strong><span style="font-family: 微软雅黑, sans-serif;">集群</span></strong></p>
+</td>
+<td style="width: 177.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="236">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">多台服务器做一件相同的事情</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">&nbsp;</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 style="text-align: center;"><a name="_Toc495427831"></a><!--[if !supportLists]--><span lang="EN-US">1.1.2 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">运维人员访问网站组成</span></h3>
+<table class="MsoTable15Grid5DarkAccent3" style="border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 99.6pt; border-top-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-top-color: white; border-bottom-color: white; border-left-color: white; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" width="133">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 5;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">类型</span></strong></p>
+</td>
+<td style="width: 204.95pt; border-top-width: 1pt; border-top-color: white; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="273">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">作用</span></strong></p>
+</td>
+<td style="width: 218.25pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: white; border-right-color: white; border-bottom-color: white; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="291">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">实现方式</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 99.6pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="133">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span style="font-family: 微软雅黑, sans-serif;">秘密通道</span><span lang="EN-US">-vpn</span></strong></p>
+</td>
+<td style="width: 204.95pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="273">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">实现加密传输数据，实现认证建立连接</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">&nbsp;</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 99.6pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="133">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span style="font-family: 微软雅黑, sans-serif;">监管</span><span lang="EN-US">-</span></strong><strong><span style="font-family: 微软雅黑, sans-serif;">跳板机</span></strong></p>
+</td>
+<td style="width: 204.95pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="273">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">监控运维人员操作信息</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">&nbsp;&nbsp; 1</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">、实时监控运维人员桌面信息</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">&nbsp;&nbsp; 2</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">、命令记录功能</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">&nbsp;&nbsp; 3</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">、操作记录回放</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">&nbsp;&nbsp; 4</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">、用户审计功能</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">jumpsever/gateone</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 99.6pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="133">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span style="font-family: 微软雅黑, sans-serif;">批量管理服务器</span></strong></p>
+</td>
+<td style="width: 204.95pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="273">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">批量自动化管理多台主机</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">ssh+key </span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">ansible </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">（</span><span lang="EN-US">200-300</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">台）</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">saltstack</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 99.6pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="133">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span style="font-family: 微软雅黑, sans-serif;">监控服务器</span></strong></p>
+</td>
+<td style="width: 204.95pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="273">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">监控架构服务器运行情况</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #eaf1dd; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">zabbix/nagios+cacti</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 99.6pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: white; border-bottom-color: white; border-left-color: white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" width="133">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span style="font-family: 微软雅黑, sans-serif;">批量安装部署系统</span></strong></p>
+</td>
+<td style="width: 204.95pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="273">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">（</span><span lang="EN-US">kicksrtart/cobbler</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">）</span></p>
+</td>
+<td style="width: 218.25pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: white; border-right-width: 1pt; border-right-color: white; background: #d6e3bc; padding: 0cm 5.4pt;" width="291">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph; mso-yfti-cnfc: 64;"><span lang="EN-US">&nbsp;</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2 style="margin: 8.15pt 0cm 8.15pt 25.1pt;"><a name="_Toc495427832"></a><a name="_Toc495231533"></a><!--[if !supportLists]--><span lang="EN-US">1.2 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">架构搭建</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">顺序</span></h2>
+<div align="center">
+<table class="MsoNormalTable" style="width: 78%;" border="0" cellspacing="0" cellpadding="0">
+<tbody>
+<tr style="mso-yfti-irow: 0; mso-yfti-firstrow: yes; height: 13.8pt;">
+<td style="width: 14.08%; border-width: 1pt; border-color: windowtext; background: #ed7d31; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="14%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">顺序</span></p>
+</td>
+<td style="width: 35.94%; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: windowtext; border-right-color: windowtext; border-bottom-color: windowtext; border-left: none; background: #ed7d31; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="35%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">服务</span></p>
+</td>
+<td style="width: 49.98%; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: windowtext; border-right-color: windowtext; border-bottom-color: windowtext; border-left: none; background: #ed7d31; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="49%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">软件</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 1; height: 13.8pt;">
+<td style="width: 14.08%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; background: #fce4d6; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="14%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">1</span></p>
+</td>
+<td style="width: 35.94%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; background: #fce4d6; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="35%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">备份存储服务器</span></p>
+</td>
+<td style="width: 49.98%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; background: #fce4d6; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="49%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">rsync</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">软件实现备份服务</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 2; height: 13.8pt;">
+<td style="width: 14.08%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="14%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">2</span></p>
+</td>
+<td style="width: 35.94%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="35%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">存储服务器</span></p>
+</td>
+<td style="width: 49.98%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="49%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">NFS</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">软件实现存储服务</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 3; height: 13.8pt;">
+<td style="width: 14.08%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; background: #fce4d6; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="14%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">3</span></p>
+</td>
+<td style="width: 35.94%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; background: #fce4d6; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="35%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">1 2 </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">之间实时同步</span></p>
+</td>
+<td style="width: 49.98%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; background: #fce4d6; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="49%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">inotify+rsync/sersync</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 4; height: 13.8pt;">
+<td style="width: 14.08%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="14%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">4</span></p>
+</td>
+<td style="width: 35.94%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="35%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">批量管理服务器</span></p>
+</td>
+<td style="width: 49.98%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="49%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="color: red;" lang="EN-US">ssh+key/ansible</span><span lang="EN-US">/saltstack</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 5; height: 13.8pt;">
+<td style="width: 14.08%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; background: #fce4d6; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="14%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">5</span></p>
+</td>
+<td style="width: 35.94%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; background: #fce4d6; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="35%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">web</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">服务</span></p>
+</td>
+<td style="width: 49.98%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; background: #fce4d6; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="49%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">nginx</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 6; height: 13.8pt;">
+<td style="width: 14.08%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="14%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">6</span></p>
+</td>
+<td style="width: 35.94%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="35%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">LNMP</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">架构</span></p>
+</td>
+<td style="width: 49.98%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="49%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">linux+nginx+mysql+php</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 7; height: 13.8pt;">
+<td style="width: 14.08%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; background: #fce4d6; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="14%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">7</span></p>
+</td>
+<td style="width: 35.94%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; background: #fce4d6; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="35%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">负载均衡</span></p>
+</td>
+<td style="width: 49.98%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; background: #fce4d6; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="49%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">ngnix</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">负载均衡</span></p>
+</td>
+</tr>
+<tr style="mso-yfti-irow: 8; mso-yfti-lastrow: yes; height: 13.8pt;">
+<td style="width: 14.08%; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="14%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">8</span></p>
+</td>
+<td style="width: 35.94%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="35%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">心跳线</span></p>
+</td>
+<td style="width: 49.98%; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt; height: 13.8pt;" nowrap="nowrap" width="49%">
+<p class="MsoNormal" style="text-align: center;" align="center"><span lang="EN-US">keeplived </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">高可用</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="MsoNormal"><span lang="EN-US">&nbsp;</span></p>
+<h2 style="margin: 8.15pt 0cm 8.15pt 25.1pt;"><a name="_Toc495427833"></a><a name="_Toc495231534"></a><!--[if !supportLists]--><span lang="EN-US">1.3 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">架构环境</span></h2>
+<h3><a name="_Toc495427834"></a><!--[if !supportLists]--><span lang="EN-US">1.3.1 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">主机环境</span></h3>
+<table class="MsoTable15Grid4Accent1" style="border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 155.7pt; border-top-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-top-color: #4f81bd; border-bottom-color: #4f81bd; border-left-color: #4f81bd; border-right: none; background: #4f81bd; padding: 0cm 5.4pt;" width="208">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 5;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">服务器规划</span></strong></p>
+</td>
+<td style="width: 42.5pt; border-top-width: 1pt; border-top-color: #4f81bd; border-left: none; border-bottom-width: 1pt; border-bottom-color: #4f81bd; border-right: none; background: #4f81bd; padding: 0cm 5.4pt;" width="57">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">数量</span></strong></p>
+</td>
+<td style="width: 324.6pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: #4f81bd; border-right-color: #4f81bd; border-bottom-color: #4f81bd; border-left: none; background: #4f81bd; padding: 0cm 5.4pt;" width="433">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 1;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: white; mso-themecolor: background1;">作用说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 155.7pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #95b3d7; border-bottom-color: #95b3d7; border-left-color: #95b3d7; border-top: none; background: #dbe5f1; padding: 0cm 5.4pt;" width="208">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">负载均衡服务器</span></strong></p>
+</td>
+<td style="width: 42.5pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; background: #dbe5f1; padding: 0cm 5.4pt;" width="57">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">两台</span></p>
+</td>
+<td style="width: 324.6pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; background: #dbe5f1; padding: 0cm 5.4pt;" valign="top" width="433">
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">对访问网站的流量进行风流，减少流量对某台服务器的压力</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 155.7pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #95b3d7; border-bottom-color: #95b3d7; border-left-color: #95b3d7; border-top: none; padding: 0cm 5.4pt;" width="208">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span lang="EN-US">web</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">服务器</span></strong></p>
+</td>
+<td style="width: 42.5pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; padding: 0cm 5.4pt;" width="57">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">三台</span></p>
+</td>
+<td style="width: 324.6pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; padding: 0cm 5.4pt;" valign="top" width="433">
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">处理用户的页面访问请求</span><span lang="EN-US">(Nginx)</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 155.7pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #95b3d7; border-bottom-color: #95b3d7; border-left-color: #95b3d7; border-top: none; background: #dbe5f1; padding: 0cm 5.4pt;" width="208">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span lang="EN-US">NFS</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">存储（兼职批量管理）</span></strong></p>
+</td>
+<td style="width: 42.5pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; background: #dbe5f1; padding: 0cm 5.4pt;" width="57">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">一台</span></p>
+</td>
+<td style="width: 324.6pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; background: #dbe5f1; padding: 0cm 5.4pt;" valign="top" width="433">
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">储存图片、附件、头像等静态数据</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 155.7pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #95b3d7; border-bottom-color: #95b3d7; border-left-color: #95b3d7; border-top: none; padding: 0cm 5.4pt;" width="208">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">备份服务器（</span><span lang="EN-US">rsync</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">）</span></strong></p>
+</td>
+<td style="width: 42.5pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; padding: 0cm 5.4pt;" width="57">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">一台</span></p>
+</td>
+<td style="width: 324.6pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; padding: 0cm 5.4pt;" valign="top" width="433">
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">对全网服务器数据进行实时与定时备份</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 155.7pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #95b3d7; border-bottom-color: #95b3d7; border-left-color: #95b3d7; border-top: none; background: #dbe5f1; padding: 0cm 5.4pt;" width="208">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 68;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">数据库服务器（</span><span lang="EN-US">mySQL</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">）</span></strong></p>
+</td>
+<td style="width: 42.5pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; background: #dbe5f1; padding: 0cm 5.4pt;" width="57">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 64;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">一台</span></p>
+</td>
+<td style="width: 324.6pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; background: #dbe5f1; padding: 0cm 5.4pt;" valign="top" width="433">
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">对动态变化数据进行存储（文本内容）</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 155.7pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #95b3d7; border-bottom-color: #95b3d7; border-left-color: #95b3d7; border-top: none; padding: 0cm 5.4pt;" width="208">
+<p class="MsoNormal" style="text-align: center; mso-yfti-cnfc: 4;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">管理服务器</span></strong></p>
+</td>
+<td style="width: 42.5pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; padding: 0cm 5.4pt;" width="57">
+<p class="MsoNormal" style="text-align: center;" align="center"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">一台</span></p>
+</td>
+<td style="width: 324.6pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: #95b3d7; border-right-width: 1pt; border-right-color: #95b3d7; padding: 0cm 5.4pt;" valign="top" width="433">
+<p class="MsoListParagraph" style="margin-left: 0cm; mso-para-margin-left: -2.86gd; text-indent: -34.3pt; mso-char-indent-count: -2.86; mso-list: l0 level1 lfo2;"><!--[if !supportLists]--><span lang="EN-US">1)<span style="font-variant-numeric: normal; font-stretch: normal; font-size: 7pt; line-height: normal; font-family: 'Times New Roman';">&nbsp;&nbsp;&nbsp;&nbsp; </span></span><!--[endif]--><span lang="EN-US">1.</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">作为</span><span lang="EN-US">yum</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">仓库服务器，提供全网服务器的软件下载</span></p>
+<p class="MsoListParagraph" style="margin-left: 0cm; mso-para-margin-left: -2.86gd; text-indent: -34.3pt; mso-char-indent-count: -2.86; mso-list: l0 level1 lfo2;"><!--[if !supportLists]--><span lang="EN-US">2)<span style="font-variant-numeric: normal; font-stretch: normal; font-size: 7pt; line-height: normal; font-family: 'Times New Roman';">&nbsp;&nbsp;&nbsp;&nbsp; </span></span><!--[endif]--><span lang="EN-US">2.</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">跳板机、操作审计</span></p>
+<p class="MsoListParagraph" style="margin-left: 0cm; mso-para-margin-left: -2.86gd; text-indent: -34.3pt; mso-char-indent-count: -2.86; mso-list: l0 level1 lfo2;"><!--[if !supportLists]--><span lang="EN-US">3)<span style="font-variant-numeric: normal; font-stretch: normal; font-size: 7pt; line-height: normal; font-family: 'Times New Roman';">&nbsp;&nbsp;&nbsp;&nbsp; </span></span><!--[endif]--><span lang="EN-US">3.vpn(pptp)</span></p>
+<p class="MsoListParagraph" style="margin-left: 0cm; mso-para-margin-left: -2.86gd; text-indent: -34.3pt; mso-char-indent-count: -2.86; mso-list: l0 level1 lfo2;"><!--[if !supportLists]--><span lang="EN-US">4)<span style="font-variant-numeric: normal; font-stretch: normal; font-size: 7pt; line-height: normal; font-family: 'Times New Roman';">&nbsp;&nbsp;&nbsp;&nbsp; </span></span><!--[endif]--><span lang="EN-US">4.</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">监控</span><span lang="EN-US">(zabbix)</span></p>
+<p class="MsoListParagraph" style="margin-left: 0cm; mso-para-margin-left: -2.86gd; text-indent: -34.3pt; mso-char-indent-count: -2.86; mso-list: l0 level1 lfo2;"><!--[if !supportLists]--><span lang="EN-US">5)<span style="font-variant-numeric: normal; font-stretch: normal; font-size: 7pt; line-height: normal; font-family: 'Times New Roman';">&nbsp;&nbsp;&nbsp;&nbsp; </span></span><!--[endif]--><span lang="EN-US">5.</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">兼职批量分发和管理（</span><span lang="EN-US">ssh+key/ansible/saltstack</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">）</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 522.8pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: #95b3d7; border-bottom-color: #95b3d7; border-left-color: #95b3d7; border-top: none; background: #92d050; padding: 0cm 5.4pt;" colspan="3" width="697">
+<p class="MsoNormal"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">合计需要</span><span lang="EN-US">9</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">台虚拟机</span></strong></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3><a name="_Toc495427835"></a><a name="_Toc495231536"></a><!--[if !supportLists]--><span lang="EN-US">1.3.2 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">各主机（</span><span lang="EN-US">IP/</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">主机名）规划</span></h3>
+<table class="MsoTableGrid" style="border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 184.05pt; border-width: 1pt; border-color: windowtext; background: #a6a6a6; padding: 0cm 5.4pt;" valign="top" width="245">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">服务器说明</span></strong></p>
+</td>
+<td style="width: 106.3pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: windowtext; border-right-color: windowtext; border-bottom-color: windowtext; border-left: none; background: #a6a6a6; padding: 0cm 5.4pt;" valign="top" width="142">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">外网</span><span lang="EN-US">ip</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">（</span><span lang="EN-US">nat</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">）</span></strong></p>
+</td>
+<td style="width: 134.65pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: windowtext; border-right-color: windowtext; border-bottom-color: windowtext; border-left: none; background: #a6a6a6; padding: 0cm 5.4pt;" valign="top" width="180">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">内网</span><span lang="EN-US">IP</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">（</span><span lang="EN-US">LAN</span></strong><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">区段）</span></strong></p>
+</td>
+<td style="width: 97.8pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: windowtext; border-right-color: windowtext; border-bottom-color: windowtext; border-left: none; background: #a6a6a6; padding: 0cm 5.4pt;" valign="top" width="130">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">主机名称规划</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 184.05pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="245">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">A1-nginx</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">负载均衡服务器</span><span lang="EN-US">01</span></p>
+</td>
+<td style="width: 106.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="142">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">10.0.0.5/24</span></p>
+</td>
+<td style="width: 134.65pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="180">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">172.16.1.5/24</span></p>
+</td>
+<td style="width: 97.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="130">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">lb01</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 184.05pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="245">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">A2-nginx</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">负载均衡服务器</span><span lang="EN-US">02</span></p>
+</td>
+<td style="width: 106.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="142">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">10.0.0.6/24</span></p>
+</td>
+<td style="width: 134.65pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="180">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">172.16.1.6/24</span></p>
+</td>
+<td style="width: 97.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="130">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">lb02</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 184.05pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="245">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">B1-nginx web</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">服务器</span></p>
+</td>
+<td style="width: 106.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="142">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">10.0.0.7/24</span></p>
+</td>
+<td style="width: 134.65pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="180">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">172.16.1.7/24</span></p>
+</td>
+<td style="width: 97.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="130">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">web02</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 184.05pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="245">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">B2-nginx web</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">服务器</span></p>
+</td>
+<td style="width: 106.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="142">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">10.0.0.8/24</span></p>
+</td>
+<td style="width: 134.65pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="180">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">172.16.1.8/24</span></p>
+</td>
+<td style="width: 97.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="130">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">web01</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 184.05pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="245">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">B3-nginx web</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">服务器</span></p>
+</td>
+<td style="width: 106.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="142">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">10.0.0.9/24</span></p>
+</td>
+<td style="width: 134.65pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="180">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">172.16.1.924</span></p>
+</td>
+<td style="width: 97.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="130">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">web03</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 184.05pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="245">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">C3-mysql</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">数据库服务器</span></p>
+</td>
+<td style="width: 106.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="142">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="color: #00b050;" lang="EN-US">10.0.0.51/24</span></strong></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 11pt;" lang="EN-US">(</span><span style="font-size: 11pt; font-family: 微软雅黑, sans-serif;">生产环境不设置</span><span style="font-size: 11pt;" lang="EN-US">)</span></p>
+</td>
+<td style="width: 134.65pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="180">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">172.16.1.51/24</span></p>
+</td>
+<td style="width: 97.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="130">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">db01</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 184.05pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="245">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">C1-NFS</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">存储服务器</span></p>
+</td>
+<td style="width: 106.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="142">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="color: #00b050;" lang="EN-US">10.0.0.31/24</span></strong></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 11pt;" lang="EN-US">(</span><span style="font-size: 11pt; font-family: 微软雅黑, sans-serif;">生产环境不设置</span><span style="font-size: 11pt;" lang="EN-US">)</span></p>
+</td>
+<td style="width: 134.65pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="180">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">172.16.1.31/24</span></p>
+</td>
+<td style="width: 97.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="130">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">nfs01</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 184.05pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="245">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">C2-rsync </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">存储服务器</span></p>
+</td>
+<td style="width: 106.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="142">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="color: #00b050;" lang="EN-US">10.0.0.41/24</span></strong></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 11pt;" lang="EN-US">(</span><span style="font-size: 11pt; font-family: 微软雅黑, sans-serif;">生产环境不设置</span><span style="font-size: 11pt;" lang="EN-US">)</span></p>
+</td>
+<td style="width: 134.65pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="180">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">172.16.1.41/24</span></p>
+</td>
+<td style="width: 97.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="130">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">backup</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 184.05pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="245">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">X-</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">管理服务器</span></p>
+</td>
+<td style="width: 106.3pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="142">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><strong><span style="color: #00b050;" lang="EN-US">10.0.0.61/24</span></strong></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 11pt;" lang="EN-US">(</span><span style="font-size: 11pt; font-family: 微软雅黑, sans-serif;">生产环境不设置</span><span style="font-size: 11pt;" lang="EN-US">)</span></p>
+</td>
+<td style="width: 134.65pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="180">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">172.16.1.61/24</span></p>
+</td>
+<td style="width: 97.8pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="130">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">m01</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 style="text-align: center;"><a name="_Toc495427836"></a><a name="_Toc495231537"></a><!--[if !supportLists]--><span lang="EN-US">1.3.3 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">初始目录规划</span></h3>
+<table class="MsoTableGrid" style="border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 174.25pt; border-width: 1pt; border-color: windowtext; background: #a6a6a6; padding: 0cm 5.4pt;" valign="top" width="232">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">说明</span></strong></p>
+</td>
+<td style="width: 137.35pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: windowtext; border-right-color: windowtext; border-bottom-color: windowtext; border-left: none; background: #a6a6a6; padding: 0cm 5.4pt;" valign="top" width="183">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">目录结构</span></strong></p>
+</td>
+<td style="width: 211.2pt; border-top-width: 1pt; border-right-width: 1pt; border-bottom-width: 1pt; border-top-color: windowtext; border-right-color: windowtext; border-bottom-color: windowtext; border-left: none; background: #a6a6a6; padding: 0cm 5.4pt;" valign="top" width="282">
+<p class="MsoNormal" style="text-align: center;" align="center"><strong><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">目录结构说明</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 174.25pt; border-right-width: 1pt; border-bottom-width: 1pt; border-left-width: 1pt; border-right-color: windowtext; border-bottom-color: windowtext; border-left-color: windowtext; border-top: none; padding: 0cm 5.4pt;" width="232">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 14.0pt; mso-bidi-font-size: 11.0pt; font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">初始化目录</span></p>
+</td>
+<td style="width: 137.35pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="183">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">/server/scripts</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">/server/tools</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span lang="EN-US">/application</span></p>
+</td>
+<td style="width: 211.2pt; border-top: none; border-left: none; border-bottom-width: 1pt; border-bottom-color: windowtext; border-right-width: 1pt; border-right-color: windowtext; padding: 0cm 5.4pt;" width="282">
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">存放脚本的目录</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">存放编译安装软件源代码的目录</span></p>
+<p class="MsoNormal" style="text-align: justify; text-justify: inter-ideograph;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">软件程序的安装目录</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2 style="margin: 8.15pt 0cm 8.15pt 25.1pt;"><a name="_Toc495427837"></a><a name="_Toc495231538"></a><!--[if !supportLists]--><span style="mso-fareast-font-family: 'Courier New'; mso-bidi-font-family: 'Courier New'; background: yellow; mso-highlight: yellow;" lang="EN-US">1.4 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; background: yellow; mso-highlight: yellow;">虚拟主机配置</span></h2>
+<h3><a name="_Toc495427838"></a><a name="_Toc495231539"></a><!--[if !supportLists]--><span lang="EN-US">1.4.1 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">虚拟主机网卡添加</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; background: lime; mso-highlight: lime;">（</span><span style="background: lime; mso-highlight: lime;" lang="EN-US">vmware</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; background: lime; mso-highlight: lime;">软件）</span></h3>
+<p class="MsoNormal" style="margin-left: 21pt;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">选择网络适配器，添加一块新对的网卡</span></p>
+<p class="MsoNormal" style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171026145914976-23838668.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="企业架构规划及服务器优化参数" alt="" />&nbsp;</p>
+
+<p class="a2" style="text-indent: 0cm;" align="center"><!--[if !supportLists]--><span lang="EN-US">图1-1 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">添加网卡</span></p>
+<p class="MsoNormal" style="margin-left: 21pt;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">选项默认即可，下一步直到网卡添加成功。</span></p>
+<p class="MsoNormal" style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171026145925742-392434964.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="企业架构规划及服务器优化参数" alt="" /></p>
+
+<p class="a2" style="text-indent: 0cm;" align="center"><!--[if !supportLists]--><span lang="EN-US">图1-2 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">添加完成</span></p>
+<h3><a name="_Toc495427839"></a><a name="_Toc495231540"></a><!--[if !supportLists]--><span lang="EN-US">1.4.2 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">编辑网络</span></h3>
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">修改网络选项，将</span><span lang="EN-US">NAT</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">模式子网改为</span><span lang="EN-US"> 10.0.0.0 /24 </span></p>
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">修改网关为</span><span lang="EN-US">10.0.0.254</span></p>
+<p class="MsoNormal"><span lang="EN-US">&nbsp;</span></p>
+<p class="MsoNormal" style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171026145943211-2146308903.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="企业架构规划及服务器优化参数" alt="" /></p>
+
+<p class="a2" style="text-indent: 0cm;" align="center"><!--[if !supportLists]--><span lang="EN-US">图1-3 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">修改</span><span lang="EN-US">NAT</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">网络的网段</span></p>
+<p class="MsoNormal" style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171026145957617-259940249.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="企业架构规划及服务器优化参数" alt="" /></p>
+
+<p class="a2" style="text-indent: 0cm;" align="center"><!--[if !supportLists]--><span lang="EN-US">图1-4 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">修改</span><span lang="EN-US">NAT</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">网络的网关</span></p>
+<p class="MsoNormal" style="text-indent: 7.1pt;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">设置网卡的格式</span></p>
+<p class="MsoNormal"><span lang="EN-US">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">第一块网卡选择</span><span lang="EN-US">nat</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">模式</span></p>
+<p class="MsoNormal" style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171026150028758-1901669329.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="企业架构规划及服务器优化参数" alt="" /></p>
+
+<p class="a2" style="text-indent: 0cm;" align="center"><!--[if !supportLists]--><span lang="EN-US">图1-5 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">第一块网卡设置</span></p>
+<p class="MsoNormal" style="text-indent: 7.1pt;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">第二块网卡选择</span><span lang="EN-US">lan</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">区段</span></p>
+<p class="MsoNormal" style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171026150042508-405331172.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="企业架构规划及服务器优化参数" alt="" /></p>
+
+<p class="a2" style="text-indent: 0cm;" align="center"><!--[if !supportLists]--><span lang="EN-US">图1-6 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">第二块网卡设置</span> <span lang="EN-US">LAN</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">区段</span></p>
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">配置好</span><span lang="EN-US">lan</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">区段后选择上</span><span lang="EN-US">lan</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">区段即可</span></p>
+<p class="MsoNormal" style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171026150101148-464776658.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="企业架构规划及服务器优化参数" alt="" /></p>
+
+<p class="a2" style="text-indent: 0cm;" align="center"><!--[if !supportLists]--><span lang="EN-US">图1-7 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">第二块网卡选择好</span><span lang="EN-US">LAN</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">区段</span></p>
+<h3><a name="_Toc495427840"></a><a name="_Toc495231541"></a><!--[if !supportLists]--><span lang="EN-US">1.4.3 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">虚拟主机网卡地址配置</span></h3>
+<p class="MsoNormal" style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171026150115633-1417693477.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="企业架构规划及服务器优化参数" alt="" /></p>
+
+<p class="a2" style="text-indent: 0cm;" align="center"><!--[if !supportLists]--><span lang="EN-US">图1-8 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">第一块网卡</span><span lang="EN-US">eth0</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">配置</span></p>
+<p class="MsoNormal" style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171026150125180-835021817.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="企业架构规划及服务器优化参数" alt="" />&nbsp;</p>
+
+<p class="a2" style="text-indent: 0cm;" align="center"><!--[if !supportLists]--><span lang="EN-US">图1-9 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">第二块网卡</span><span lang="EN-US">eth1</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">配置</span></p>
+<p class="MsoNormal"><span lang="EN-US">&nbsp;</span></p>
+<h3><a name="_Toc495427841"></a><a name="_Toc495231542"></a><!--[if !supportLists]--><span lang="EN-US">1.4.4 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">网卡配置好后注意</span></h3>
+<p class="MsoNormal" style="text-indent: 21pt;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; background: lime; mso-highlight: lime;">配置完成需要重启网络服务</span></p>
+<div class="cnblogs_code">
+<pre>/etc/init.d/network restart</pre>
+</div>
+<h1><a name="_Toc495427842"></a><a name="_Toc495231543"></a><a name="_期中架构主机优化脚本"></a><!--[if !supportLists]--><span lang="EN-US">第2章 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">架构主机优化脚本</span></h1>
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">注意：此脚本需要放在</span><span lang="EN-US">/tmp </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">目录下</span></p>
+<div class="cnblogs_code">
+<pre>#!/bin/<span style="color: #000000;">bash
+#################################################
+#    File Name: optimize</span>-init_sys.<span style="color: #0000ff;">sh</span><span style="color: #000000;">
+#       Author: Energy
+#         Mail: <a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a1c0c5ccc8cfe1dbcfc8d98fd5ced1">[email&#160;protected]</a>
+#     Function: system optimize scripts
+#################################################
+#optimization linux system
+. </span>/etc/init.d/<span style="color: #000000;">functions
+
+#change system directory: create seripts</span>/<span style="color: #000000;">software directory
+</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> change_dir(){
+    ShellDir</span>=<span style="color: #800000;">"</span><span style="color: #800000;">/server/scripts</span><span style="color: #800000;">"</span><span style="color: #000000;">
+    SoftwareDir</span>=<span style="color: #800000;">"</span><span style="color: #800000;">/server/tools</span><span style="color: #800000;">"</span>
+    <span style="color: #0000ff;">mkdir</span> -p $ShellDir &&<span style="color: #000000;">\
+    </span><span style="color: #0000ff;">mkdir</span> -<span style="color: #000000;">p $SoftwareDir
+}
+
+# input </span><span style="color: #0000ff;">info</span><span style="color: #000000;"> verify
+</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> info_verify(){
+    read </span>-p <span style="color: #800000;">"</span><span style="color: #800000;">Please make sure the information you entered (yes|no): </span><span style="color: #800000;">"</span> <span style="color: #0000ff;">info</span>
+  <span style="color: #0000ff;">case</span> <span style="color: #800000;">"</span><span style="color: #800000;">$info</span><span style="color: #800000;">"</span> <span style="color: #0000ff;">in</span><span style="color: #000000;">
+        y</span>*|Y*<span style="color: #000000;">)
+            continue
+            ;;
+        n</span>*|N*<span style="color: #000000;">)
+            exit </span><span style="color: #800080;">1</span><span style="color: #000000;">
+          ;;
+  </span><span style="color: #0000ff;">esac</span><span style="color: #000000;">
+}
+
+#change system </span><span style="color: #0000ff;">hostname</span>
+<span style="color: #0000ff;">function</span><span style="color: #000000;"> change_hostname(){
+    read </span>-p <span style="color: #800000;">"</span><span style="color: #800000;">Please input hostname: </span><span style="color: #800000;">"</span><span style="color: #000000;"> HostName
+        info_verify
+    </span><span style="color: #0000ff;">hostname</span> $HostName &&<span style="color: #000000;">\
+    </span><span style="color: #0000ff;">sed</span> -i <span style="color: #800000;">"</span><span style="color: #800000;">2s/=.*$/=$HostName/g</span><span style="color: #800000;">"</span> /etc/sysconfig/network &&<span style="color: #000000;">\
+    chk_hosts</span>=$(<span style="color: #0000ff;">grep</span> -o <span style="color: #800000;">"</span><span style="color: #800000;">\b$HostName\b</span><span style="color: #800000;">"</span> /etc/<span style="color: #000000;">hosts)
+    get_ip</span>=$(<span style="color: #0000ff;">ifconfig</span> eth0|<span style="color: #0000ff;">awk</span> -F <span style="color: #800000;">"</span><span style="color: #800000;">[ :]+</span><span style="color: #800000;">"</span> <span style="color: #800000;">'</span><span style="color: #800000;">NR==2 {print $4}</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    </span><span style="color: #0000ff;">if</span> [ -<span style="color: #000000;">z $chk_hosts ]
+    </span><span style="color: #0000ff;">then</span>
+        <span style="color: #0000ff;">echo</span> <span style="color: #800000;">"</span><span style="color: #800000;">$get_ip   $HostName</span><span style="color: #800000;">"</span> >>/etc/<span style="color: #000000;">hosts
+    </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+        continue
+    </span><span style="color: #0000ff;">fi</span><span style="color: #000000;">
+}
+
+#boot system optimize: setup chkconfig
+</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> change_chkconfig(){
+    Boot_options</span>=<span style="color: #800000;">"</span><span style="color: #800000;">$1</span><span style="color: #800000;">"</span>
+    <span style="color: #0000ff;">for</span> boots <span style="color: #0000ff;">in</span> `chkconfig --list|<span style="color: #0000ff;">grep</span> <span style="color: #800000;">"</span><span style="color: #800000;">3:on</span><span style="color: #800000;">"</span>|<span style="color: #0000ff;">awk</span> <span style="color: #800000;">'</span><span style="color: #800000;">{print $1}</span><span style="color: #800000;">'</span>|<span style="color: #0000ff;">grep</span> -vE <span style="color: #800000;">"</span><span style="color: #800000;">$Boot_options</span><span style="color: #800000;">"</span><span style="color: #000000;">`
+    </span><span style="color: #0000ff;">do</span><span style="color: #000000;">
+        chkconfig $boots off
+    </span><span style="color: #0000ff;">done</span><span style="color: #000000;">
+}
+
+#setup system optimize: setup ulimit
+</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> change_ulimit(){
+    </span><span style="color: #0000ff;">grep</span> <span style="color: #800000;">"</span><span style="color: #800000;">*       -       nofile       65535</span><span style="color: #800000;">"</span> /etc/security/limits.conf >/dev/<span style="color: #0000ff;">null</span> <span style="color: #800080;">2</span>>&<span style="color: #800080;">1</span>
+    <span style="color: #0000ff;">if</span> [ $? -ne <span style="color: #800080;">0</span><span style="color: #000000;"> ]
+    </span><span style="color: #0000ff;">then</span>
+        <span style="color: #0000ff;">echo</span> <span style="color: #800000;">'</span><span style="color: #800000;">*       -       nofile       65535</span><span style="color: #800000;">'</span> >>/etc/security/<span style="color: #000000;">limits.conf
+    </span><span style="color: #0000ff;">fi</span><span style="color: #000000;">
+}
+
+#setup system optimize: setup sysctl
+</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> change_sysctl(){
+    </span><span style="color: #0000ff;">cat</span> /tmp/sysctl.conf >/etc/sysctl.conf &&<span style="color: #000000;">\
+    </span><span style="color: #0000ff;">modprobe</span> bridge &>/dev/<span style="color: #0000ff;">null</span> &&<span style="color: #000000;">\
+    sysctl </span>-p &>/dev/<span style="color: #0000ff;">null</span><span style="color: #000000;">
+}
+
+#sshd software optimize: change sshd_conf
+</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> change_sshdfile(){
+    SSH_Port</span>=<span style="color: #800000;">"</span><span style="color: #800000;">port 22</span><span style="color: #800000;">"</span><span style="color: #000000;">
+    SSH_ListenAddress</span>=$(<span style="color: #0000ff;">ifconfig</span> eth0|<span style="color: #0000ff;">awk</span> -F <span style="color: #800000;">"</span><span style="color: #800000;">[ :]+</span><span style="color: #800000;">"</span> <span style="color: #800000;">'</span><span style="color: #800000;">NR==2 {print $4}</span><span style="color: #800000;">'</span><span style="color: #000000;">)
+    SSH_PermitRootLogin</span>=<span style="color: #800000;">"</span><span style="color: #800000;">PermitRootLogin no</span><span style="color: #800000;">"</span><span style="color: #000000;">
+    SSH_PermitEmptyPassword</span>=<span style="color: #800000;">"</span><span style="color: #800000;">PermitEmptyPasswords no</span><span style="color: #800000;">"</span><span style="color: #000000;">
+    SSH_GSSAPI</span>=<span style="color: #800000;">"</span><span style="color: #800000;">GSSAPIAuthentication no</span><span style="color: #800000;">"</span><span style="color: #000000;">
+    SSH_DNS</span>=<span style="color: #800000;">"</span><span style="color: #800000;">useDNS no</span><span style="color: #800000;">"</span><span style="color: #000000;">
+      #</span><span style="color: #0000ff;">sed</span> -i -e <span style="color: #800000;">"</span><span style="color: #800000;">13s/.*/$SSH_Port/g</span><span style="color: #800000;">"</span> /etc/<span style="color: #0000ff;">ssh</span>/<span style="color: #000000;">sshd_config
+      #</span><span style="color: #0000ff;">sed</span> -i -e <span style="color: #800000;">"</span><span style="color: #800000;">15s/.*/ListenAddress $SSH_ListenAddress/g</span><span style="color: #800000;">"</span> /etc/<span style="color: #0000ff;">ssh</span>/<span style="color: #000000;">sshd_config
+      #</span><span style="color: #0000ff;">sed</span> -i -e <span style="color: #800000;">"</span><span style="color: #800000;">42s/.*/$SSH_PermitRootLogin/g</span><span style="color: #800000;">"</span> /etc/<span style="color: #0000ff;">ssh</span>/<span style="color: #000000;">sshd_config
+      #</span><span style="color: #0000ff;">sed</span> -i -e <span style="color: #800000;">"</span><span style="color: #800000;">65s/.*/$SSH_PermitEmptyPassword/g</span><span style="color: #800000;">"</span> /etc/<span style="color: #0000ff;">ssh</span>/<span style="color: #000000;">sshd_config
+      </span><span style="color: #0000ff;">sed</span> -i -e <span style="color: #800000;">"</span><span style="color: #800000;">81s/.*/$SSH_GSSAPI/g</span><span style="color: #800000;">"</span> /etc/<span style="color: #0000ff;">ssh</span>/<span style="color: #000000;">sshd_config
+      </span><span style="color: #0000ff;">sed</span> -i -e <span style="color: #800000;">"</span><span style="color: #800000;">122s/.*/$SSH_DNS/g</span><span style="color: #800000;">"</span> /etc/<span style="color: #0000ff;">ssh</span>/<span style="color: #000000;">sshd_config
+}
+
+#selinux software optimize: change disable
+</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> change_selinux(){
+    </span><span style="color: #0000ff;">sed</span> -i <span style="color: #800000;">'</span><span style="color: #800000;">s#SELINUX=.*#SELINUX=disabled#g</span><span style="color: #800000;">'</span> /etc/selinux/config &&<span style="color: #000000;">\
+    setenforce </span><span style="color: #800080;">0</span><span style="color: #000000;">
+}
+
+#firewall software optimize: change stop
+</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> change_firewall(){
+    </span>/etc/init.d/iptables stop >/dev/<span style="color: #0000ff;">null</span> <span style="color: #800080;">2</span>>&<span style="color: #800080;">1</span><span style="color: #000000;">
+}
+
+#crond software optimize: </span><span style="color: #0000ff;">time</span><span style="color: #000000;"> synchronization
+</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> change_update(){
+    </span><span style="color: #0000ff;">grep</span> -i <span style="color: #800000;">"</span><span style="color: #800000;">#crond-id-001</span><span style="color: #800000;">"</span> /var/spool/cron/root >/dev/<span style="color: #0000ff;">null</span> <span style="color: #800080;">2</span>>&<span style="color: #800080;">1</span>
+    <span style="color: #0000ff;">if</span> [ $? -ne <span style="color: #800080;">0</span><span style="color: #000000;"> ]
+    </span><span style="color: #0000ff;">then</span>
+        <span style="color: #0000ff;">echo</span> <span style="color: #800000;">'</span><span style="color: #800000;">#crond-id-001:time sync by hq</span><span style="color: #800000;">'</span> >>/var/spool/cron/<span style="color: #000000;">root
+        </span><span style="color: #0000ff;">echo</span> <span style="color: #800000;">"</span><span style="color: #800000;">*/5 * * * * /usr/sbin/ntpdate time.nist.gov >/dev/null 2>&1</span><span style="color: #800000;">"</span>>>/var/spool/cron/<span style="color: #000000;">root
+    </span><span style="color: #0000ff;">fi</span><span style="color: #000000;">
+}
+
+#update </span><span style="color: #0000ff;">yum</span> <span style="color: #0000ff;">info</span>
+<span style="color: #0000ff;">function</span><span style="color: #000000;"> update_yum(){
+    </span><span style="color: #0000ff;">wget</span> -q -O /etc/<span style="color: #0000ff;">yum</span>.repos.d/CentOS-Base.repo http:<span style="color: #008000;">//</span><span style="color: #008000;">mirrors.aliyun.com/repo/Centos-6.repo</span>
+    <span style="color: #0000ff;">wget</span> -q -O /etc/<span style="color: #0000ff;">yum</span>.repos.d/epel.repo http:<span style="color: #008000;">//</span><span style="color: #008000;">mirrors.aliyun.com/repo/epel-6.repo</span>
+<span style="color: #000000;">}
+
+#change profile </span><span style="color: #0000ff;">file</span> <span style="color: #0000ff;">info</span>
+<span style="color: #0000ff;">function</span><span style="color: #000000;"> change_profile(){
+    </span><span style="color: #0000ff;">grep</span> <span style="color: #800000;">"</span><span style="color: #800000;">PS1</span><span style="color: #800000;">"</span> /etc/profile >>/dev/<span style="color: #0000ff;">null</span> <span style="color: #800080;">2</span>>&<span style="color: #800080;">1</span>
+    <span style="color: #0000ff;">if</span> [ $? -ne <span style="color: #800080;">0</span><span style="color: #000000;"> ]
+    </span><span style="color: #0000ff;">then</span>
+        <span style="color: #0000ff;">echo</span>  <span style="color: #800000;">"</span><span style="color: #800000;">PS1='\[\e[32;1m\][\<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f287b2">[email&#160;protected]</a>\h \W]\\$ \[\e[0m\]'</span><span style="color: #800000;">"</span> >>/etc/<span style="color: #000000;">profile
+    </span><span style="color: #0000ff;">fi</span>
+    <span style="color: #0000ff;">grep</span> <span style="color: #800000;">"</span><span style="color: #800000;">alias grep</span><span style="color: #800000;">"</span> /etc/profile >>/dev/<span style="color: #0000ff;">null</span> <span style="color: #800080;">2</span>>&<span style="color: #800080;">1</span>
+    <span style="color: #0000ff;">if</span> [ $? -ne <span style="color: #800080;">0</span><span style="color: #000000;"> ]
+    </span><span style="color: #0000ff;">then</span>
+    <span style="color: #0000ff;">echo</span> <span style="color: #800000;">"</span><span style="color: #800000;">alias grep='grep --color=auto'</span><span style="color: #800000;">"</span> >>/etc/<span style="color: #000000;">profile
+    </span><span style="color: #0000ff;">echo</span> <span style="color: #800000;">"</span><span style="color: #800000;">alias ll='ls -l --color=auto --time-style=long-iso'</span><span style="color: #800000;">"</span> >>/etc/<span style="color: #000000;">profile
+    </span><span style="color: #0000ff;">fi</span><span style="color: #000000;">
+    source </span>/etc/<span style="color: #000000;">profile
+}
+
+</span><span style="color: #0000ff;">function</span><span style="color: #000000;"> main(){
+    change_dir
+    change_hostname
+    change_chkconfig </span><span style="color: #800000;">"</span><span style="color: #800000;">crond|network|rsyslog|sshd|sysstat</span><span style="color: #800000;">"</span><span style="color: #000000;">
+    change_ulimit
+    change_sysctl
+    change_sshdfile
+    change_selinux
+    change_firewall
+    change_update
+    update_yum
+    change_profile
+}
+main
+action </span><span style="color: #800000;">"</span><span style="color: #800000;">system optimize complete</span><span style="color: #800000;">"</span> /bin/<span style="color: #0000ff;">true</span></pre>
+</div>
+<h2 style="margin: 8.15pt 0cm 8.15pt 25.1pt;"><a name="_Hlk495408343"></a><a name="_Toc495427843"></a><!--[if !supportLists]--><span lang="EN-US">2.1 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">架构优化脚本内容</span></h2>
+<div style="border: 2pt solid windowtext; padding: 1pt 4pt; background: #f2f2f2;">
+<p class="a1"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 宋体; mso-hansi-font-family: 宋体;">适用于</span> <span lang="EN-US">#centos6.x &nbsp;</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 宋体; mso-hansi-font-family: 宋体;">系统</span></p>
+</div>
+<h3><a name="_Toc495427844"></a><a name="_Toc495231544"></a><!--[if !supportLists]--><span lang="EN-US">2.1.1 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">更改</span><span lang="EN-US">yum</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">源</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">mv</span> /etc/<span style="color: #0000ff;">yum</span>.repos.d/CentOS-Base.repo /etc/<span style="color: #0000ff;">yum</span>.repos.d/CentOS-<span style="color: #000000;">Base.repo.backup
+</span><span style="color: #0000ff;">wget</span> -O /etc/<span style="color: #0000ff;">yum</span>.repos.d/CentOS-Base.repo http:<span style="color: #008000;">//</span><span style="color: #008000;">mirrors.aliyun.com/repo/Centos-6.repo</span>
+<span style="color: #0000ff;">wget</span> -O /etc/<span style="color: #0000ff;">yum</span>.repos.d/epel.repo http:<span style="color: #008000;">//</span><span style="color: #008000;">mirrors.aliyun.com/repo/epel-6.repo</span></pre>
+</div>
+<h3><a name="_Toc495427845"></a><a name="_Toc495231545"></a><!--[if !supportLists]--><span lang="EN-US">2.1.2 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">关闭</span><span lang="EN-US">selinux</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">sed</span> -i <span style="color: #800000;">'</span><span style="color: #800000;">s#SELINUX=enforcing#SELINUX=disabled#g</span><span style="color: #800000;">'</span>  /etc/selinux/<span style="color: #000000;">config
+</span><span style="color: #0000ff;">grep</span> SELINUX=disabled /etc/selinux/<span style="color: #000000;">config
+setenforce </span><span style="color: #800080;">0</span><span style="color: #000000;">
+getenforce</span></pre>
+</div>
+<h3><a name="_Toc495427846"></a><a name="_Toc495231546"></a><!--[if !supportLists]--><span lang="EN-US">2.1.3 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">关闭关防火墙</span></h3>
+<div class="cnblogs_code">
+<pre>/etc/init.d/<span style="color: #000000;">iptables stop
+</span>/etc/init.d/<span style="color: #000000;">iptables stop
+chkconfig iptables off</span></pre>
+</div>
+<h3><a name="_Toc495427847"></a><a name="_Toc495231547"></a><!--[if !supportLists]--><span lang="EN-US">2.1.4 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">精简开机自启动服务</span></h3>
+<div class="cnblogs_code">
+<pre>chkconfig |<span style="color: #0000ff;">egrep</span> -v <span style="color: #800000;">"</span><span style="color: #800000;">sshd|network|crond|rsyslog|sysstat</span><span style="color: #800000;">"</span>|<span style="color: #0000ff;">awk</span> <span style="color: #800000;">'</span><span style="color: #800000;">{print "chkconfig",$1,"off"}</span><span style="color: #800000;">'</span>|<span style="color: #000000;">bash
+export LANG</span>=<span style="color: #000000;">en
+chkconfig </span>--list|<span style="color: #0000ff;">grep</span> <span style="color: #800080;">3</span>:on</pre>
+</div>
+<h3><a name="_Toc495427848"></a><a name="_Toc495231548"></a><!--[if !supportLists]--><span lang="EN-US">2.1.5 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">提权</span><span lang="EN-US">oldboy</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">可以</span><span lang="EN-US">sudo</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">（可选）</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">useradd oldboy
+\</span><span style="color: #0000ff;">cp</span> /etc/sudoers /etc/<span style="color: #000000;">sudoers.ori
+</span><span style="color: #0000ff;">echo</span> <span style="color: #800000;">"</span><span style="color: #800000;">oldboy ALL=(ALL)  NOPASSWD: ALL</span><span style="color: #800000;">"</span> >>/etc/<span style="color: #000000;">sudoers
+</span><span style="color: #0000ff;">tail</span> -<span style="color: #800080;">1</span> /etc/<span style="color: #000000;">sudoers
+visudo </span>-c</pre>
+</div>
+<h3><a name="_Toc495427849"></a><a name="_Toc495231549"></a><!--[if !supportLists]--><span lang="EN-US">2.1.6 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">中文字符集（不用做）</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">cp</span> /etc/sysconfig/i18n /etc/sysconfig/<span style="color: #000000;">i18n.ori
+</span><span style="color: #0000ff;">echo</span> <span style="color: #800000;">'</span><span style="color: #800000;">LANG="zh_CN.UTF-8"</span><span style="color: #800000;">'</span> >/etc/sysconfig/<span style="color: #000000;">i18n
+source </span>/etc/sysconfig/<span style="color: #000000;">i18n
+</span><span style="color: #0000ff;">echo</span> $LANG</pre>
+</div>
+<h3><a name="_Toc495427850"></a><a name="_Toc495231550"></a><!--[if !supportLists]--><span lang="EN-US">2.1.7 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">时间同步</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">echo</span> <span style="color: #800000;">'</span><span style="color: #800000;">#time sync by hzs at 2017-10-05</span><span style="color: #800000;">'</span> >>/var/spool/cron/<span style="color: #000000;">root
+</span><span style="color: #0000ff;">echo</span> <span style="color: #800000;">'</span><span style="color: #800000;">*/5 * * * * /usr/sbin/ntpdate ntp1.aliyun.com >/dev/null  2>&1 </span><span style="color: #800000;">'</span>>>/var/spool/cron/<span style="color: #000000;">root
+crontab </span>-l</pre>
+</div>
+<h3><a name="_Toc495427851"></a><a name="_Toc495231551"></a><!--[if !supportLists]--><span lang="EN-US">2.1.8 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">命令行安全（千万别做）</span></h3>
+<div class="cnblogs_code">
+<pre>#<span style="color: #0000ff;">echo</span> <span style="color: #800000;">'</span><span style="color: #800000;">export TMOUT=300</span><span style="color: #800000;">'</span> >>/etc/<span style="color: #000000;">profile
+#</span><span style="color: #0000ff;">echo</span> <span style="color: #800000;">'</span><span style="color: #800000;">export HISTSIZE=5</span><span style="color: #800000;">'</span> >>/etc/<span style="color: #000000;">profile
+#</span><span style="color: #0000ff;">echo</span> <span style="color: #800000;">'</span><span style="color: #800000;">export HISTFILESIZE=5</span><span style="color: #800000;">'</span> >>/etc/<span style="color: #000000;">profile
+#</span><span style="color: #0000ff;">tail</span> -<span style="color: #800080;">3</span> /etc/<span style="color: #000000;">profile
+#.</span>/etc/profile</pre>
+</div>
+<h3><a name="_Toc495427852"></a><a name="_Toc495231552"></a><!--[if !supportLists]--><span lang="EN-US">2.1.9 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">加大文件描述符</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">echo</span> <span style="color: #800000;">'</span><span style="color: #800000;">*        -    nofile     65535 </span><span style="color: #800000;">'</span>>>/etc/security/<span style="color: #000000;">limits.conf
+</span><span style="color: #0000ff;">tail</span> -<span style="color: #800080;">1</span> /etc/security/limits.conf</pre>
+</div>
+<h3><a name="_Toc495427853"></a><a name="_Toc495231553"></a><!--[if !supportLists]--><span lang="EN-US">2.1.10 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">内核优化</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">cat</span> >>/etc/sysctl.conf<<<span style="color: #000000;">EOF
+##youhua
+net.ipv4.tcp_fin_timeout </span>= <span style="color: #800080;">2</span><span style="color: #000000;">
+net.ipv4.tcp_tw_reuse </span>= <span style="color: #800080;">1</span><span style="color: #000000;">
+net.ipv4.tcp_tw_recycle </span>= <span style="color: #800080;">1</span><span style="color: #000000;">
+net.ipv4.tcp_syncookies </span>= <span style="color: #800080;">1</span><span style="color: #000000;"> 
+net.ipv4.tcp_keepalive_time </span>= <span style="color: #800080;">600</span><span style="color: #000000;">
+net.ipv4.ip_local_port_range </span>= <span style="color: #800080;">4000</span> <span style="color: #800080;">65000</span><span style="color: #000000;">
+net.ipv4.tcp_max_syn_backlog </span>= <span style="color: #800080;">16384</span><span style="color: #000000;">
+net.ipv4.tcp_max_tw_buckets </span>= <span style="color: #800080;">36000</span><span style="color: #000000;">
+net.ipv4.route.gc_timeout </span>= <span style="color: #800080;">100</span><span style="color: #000000;">
+net.ipv4.tcp_syn_retries </span>= <span style="color: #800080;">1</span><span style="color: #000000;">
+net.ipv4.tcp_synack_retries </span>= <span style="color: #800080;">1</span><span style="color: #000000;">
+net.core.somaxconn </span>= <span style="color: #800080;">16384</span><span style="color: #000000;">
+net.core.netdev_max_backlog </span>= <span style="color: #800080;">16384</span><span style="color: #000000;">
+net.ipv4.tcp_max_syn_backlog </span>= <span style="color: #800080;">16384</span><span style="color: #000000;">
+##iptables  youhua
+net.nf_conntrack_max </span>= <span style="color: #800080;">25000000</span><span style="color: #000000;">
+net.netfilter.nf_conntrack_max </span>= <span style="color: #800080;">25000000</span><span style="color: #000000;">
+net.netfilter.nf_conntrack_tcp_timeout_established </span>= <span style="color: #800080;">180</span><span style="color: #000000;">
+net.netfilter.nf_conntrack_tcp_timeout_time_wait </span>= <span style="color: #800080;">120</span><span style="color: #000000;">
+net.netfilter.nf_conntrack_tcp_timeout_close_wait </span>= <span style="color: #800080;">60</span><span style="color: #000000;">
+net.netfilter.nf_conntrack_tcp_timeout_fin_wait </span>= <span style="color: #800080;">120</span><span style="color: #000000;">
+EOF</span></pre>
+</div>
+<p class="MsoNormal"><span style="background: yellow; mso-highlight: yellow;" lang="EN-US">#</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; background: yellow; mso-highlight: yellow;">修改内核后让内核配置文件中的参数生效</span></p>
+<div class="cnblogs_code">
+<pre>sysctl -p</pre>
+</div>
+<h3><a name="_Toc495427854"></a><a name="_Toc495231554"></a><!--[if !supportLists]--><span lang="EN-US">2.1.11 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">安装一些软件</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">yum</span> <span style="color: #0000ff;">install</span> lrzsz namp tree  dos2unix nc -y</pre>
+</div>
+<h3><a name="_Toc495427855"></a><a name="_Toc495231555"></a><!--[if !supportLists]--><span lang="EN-US">2.1.12 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">系统升级操作（暂不使用）</span></h3>
+<div class="cnblogs_code">
+<pre>#<span style="color: #0000ff;">yum</span> update 或  <span style="color: #0000ff;">yum</span><span style="color: #000000;"> upgrade
+#</span><span style="color: #0000ff;">yum</span> -<span style="color: #000000;">y update   #升级所有包，改变软件设置和系统设置，系统版本内核都升级
+#</span><span style="color: #0000ff;">yum</span> -y ipgrade  #升级所有包，不改变系统设置和软件设置，系统版本升级，内核不变</pre>
+</div>
+<h2 style="margin: 8.15pt 0cm 8.15pt 25.1pt;"><a name="_Toc495427856"></a><!--[if !supportLists]--><span lang="EN-US">2.2 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">模板机主机</span><span lang="EN-US">hosts</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">文件配置</span></h2>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">cat</span> >/etc/hosts<<<span style="color: #000000;">EOF
+
+</span><span style="color: #800080;">127.0</span>.<span style="color: #800080;">0.1</span><span style="color: #000000;">     localhost localhost.localdomain localhost4 localhost4.localdomain4
+
+::</span><span style="color: #800080;">1</span><span style="color: #000000;">           localhost localhost.localdomain localhost6 localhost6.localdomain6
+</span><span style="color: #800080;">172.16</span>.<span style="color: #800080;">1.5</span><span style="color: #000000;">    lb01
+</span><span style="color: #800080;">172.16</span>.<span style="color: #800080;">1.6</span><span style="color: #000000;">    lb02
+</span><span style="color: #800080;">172.16</span>.<span style="color: #800080;">1.7</span><span style="color: #000000;">    web02
+</span><span style="color: #800080;">172.16</span>.<span style="color: #800080;">1.8</span><span style="color: #000000;">    web01
+</span><span style="color: #800080;">172.16</span>.<span style="color: #800080;">1.9</span><span style="color: #000000;">    web03
+</span><span style="color: #800080;">172.16</span>.<span style="color: #800080;">1.51</span><span style="color: #000000;">   db01 db01.etiantian.org
+</span><span style="color: #800080;">172.16</span>.<span style="color: #800080;">1.31</span><span style="color: #000000;">   nfs01
+</span><span style="color: #800080;">172.16</span>.<span style="color: #800080;">1.41</span><span style="color: #000000;">   backup
+</span><span style="color: #800080;">172.16</span>.<span style="color: #800080;">1.61</span><span style="color: #000000;">   m01
+EOF</span></pre>
+</div>
+<h1><a name="_Toc495427857"></a><a name="_Toc495231558"></a><!--[if !supportLists]--><span lang="EN-US">第3章 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">虚拟机克隆</span></h1>
+<h2 style="margin: 8.15pt 0cm 8.15pt 25.1pt;"><a name="_Toc495427858"></a><a name="_Toc495231559"></a><!--[if !supportLists]--><span lang="EN-US">3.1 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">克隆前准备</span></h2>
+<p class="MsoNormal" style="margin-left: 21pt;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; background: yellow; mso-highlight: yellow;">一清空，两删除</span></p>
+<p class="MsoNormal"><span lang="EN-US">&nbsp;&nbsp; </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; background: lime; mso-highlight: lime;">清空</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">网络配置文件</span></p>
+<div class="cnblogs_code">
+<pre>>/etc/udev/rules.d/<span style="color: #800080;">70</span>-persistent-net.rules</pre>
+</div>
+<div style="border: 2pt solid windowtext; padding: 1pt 4pt; background: #f2f2f2;">
+<p class="a1"><span style="color: red;" lang="EN-US">echo '>/etc/udev/rules.d/70-persistent-net.rules'&nbsp; >>/etc/rc.local</span></p>
+</div>
+<p class="MsoNormal"><span lang="EN-US">&nbsp;&nbsp; </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">删除网卡配置文件中的</span><span lang="EN-US">uuid</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">和</span><span lang="EN-US">HWADDR</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">sed</span> -ri <span style="color: #800000;">'</span><span style="color: #800000;">/HWADDR|UUID/d</span><span style="color: #800000;">'</span> /etc/sysconfig/network-scripts/ifcfg-eth[<span style="color: #800080;">01</span>]</pre>
+</div>
+<h2 style="margin: 8.15pt 0cm 8.15pt 25.1pt;"><a name="_Toc495427859"></a><a name="_Toc495231560"></a><!--[if !supportLists]--><span lang="EN-US">3.2 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">进行克隆</span></h2>
+<p class="MsoNormal"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">模板机关机</span></p>
+<div class="cnblogs_code">
+<pre>shutdown -h now</pre>
+</div>
+<h3><a name="_Toc495427860"></a><a name="_Toc495231561"></a><!--[if !supportLists]--><span lang="EN-US">3.2.1 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">保留快照</span></h3>
+<h2 style="margin: 8.15pt 0cm 8.15pt 25.1pt;"><a name="_Toc495427861"></a><a name="_Toc495231562"></a><!--[if !supportLists]--><span lang="EN-US">3.3 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">进行克隆</span></h2>
+<h3><a name="_Toc495427862"></a><a name="_Toc495231563"></a><!--[if !supportLists]--><span lang="EN-US">3.3.1 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">进行克隆</span></h3>
+<p class="MsoNormal" style="text-align: center;">&nbsp;<img src="1190037-20171026150327930-602126620.png" tppabs="http://clsn.io/wp-content/uploads/2018/03/1190037-20171026150327930-602126620.png" alt="企业架构规划及服务器优化参数" alt="" /><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171026150338945-1450460273.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="企业架构规划及服务器优化参数" alt="" /></p>
+
+<h3><a name="_Toc495427863"></a><a name="_Toc495231564"></a><!--[if !supportLists]--><span lang="EN-US">3.3.2 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">创建连接克隆</span></h3>
+<p class="MsoNormal" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171026150354336-1439580768.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="企业架构规划及服务器优化参数" alt="" />&nbsp;</p>
+
+<h2 style="margin: 8.15pt 0cm 8.15pt 25.1pt;"><a name="_Toc495427864"></a><a name="_Toc495231565"></a><!--[if !supportLists]--><span lang="EN-US">3.4 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">克隆主机配置</span></h2>
+<p class="MsoNormal" style="margin-left: 7.1pt;"><span lang="EN-US">01. </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">利用给的</span><span lang="EN-US"><a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=file:///I:/Desktop/%E8%AF%BE%E5%90%8E%E6%80%BB%E7%BB%93/%E7%AC%AC9%E5%91%A8/day37-%E6%9C%9F%E4%B8%AD%E6%9E%B6%E6%9E%84%E5%BC%80%E7%AF%87%20%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%20%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BC%98%E5%8C%96%20.docx  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ �����������ֹ��ȡ���ļ���  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=file:///I:/Desktop/%E8%AF%BE%E5%90%8E%E6%80%BB%E7%BB%93/%E7%AC%AC9%E5%91%A8/day37-%E6%9C%9F%E4%B8%AD%E6%9E%B6%E6%9E%84%E5%BC%80%E7%AF%87%20%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%20%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BC%98%E5%8C%96%20.docx#_期中架构主机优化脚本'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=file:///I:/Desktop/%E8%AF%BE%E5%90%8E%E6%80%BB%E7%BB%93/%E7%AC%AC9%E5%91%A8/day37-%E6%9C%9F%E4%B8%AD%E6%9E%B6%E6%9E%84%E5%BC%80%E7%AF%87%20%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%20%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BC%98%E5%8C%96%20.docx#_期中架构主机优化脚本" ><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; color: black; mso-themecolor: text1; background: yellow; mso-highlight: yellow;" lang="EN-US"><span lang="EN-US">脚本</span></span></a></span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">进行修改</span></p>
+<p class="MsoNormal" style="margin-left: 7.1pt;"><span lang="EN-US">02. </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">手动进行修改</span></p>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">hostname</span><span style="color: #000000;"> backup
+</span><span style="color: #0000ff;">sed</span> -i <span style="color: #800000;">"</span><span style="color: #800000;">s#oldboy40#backup#g</span><span style="color: #800000;">"</span> /etc/sysconfig/<span style="color: #000000;">network
+</span><span style="color: #0000ff;">grep</span> <span style="color: #800000;">"</span><span style="color: #800000;">backup</span><span style="color: #800000;">"</span> /etc/sysconfig/<span style="color: #000000;">network
+HOSTNAME</span>=<span style="color: #000000;">backup
+</span><span style="color: #0000ff;">grep</span> <span style="color: #800000;">"</span><span style="color: #800000;">backup</span><span style="color: #800000;">"</span> /etc/<span style="color: #000000;">hosts
+</span><span style="color: #800080;">172.16</span>.<span style="color: #800080;">1.41</span>     backup</pre>
+</div>
+<h3><a name="_Toc495427865"></a><a name="_Toc495231566"></a><!--[if !supportLists]--><span lang="EN-US">3.4.1 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">手动修改网卡地址</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">sed</span> -i <span style="color: #800000;">'</span><span style="color: #800000;">s#200#41#g</span><span style="color: #800000;">'</span>  /etc/sysconfig/network-scripts/ifcfg-eth[<span style="color: #800080;">01</span>]</pre>
+</div>
+<h3><a name="_Toc495427866"></a><a name="_Toc495231567"></a><!--[if !supportLists]--><span lang="EN-US">3.4.2 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">修改系统主机名称</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">hostname</span><span style="color: #000000;"> backup
+</span><span style="color: #0000ff;">sed</span> -i  <span style="color: #800000;">'</span><span style="color: #800000;">s#znix#backup#g</span><span style="color: #800000;">'</span> /etc/sysconfig/<span style="color: #000000;">network
+修改hosts文件</span></pre>
+</div>
+<h3><a name="_Toc495427867"></a><a name="_Toc495231568"></a><!--[if !supportLists]--><span lang="EN-US">3.4.3 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">重启网卡</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">生效</span></h3>
+<div class="cnblogs_code">
+<pre>/etc/init.d/network restart</pre>
+</div>
+<h3><a name="_Toc495427868"></a><a name="_Toc495231569"></a><!--[if !supportLists]--><span lang="EN-US">3.4.4 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">重新建立</span><span lang="EN-US">xsheel</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">标签进行连接</span></h3>
+<p class="MsoNormal" style="margin-left: 21pt;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">第一台克隆主机完成</span></p>
+<h2 style="margin: 8.15pt 0cm 8.15pt 25.1pt;"><a name="_Toc495427869"></a><!--[if !supportLists]--><span lang="EN-US">3.5 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; mso-effects-shadow-color: black; mso-effects-shadow-alpha: 100.0%; mso-effects-shadow-dpiradius: 4.0pt; mso-effects-shadow-dpidistance: 4.0pt; mso-effects-shadow-angledirection: 5400000; mso-effects-shadow-align: center; mso-effects-shadow-pctsx: 0%; mso-effects-shadow-pctsy: 0%; mso-effects-shadow-anglekx: 0; mso-effects-shadow-angleky: 0;">虚拟主机快照</span></h2>
+<p class="MsoNormal" style="text-indent: 24pt;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; mso-effects-shadow-color: black; mso-effects-shadow-alpha: 100.0%; mso-effects-shadow-dpiradius: 4.0pt; mso-effects-shadow-dpidistance: 4.0pt; mso-effects-shadow-angledirection: 5400000; mso-effects-shadow-align: center; mso-effects-shadow-pctsx: 0%; mso-effects-shadow-pctsy: 0%; mso-effects-shadow-anglekx: 0; mso-effects-shadow-angleky: 0;">模板机初始化完成进行拍照留念</span></p>
+<p class="MsoNormal" style="text-indent: 21pt;"><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; mso-effects-shadow-color: black; mso-effects-shadow-alpha: 100.0%; mso-effects-shadow-dpiradius: 4.0pt; mso-effects-shadow-dpidistance: 4.0pt; mso-effects-shadow-angledirection: 5400000; mso-effects-shadow-align: center; mso-effects-shadow-pctsx: 0%; mso-effects-shadow-pctsy: 0%; mso-effects-shadow-anglekx: 0; mso-effects-shadow-angleky: 0;">存储空间足够，快照要多保存。，</span></p>
+<h2 style="margin: 8.15pt 0cm 8.15pt 25.1pt;"><a name="_Toc495427870"></a><!--[if !supportLists]--><span lang="EN-US">3.6 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; mso-effects-shadow-color: black; mso-effects-shadow-alpha: 100.0%; mso-effects-shadow-dpiradius: 4.0pt; mso-effects-shadow-dpidistance: 4.0pt; mso-effects-shadow-angledirection: 5400000; mso-effects-shadow-align: center; mso-effects-shadow-pctsx: 0%; mso-effects-shadow-pctsy: 0%; mso-effects-shadow-anglekx: 0; mso-effects-shadow-angleky: 0;">错误排查</span></h2>
+<h3><a name="_Toc495427871"></a><!--[if !supportLists]--><span lang="EN-US">3.6.1 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">网卡配置问题</span></h3>
+<div style="border: 2pt solid windowtext; padding: 1pt 4pt; background: #f2f2f2;">
+<p class="a1"><span lang="EN-US">&nbsp;&nbsp;&nbsp; a </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 宋体; mso-hansi-font-family: 宋体;">两删除操作完成之后，不要再进行</span><span lang="EN-US">setup</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 宋体; mso-hansi-font-family: 宋体;">修改网卡操作，否则</span><span lang="EN-US">mac</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 宋体; mso-hansi-font-family: 宋体;">地址信息会再次出现</span></p>
+<p class="a1"><span lang="EN-US">&nbsp;&nbsp;&nbsp; b <span style="background: yellow; mso-highlight: yellow;">setup</span></span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 宋体; mso-hansi-font-family: 宋体; background: yellow; mso-highlight: yellow;">命令无法设置网卡信息，主要和字符集设置有关</span></p>
+</div>
+<h2 style="margin: 8.15pt 0cm 8.15pt 25.1pt;"><a name="_Toc495427872"></a><!--[if !supportLists]--><span lang="EN-US">3.7 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">如何让</span><span lang="EN-US">setup </span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">命令中防火墙配置生效</span></h2>
+<h3><a name="_Toc495427873"></a><!--[if !supportLists]--><span lang="EN-US">3.7.1 </span><!--[endif]--><span lang="EN-US">CentOS</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">系统找不到</span><span lang="EN-US">setup</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">命令工具的解决方法</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">yum</span> -y <span style="color: #0000ff;">install</span><span style="color: #000000;"> setuptool  
+#安装setup命令工具
+
+</span><span style="color: #0000ff;">yum</span> -y <span style="color: #0000ff;">install</span><span style="color: #000000;"> ntsysv  
+#安装setup工具配套的系统服务组件
+
+</span><span style="color: #0000ff;">yum</span> -y <span style="color: #0000ff;">install</span> system-config-securitylevel-<span style="color: #000000;">tui
+#安装setup工具配套的防火墙配置组件
+
+</span><span style="color: #0000ff;">yum</span> -y <span style="color: #0000ff;">install</span> system-config-network-<span style="color: #000000;">tui
+#安装setup工具配套的网络配置组件
+
+</span><span style="color: #0000ff;">yum</span> -y <span style="color: #0000ff;">install</span> authconfig-<span style="color: #000000;">gtk
+#安装setup工具配套的验证配置组件
+
+</span><span style="color: #0000ff;">yum</span> -y <span style="color: #0000ff;">install</span> system-config-<span style="color: #000000;">keyboard
+#安装setup工具配套的键盘配置组件</span></pre>
+</div>
+<h3><a name="_Toc495427874"></a><!--[if !supportLists]--><span lang="EN-US">3.7.2 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">使用</span><span lang="EN-US">setup</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">配置中的</span><span style="font-size: 14.0pt; font-family: 'DejaVu Sans Mono'; mso-fareast-font-family: 宋体; color: red; mso-font-kerning: 0pt;" lang="EN-US">Firewall configuration</span><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New';">出现的错误</span></h3>
+<div class="cnblogs_code">
+<pre>Traceback (most recent call <span style="color: #0000ff;">last</span><span style="color: #000000;">):
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/bin/system-config-firewall-tui</span><span style="color: #800000;">"</span>, line <span style="color: #800080;">29</span>, <span style="color: #0000ff;">in</span> <module><span style="color: #000000;">
+    import fw_tui
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/share/system-config-firewall/fw_tui.py</span><span style="color: #800000;">"</span>, line <span style="color: #800080;">34</span>, <span style="color: #0000ff;">in</span> <module><span style="color: #000000;">
+    import fw_nm
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/share/system-config-firewall/fw_nm.py</span><span style="color: #800000;">"</span>, line <span style="color: #800080;">30</span>, <span style="color: #0000ff;">in</span> <module><span style="color: #000000;">
+    bus </span>=<span style="color: #000000;"> dbus.SystemBus()
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/lib/python2.6/site-packages/dbus/_dbus.py</span><span style="color: #800000;">"</span>, line <span style="color: #800080;">202</span>, <span style="color: #0000ff;">in</span> __new__    private=<span style="color: #000000;">private)
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/lib/python2.6/site-packages/dbus/_dbus.py</span><span style="color: #800000;">"</span>, line <span style="color: #800080;">108</span>, <span style="color: #0000ff;">in</span><span style="color: #000000;"> __new__
+    bus </span>= BusConnection.__new__(subclass, bus_type, mainloop=<span style="color: #000000;">mainloop)
+  File </span><span style="color: #800000;">"</span><span style="color: #800000;">/usr/lib/python2.6/site-packages/dbus/bus.py</span><span style="color: #800000;">"</span>, line <span style="color: #800080;">125</span>, <span style="color: #0000ff;">in</span><span style="color: #000000;"> __new__
+    bus </span>= cls._new_for_bus(address_or_type, mainloop=<span style="color: #000000;">mainloop)
+dbus.exceptions.DBusException: org.freedesktop.DBus.Error.FileNotFound: Failed to connect to socket </span>/var/run/dbus/system_bus_socket: No such <span style="color: #0000ff;">file</span> or directory</pre>
+</div>
+<h3><a name="_Toc495427875"></a><!--[if !supportLists]--><span style="mso-fareast-font-family: 'Courier New'; mso-bidi-font-family: 'Courier New'; background: yellow; mso-highlight: yellow;" lang="EN-US">3.7.3 </span><!--[endif]--><span style="font-family: '微软雅黑',sans-serif; mso-ascii-font-family: 'Courier New'; mso-hansi-font-family: 'Courier New'; background: yellow; mso-highlight: yellow;">解决办法</span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #0000ff;">yum</span> <span style="color: #0000ff;">install</span> -y system-config-firewall system-config-firewall-tui dbus eggdbus && service messagebus start</pre>
+</div>
+<h3><span style="background-color: #ffffff;">&nbsp;</span></h3>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="966" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/" rel="category tag">安全</a> <a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/" rel="category tag">玩转Linux</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2017年10月1日<i class="i-time">07:06:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 9051 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx966.html" tppabs="http://clsn.io/clsn/lx966.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx966.html">企业架构规划及服务器优化参数 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/20.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx980.html" tppabs="http://clsn.io/clsn/lx980.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>Linux中常见问题（磁盘 定时任务）</span></a><a href="javascript:if(confirm('http://clsn.io/clsn/lx965.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx965.html'" tppabs="http://clsn.io/clsn/lx965.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>定时任务的使用-crond</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx980.html" tppabs="http://clsn.io/clsn/lx980.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="javascript:if(confirm('http://clsn.io/clsn/lx965.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx965.html'" tppabs="http://clsn.io/clsn/lx965.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx966.html#respond" tppabs="http://clsn.io/clsn/lx966.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='966' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx290.html" tppabs="http://clsn.io/clsn/lx290.html" rel="bookmark">MHA高可用架构与Atlas读写分离</a></li> <li><a href="lx247.html" tppabs="http://clsn.io/clsn/lx247.html" rel="bookmark">MongoDB的备份与恢复</a></li> <li><a href="lx1124.html" tppabs="http://clsn.io/clsn/lx1124.html" rel="bookmark">KICKSTART无人值守安装</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx963.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx963.html'" tppabs="http://clsn.io/clsn/lx963.html" rel="bookmark">YUM源、磁盘基础知识 CDN概念</a></li> <li><a href="lx254.html" tppabs="http://clsn.io/clsn/lx254.html" rel="bookmark">MongoDB 分片集群技术</a></li> <li><a href="lx775.html" tppabs="http://clsn.io/clsn/lx775.html" rel="bookmark">使用cobbler批量安装操作系统(基于Centos7.x )</a></li> <li><a href="lx983.html" tppabs="http://clsn.io/clsn/lx983.html" rel="bookmark">linux中的权限</a></li> <li><a href="lx891.html" tppabs="http://clsn.io/clsn/lx891.html" rel="bookmark">FPM定制RPM包实践</a></li> <li><a href="lx28.html" tppabs="http://clsn.io/clsn/lx28.html" rel="bookmark">分布式文件系统&#8212;GlusterFS</a></li> <li><a href="lx999.html" tppabs="http://clsn.io/clsn/lx999.html" rel="bookmark">Linux系统安装_Centos6.9</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx966.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx966.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx966.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

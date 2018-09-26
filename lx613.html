@@ -1,0 +1,1094 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>高并发场景 LVS 安装及高可用实现 | 惨绿少年</title><meta name="description" content="那为什么要用lvs呢？" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx613.html" tppabs="http://clsn.io/clsn/lx613.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-613 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><i class="be be-arrowright"></i><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/" rel="category tag">Web应用</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/" rel="category tag">安全</a><i class="be be-arrowright"></i><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/" rel="category tag">玩转Linux</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>高并发场景 LVS 安装及高可用实现 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-613" class="post-613 post type-post status-publish format-standard hentry category-linux category-web-app category-acl category-play-linux category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">高并发场景 LVS 安装及高可用实现</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2017年11月29日<i class="i-time">07:54:00</i></span><span class="comment"><a href="lx613.html#respond" tppabs="http://clsn.io/clsn/lx613.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="javascript:if(confirm('http://clsn.io/clsn/lx613.html?wpzmaction=add&postid=613  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx613.html?wpzmaction=add&postid=613'" tppabs="http://clsn.io/clsn/lx613.html?wpzmaction=add&postid=613" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h2>1.1 <span style="font-family: '微软雅黑',sans-serif;">负载均衡介绍</span></h2>
+<h3>1.1.1 <span style="font-family: '微软雅黑',sans-serif;">负载均衡的妙用</span></h3>
+<p style="margin-left: 7.1pt; text-indent: 21.0pt;"><span style="font-family: 等线;">&nbsp;负载均衡（</span>Load Balance<span style="font-family: 等线;">）集群提供了一种廉价、有效、透明的方法，来扩展网络设备和服务器的负载、带宽、增加吞吐量、加强网络数据处理能力、提高网络的灵活性和可用性。</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">&uuml;&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">单台计算机无法承受大规模的并发访问或数据流量了，此时需要搭建负载均衡集群把流量分摊到多台节点设备上分别处理，即减少用户等待响应的时间又提升了用户体验；</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">&uuml;&nbsp;</span>7*24<span style="font-family: '微软雅黑',sans-serif;">小时的服务保证，任意一个或多个有限后端节点设备宕机，不能影响整个业务的运行。</span></p>
+<h3>1.1.2 <span style="font-family: '微软雅黑',sans-serif;">为什么要用</span>lvs</h3>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">n&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">工作在网络模型的</span>7<span style="font-family: '微软雅黑',sans-serif;">层，可以针对</span>http<span style="font-family: '微软雅黑',sans-serif;">应用做一些分流的策略，比如针对域名、目录结构，</span>Nginx<span style="font-family: '微软雅黑',sans-serif;">单凭这点可利用的场合就远多于</span>LVS<span style="font-family: '微软雅黑',sans-serif;">了。</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">n&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">最新版本的</span>Nginx<span style="font-family: '微软雅黑',sans-serif;">也支持</span>4<span style="font-family: '微软雅黑',sans-serif;">层</span>TCP<span style="font-family: '微软雅黑',sans-serif;">负载，曾经这是</span>LVS<span style="font-family: '微软雅黑',sans-serif;">比</span>Nginx<span style="font-family: '微软雅黑',sans-serif;">好的地方。</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">n&nbsp;</span>Nginx<span style="font-family: '微软雅黑',sans-serif;">对网络稳定性的依赖非常小，理论上能</span>ping<span style="font-family: '微软雅黑',sans-serif;">通就就能进行负载功能，这个也是它的优势之一，相反</span>LVS<span style="font-family: '微软雅黑',sans-serif;">对网络稳定性依赖比较大。</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">n&nbsp;</span>Nginx<span style="font-family: '微软雅黑',sans-serif;">安装和配置比较简单，测试起来比较方便，它基本能把错误用日志打印出来。</span>LVS<span style="font-family: '微软雅黑',sans-serif;">的配置、测试就要花比较长的时间了，</span>LVS<span style="font-family: '微软雅黑',sans-serif;">对网络依赖比较大。</span></p>
+<p><strong><span style="font-family: 等线; background: lime;">那为什么要用</span><span style="background: lime;">lvs</span></strong><strong><span style="font-family: 等线; background: lime;">呢？</span></strong></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">&uuml;&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">简单一句话，当并发超过了</span>Nginx<span style="font-family: '微软雅黑',sans-serif;">上限，就可以使用</span>LVS<span style="font-family: '微软雅黑',sans-serif;">了。</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">&uuml;&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">日</span>1000-2000W PV<span style="font-family: '微软雅黑',sans-serif;">或并发请求</span>1<span style="font-family: '微软雅黑',sans-serif;">万以下都可以考虑用</span>Nginx<span style="font-family: '微软雅黑',sans-serif;">。</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">&uuml;&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">大型门户网站，电商网站需要用到</span>LVS<span style="font-family: '微软雅黑',sans-serif;">。</span></p>
+<h2>1.2 LVS<span style="font-family: '微软雅黑',sans-serif;">介绍</span></h2>
+<p style="text-indent: 21.0pt;">LVS<span style="font-family: 等线;">是</span>Linux Virtual Server<span style="font-family: 等线;">的简写，意即</span>Linux<span style="font-family: 等线;">虚拟服务器，是一个虚拟的服务器集群系统，可以在</span>UNIX/LINUX<span style="font-family: 等线;">平台下实现负载均衡集群功能。该项目在</span><span style="text-decoration: underline;">1998</span><span style="text-decoration: underline;"><span style="font-family: 等线;">年</span>5</span><span style="text-decoration: underline;"><span style="font-family: 等线;">月由章文嵩博士</span></span><span style="font-family: 等线;">组织成立，是<strong><em><span style="text-decoration: underline;">中国国内最早出现的自由软件项目之一</span></em></strong>。</span></p>
+<h3>1.2.1 <span style="font-family: '微软雅黑',sans-serif;">相关参考资料</span></h3>
+<p>LVS<span style="font-family: 等线;">官网：</span><em><span style="text-decoration: underline;">http://www.linuxvirtualserver.org/index.html</span></em></p>
+<p><em><span style="text-decoration: underline;"><span style="font-family: 等线;">相关中文资料</span></span></em></p>
+<p>&nbsp;</p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;">LVS项目介绍           http://www.linuxvirtualserver.org/zh/lvs1.html 
+LVS集群的体系结构     http://www.linuxvirtualserver.org/zh/lvs2.html 
+LVS集群中的IP负载均衡技术  http://www.linuxvirtualserver.org/zh/lvs3.html
+LVS集群的负载调度      http://www.linuxvirtualserver.org/zh/lvs4.html </pre>
+</div>
+<p>&nbsp;</p>
+<h3>1.2.2 LVS<span style="font-family: '微软雅黑',sans-serif;">内核模块</span>ip_vs<span style="font-family: '微软雅黑',sans-serif;">介绍</span></h3>
+<p style="margin-left: 19.25pt;"><span style="font-family: 等线;">早在</span>2.2<span style="font-family: 等线;">内核时，</span> IPVS<span style="font-family: 等线;">就已经以内核补丁的形式出现。</span></p>
+<p style="margin-left: 19.25pt;"><span style="font-family: 等线;">从</span>2.4.23<span style="font-family: 等线;">版本开始，</span>IPVS<span style="font-family: 等线;">软件就合并到</span>Linux<span style="font-family: 等线;">内核的常用版本的内核补丁的集合。</span></p>
+<p style="margin-left: 19.25pt;"><span style="text-decoration: underline;"><span style="font-family: 等线;">从</span><strong>2.4.24</strong></span><span style="text-decoration: underline;"><span style="font-family: 等线;">以后</span>IPVS</span><span style="text-decoration: underline;"><span style="font-family: 等线;">已经成为</span>Linux</span><span style="text-decoration: underline;"><span style="font-family: 等线;">官方标准内核的一部分。</span></span></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129150904487-1864991874.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /></p>
+
+<p style="margin-left: 45.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">&uuml;&nbsp;</span>LVS<span style="font-family: '微软雅黑',sans-serif;">无需安装</span></p>
+<p style="margin-left: 45.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">&uuml;&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">安装的是管理工具，第一种叫</span>ipvsadm<span style="font-family: '微软雅黑',sans-serif;">，第二种叫</span>keepalive</p>
+<p style="margin-left: 45.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">&uuml;&nbsp;</span>ipvsadm<span style="font-family: '微软雅黑',sans-serif;">是通过命令行管理，而</span>keepalive<span style="font-family: '微软雅黑',sans-serif;">读取配置文件管理</span></p>
+<p style="margin-left: 45.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">&uuml;&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">后面我们会用</span>Shell<span style="font-family: '微软雅黑',sans-serif;">脚本实现</span>keepalive<span style="font-family: '微软雅黑',sans-serif;">的功能</span></p>
+<h2>1.3 LVS<span style="font-family: '微软雅黑',sans-serif;">集群搭建</span></h2>
+<h3>1.3.1 <span style="font-family: '微软雅黑',sans-serif;">集群环境说明</span></h3>
+<table style="width: 96%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 9.88%; border-top: 1pt solid #4472c4; border-bottom: 1pt solid #4472c4; border-left: 1pt solid #4472c4; border-right: none; background: #4472c4; padding: 0cm 5.4pt;" valign="top" width="9%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 宋体; times new roman"4times new roman";times new roman";color: white;">主机名</span></strong></p>
+</td>
+<td style="width: 18.32%; border-top: solid #4472C4 1.0pt; border-left: none; border-bottom: solid #4472C4 1.0pt; border-right: none; background: #4472C4; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="18%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif; color: white;">IP</span></strong><strong><span style="font-size: 10.0pt; font-family: 宋体; times new roman"4times new roman";times new roman";color: white;">地址</span></strong></p>
+</td>
+<td style="width: 25.36%; border-top: solid #4472C4 1.0pt; border-left: none; border-bottom: solid #4472C4 1.0pt; border-right: none; background: #4472C4; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="25%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 宋体; times new roman"4times new roman";times new roman";color: white;">软件</span></strong></p>
+</td>
+<td style="width: 46.46%; border-top: 1pt solid #4472c4; border-right: 1pt solid #4472c4; border-bottom: 1pt solid #4472c4; border-left: none; background: #4472c4; padding: 0cm 5.4pt;" valign="top" width="46%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 宋体; times new roman"4times new roman";times new roman";color: white;">系统版本</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 9.88%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="9%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">lb03</span></strong></p>
+</td>
+<td style="width: 18.32%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="18%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">10.0.0.15</span></p>
+</td>
+<td style="width: 25.36%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="25%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">lvs keepalived</span></p>
+</td>
+<td style="width: 46.46%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="46%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">CentOS Linux release 7.4.1708</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 9.88%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" valign="top" width="9%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">lb04</span></strong></p>
+</td>
+<td style="width: 18.32%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="18%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">10.0.0.16</span></p>
+</td>
+<td style="width: 25.36%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="25%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">lvs keepalived</span></p>
+</td>
+<td style="width: 46.46%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="46%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">CentOS Linux release 7.4.1708</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 9.88%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" valign="top" width="9%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">web03</span></strong></p>
+</td>
+<td style="width: 18.32%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="18%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">10.0.0.18</span></p>
+</td>
+<td style="width: 25.36%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="25%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">tomcat</span></p>
+</td>
+<td style="width: 46.46%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="46%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">CentOS Linux release 7.4.1708</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 9.88%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" valign="top" width="9%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">web04</span></strong></p>
+</td>
+<td style="width: 18.32%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="18%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">10.0.0.17</span></p>
+</td>
+<td style="width: 25.36%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="25%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">tomcat</span></p>
+</td>
+<td style="width: 46.46%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="46%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">CentOS Linux release 7.4.1708</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: lime;">主机说明</span></span></em></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5624393922163a346665">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat /etc/redhat-release </span>
+CentOS Linux release 7.4.1708<span style="color: #000000;"> (Core) 
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0f7d60607b4f636d3f3c">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> uname -a</span>
+Linux lb03 3.10.0-693.el7.x86_64 <span style="color: #008000;">#</span><span style="color: #008000;">1 SMP Tue Aug 22 21:09:27 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f1839e9e85b19d93c1c2">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> systemctl status firewalld.service </span>
+● firewalld.service - firewalld -<span style="color: #000000;"> dynamic firewall daemon
+   Loaded: loaded (</span>/usr/lib/systemd/system/<span style="color: #000000;">firewalld.service; disabled; vendor preset: enabled)
+   Active: inactive (dead)
+     Docs: man:firewalld(</span>1<span style="color: #000000;">)
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d3a1bcbca793bfb1e3e0">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> getenforce </span>
+Disabled</pre>
+</div>
+<p><em><span style="text-decoration: underline;"><span style="background: lime;">web</span></span></em><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: lime;">环境说明</span></span></em></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ec9e838398ac808edcdf">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl 10.0.0.17</span>
+<span style="color: #000000;">web03
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c5b7aaaab185a9a7f5f6">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl 10.0.0.18</span>
+web04</pre>
+</div>
+<p>　　web服务器的搭建参照： Tomcat：<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=%20http://www.cnblogs.com/clsn/p/7904611.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=%20http://www.cnblogs.com/clsn/p/7904611.html'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=%20http://www.cnblogs.com/clsn/p/7904611.html"  target="_blank"> http://www.cnblogs.com/clsn/p/7904611.html</a></p>
+<p>　　　　　　　　　　　　　&nbsp; Nginx：<a href="javascript:if(confirm('http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=%20http://www.cnblogs.com/clsn/p/7750615.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=%20http://www.cnblogs.com/clsn/p/7750615.html'" tppabs="http://clsn.io/wp-content/themes/clsn-003/inc/go.php?url=%20http://www.cnblogs.com/clsn/p/7750615.html"  target="_blank">&nbsp;http://www.cnblogs.com/clsn/p/7750615.html</a></p>
+<h3>1.3.2 <span style="font-family: '微软雅黑',sans-serif;">安装</span>ipvsadm<span style="font-family: '微软雅黑',sans-serif;">管理工具</span></h3>
+<p style="text-indent: 7.1pt;"><span style="font-family: 等线;">安装管理工具</span></p>
+<div class="cnblogs_code">
+<pre>yum -y install ipvsadm</pre>
+</div>
+<p style="text-indent: 11.0pt;"><span style="font-family: 等线;">查看当前</span>LVS<span style="font-family: 等线;">状态，顺便激活</span>LVS<span style="font-family: 等线;">内核模块。</span></p>
+<div class="cnblogs_code">
+<pre>ipvsadm</pre>
+</div>
+<p style="text-indent: 11.0pt;"><span style="font-family: 等线;">查看系统的</span>LVS<span style="font-family: 等线;">模块。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0674696972466a643635">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> lsmod|grep ip_vs</span>
+ip_vs_wrr              12697  1<span style="color: #000000;">
+ip_vs                 </span>141092  3<span style="color: #000000;"> ip_vs_wrr
+nf_conntrack          </span>133387  1<span style="color: #000000;"> ip_vs
+libcrc32c              </span>12644  3 xfs,ip_vs,nf_conntrack</pre>
+</div>
+<h3>1.3.3 LVS<span style="font-family: '微软雅黑',sans-serif;">集群搭建</span></h3>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p><span style="background-color: #00ffff;"><span style="font-family: '微软雅黑',sans-serif;">配置</span>LVS<span style="font-family: '微软雅黑',sans-serif;">负载均衡服务（<em><span style="text-decoration: underline;">在</span></em></span><em><span style="text-decoration: underline;">lb03</span></em><em><span style="text-decoration: underline;"><span style="font-family: '微软雅黑',sans-serif;">操作</span></span></em><span style="font-family: '微软雅黑',sans-serif;">）</span></span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">步骤</span>1<span style="font-family: '微软雅黑',sans-serif;">：在</span>eth0<span style="font-family: '微软雅黑',sans-serif;">网卡绑定</span>VIP<span style="font-family: '微软雅黑',sans-serif;">地址（</span>ip<span style="font-family: '微软雅黑',sans-serif;">）</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">步骤</span>2<span style="font-family: '微软雅黑',sans-serif;">：清除当前所有</span>LVS<span style="font-family: '微软雅黑',sans-serif;">规则（</span>-C<span style="font-family: '微软雅黑',sans-serif;">）</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">步骤</span>3<span style="font-family: '微软雅黑',sans-serif;">：设置</span>tcp<span style="font-family: '微软雅黑',sans-serif;">、</span>tcpfin<span style="font-family: '微软雅黑',sans-serif;">、</span>udp<span style="font-family: '微软雅黑',sans-serif;">链接超时时间（</span>--set<span style="font-family: '微软雅黑',sans-serif;">）</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">步骤</span>4<span style="font-family: '微软雅黑',sans-serif;">：添加虚拟服务（</span>-A<span style="font-family: '微软雅黑',sans-serif;">），</span>-t<span style="font-family: '微软雅黑',sans-serif;">指定虚拟服务的</span>IP<span style="font-family: '微软雅黑',sans-serif;">端口，</span>-s <span style="font-family: '微软雅黑',sans-serif;">指定调度算法</span> <span style="font-family: '微软雅黑',sans-serif;">调度算法见</span>man ipvsadm<span style="font-family: '微软雅黑',sans-serif;">，</span> rr wrr <span style="font-family: '微软雅黑',sans-serif;">权重轮询</span> -p <span style="font-family: '微软雅黑',sans-serif;">指定超时时间</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">步骤</span>5<span style="font-family: '微软雅黑',sans-serif;">：将虚拟服务关联到真实服务上（</span>-a<span style="font-family: '微软雅黑',sans-serif;">）</span> -r<span style="font-family: '微软雅黑',sans-serif;">指定真实服务的</span>IP<span style="font-family: '微软雅黑',sans-serif;">端口</span> -g LVS<span style="font-family: '微软雅黑',sans-serif;">的模式</span> DR<span style="font-family: '微软雅黑',sans-serif;">模式</span> -w <span style="font-family: '微软雅黑',sans-serif;">指定权重</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">步骤</span>6<span style="font-family: '微软雅黑',sans-serif;">：查看配置结果（</span>-ln<span style="font-family: '微软雅黑',sans-serif;">）</span></p>
+</div>
+<p><strong><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: lime;">命令集</span></span></em></strong><strong><span style="text-decoration: underline;"><span style="font-family: 等线; background: lime;">：</span></span></strong></p>
+<div class="cnblogs_code">
+<pre>ip addr add 10.0.0.13/24<span style="color: #000000;"> dev eth0
+ipvsadm </span>-<span style="color: #000000;">C                    
+ipvsadm </span>--set 30 5 60<span style="color: #000000;">         
+ipvsadm </span>-A -t 10.0.0.13:80 -s wrr -p 20<span style="color: #000000;">   
+ipvsadm </span>-a -t 10.0.0.13:80 -r 10.0.0.17:80 -g -w 1<span style="color: #000000;"> 
+ipvsadm </span>-a -t 10.0.0.13:80 -r 10.0.0.18:80 -g -w 1<span style="color: #000000;">
+ipvsadm </span>-ln</pre>
+</div>
+<p><strong><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: lime;">检查结果</span></span></em></strong><strong><span style="text-decoration: underline;"><span style="font-family: 等线; background: lime;">：</span></span></strong></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="abd9c4c4dfebc7c99b98">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ipvsadm -ln</span>
+IP Virtual Server version 1.2.1 (size=4096<span style="color: #000000;">)
+Prot LocalAddress:Port Scheduler Flags
+  </span>-><span style="color: #000000;"> RemoteAddress:Port           Forward Weight ActiveConn InActConn
+TCP  </span>10.0.0.13:80 wrr persistent 20
+  -> 10.0.0.17:80                 Route   1<span style="color: #000000;">      0          0  
+  </span>-> 10.0.0.18:80                 Route   1      0          0   </pre>
+</div>
+<p><strong><em><span style="text-decoration: underline;"><span style="background: aqua;">ipvsadm</span></span></em></strong><strong><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: aqua;">参数说明：</span></span></em><span style="text-decoration: underline;"><span style="background: aqua;">(</span></span></strong><strong><span style="text-decoration: underline;"><span style="font-family: 等线; background: aqua;">更多参照</span><span style="background: aqua;"> man ipvsadm)</span></span></strong></p>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 12.16%; border-top: 1pt solid #4472c4; border-bottom: 1pt solid #4472c4; border-left: 1pt solid #4472c4; border-right: none; background: #4472c4; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="color: #ffffff;"><strong><span style="font-size: 10.0pt; font-family: 宋体; times new roman"4times new roman";times new roman";color: white;">参数</span></strong></span></p>
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="color: #ffffff;"><strong><em><span style="font-size: 10pt; font-family: 'Times New Roman', serif;">(</span></em></strong><strong><em><span style="font-size: 10.0pt; font-family: 宋体; times new roman"4times new roman";times new roman";color: white;">短格式</span></em></strong><strong><em><span style="font-size: 10pt; font-family: 'Times New Roman', serif;">)</span></em></strong></span></p>
+</td>
+<td style="width: 31.18%; border-top: solid #4472C4 1.0pt; border-left: none; border-bottom: solid #4472C4 1.0pt; border-right: none; background: #4472C4; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="color: #ffffff;"><strong><span style="font-size: 10.0pt; font-family: 宋体; times new roman"4times new roman";times new roman";color: white;">参数</span></strong></span></p>
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="color: #ffffff;"><strong><em><span style="font-size: 10pt; font-family: 'Times New Roman', serif;">(</span></em></strong><strong><em><span style="font-size: 10.0pt; font-family: 宋体; times new roman"4times new roman";times new roman";color: white;">长格式</span></em></strong><strong><em><span style="font-size: 10pt; font-family: 'Times New Roman', serif;">)</span></em></strong></span></p>
+</td>
+<td style="width: 56.66%; border-top: 1pt solid #4472c4; border-right: 1pt solid #4472c4; border-bottom: 1pt solid #4472c4; border-left: none; background: #4472c4; padding: 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><span style="color: #ffffff;"><strong><span style="font-size: 10.0pt; font-family: 宋体; times new roman"4times new roman";times new roman";color: white;">参数说明</span></strong></span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-A</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--add-service</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">在内核的虚拟服务器表中添加一条新的虚拟服务器记录。也就是增加一台新的虚拟服务器。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-E</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--edit-service</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">编辑内核虚拟服务器表中的一条虚拟服务器记录。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-D</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--delete-service</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">删除内核虚拟服务器表中的一条虚拟服务器记录。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-C</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--clear</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">清除内核虚拟服务器表中的所有记录。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-R</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--restore</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">恢复虚拟服务器规则</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-S</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--save</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">保存虚拟服务器规则，输出为</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-R </span><span style="font-size: 10.0pt; font-family: 宋体;">选项可读的格式</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-a</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--add-server</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">在内核虚拟服务器表的一条记录里添加一条新的真实服务器记录。也就是在一个虚拟服务器中增加一台新的真实服务器</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-e</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--edit-server</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">编辑一条虚拟服务器记录中的某条真实服务器记录</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-d</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--delete-server</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">删除一条虚拟服务器记录中的某条真实服务器记录</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-L|-l</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--list</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">显示内核虚拟服务器表</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-Z</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--zero</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">虚拟服务表计数器清零（清空当前的连接数量等）</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--set<em> tcp tcpfin udp</em></span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">设置连接超时值</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--start-daemon</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">启动同步守护进程。他后面可以是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">master </span><span style="font-size: 10.0pt; font-family: 宋体;">或</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">backup</span><span style="font-size: 10.0pt; font-family: 宋体;">，用来说明</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">LVS Router </span><span style="font-size: 10.0pt; font-family: 宋体;">是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">master </span><span style="font-size: 10.0pt; font-family: 宋体;">或是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">backup</span><span style="font-size: 10.0pt; font-family: 宋体;">。在这个功能上也可以采用</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">keepalived </span><span style="font-size: 10.0pt; font-family: 宋体;">的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">VRRP </span><span style="font-size: 10.0pt; font-family: 宋体;">功能。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--stop-daemon</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">停止同步守护进程</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-h</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--help </span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">显示帮助信息</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-t</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--tcp-service <em>service-address [vip:port] or [real-server-ip:port]</em></span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">说明虚拟服务器提供的是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">tcp </span><span style="font-size: 10.0pt; font-family: 宋体;">的服务</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-u</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--udp-service <em>service-address [vip:port] or [real-server-ip:port]</em></span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">说明虚拟服务器提供的是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">udp </span><span style="font-size: 10.0pt; font-family: 宋体;">的服务</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-f</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--fwmark-service <em>fwmark</em></span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">说明是经过</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">iptables </span><span style="font-size: 10.0pt; font-family: 宋体;">标记过的服务类型。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-s</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--scheduler <em>scheduler</em></span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">使用的调度算法，有这样几个选项</span></p>
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">rr|wrr|lc|wlc|lblc|lblcr|dh|sh|sed|nq</span></p>
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">默认的调度算法是：</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;"> wlc</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-p</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--persistent <em>[timeout]</em></span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">持久稳固的服务。这个选项的意思是来自同一个客户的多次请求，将被同一台真实的服务器处理。</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">timeout </span><span style="font-size: 10.0pt; font-family: 宋体;">的默认值为</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">300</span><span style="font-size: 10.0pt; font-family: 宋体;">秒。</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-M</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--netmask netmask</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">persistent granularity mask</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-r</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--real-server <em>server-address</em></span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">真实的服务器</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">[Real-Server:port]</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-g</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--gatewaying</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">指定</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">LVS </span><span style="font-size: 10.0pt; font-family: 宋体;">的工作模式为直接路由模式（也是</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">LVS </span><span style="font-size: 10.0pt; font-family: 宋体;">默认的模式）</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-i</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--ipip</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">指定</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">LVS </span><span style="font-size: 10.0pt; font-family: 宋体;">的工作模式为隧道模式</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-m</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--masquerading</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">指定</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">LVS </span><span style="font-size: 10.0pt; font-family: 宋体;">的工作模式为</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">NAT </span><span style="font-size: 10.0pt; font-family: 宋体;">模式</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-w</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--weight <em>weight</em></span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">真实服务器的权值</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--mcast-interface</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">interface </span><span style="font-size: 10.0pt; font-family: 宋体;">指定组播的同步接口</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-c</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--connection</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">显示</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">LVS </span><span style="font-size: 10.0pt; font-family: 宋体;">目前的连接</span> <span style="font-size: 10.0pt; font-family: 宋体;">如：</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">ipvsadm -L -c</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--timeout&nbsp;&nbsp;&nbsp; </span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">显示</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">tcp tcpfin udp </span><span style="font-size: 10.0pt; font-family: 宋体;">的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">timeout </span><span style="font-size: 10.0pt; font-family: 宋体;">值</span> <span style="font-size: 10.0pt; font-family: 宋体;">如：</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">ipvsadm -L --timeout</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--daemon&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">显示同步守护进程状态</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--stats&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">显示统计信息</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--rate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">显示速率信息</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--sort&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">对虚拟服务器和真实服务器排序输出</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">-</span></strong></p>
+</td>
+<td style="width: 31.18%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="31%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">--numeric -n</span></p>
+</td>
+<td style="width: 56.66%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="56%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">输出</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">IP </span><span style="font-size: 10.0pt; font-family: 宋体;">地址和端口的数字形式</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>1.3.4 <span style="font-family: '微软雅黑',sans-serif;">在</span>web<span style="font-family: '微软雅黑',sans-serif;">浏览器配置操作</span></h3>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p><span style="font-family: '微软雅黑',sans-serif;">步骤</span>1<span style="font-family: '微软雅黑',sans-serif;">：在</span>lo<span style="font-family: '微软雅黑',sans-serif;">网卡绑定</span>VIP<span style="font-family: '微软雅黑',sans-serif;">地址（</span>ip<span style="font-family: '微软雅黑',sans-serif;">）</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">步骤</span>2<span style="font-family: '微软雅黑',sans-serif;">：修改内核参数抑制</span>ARP<span style="font-family: '微软雅黑',sans-serif;">响应</span></p>
+</div>
+<p><em><span style="text-decoration: underline;"><span style="font-family: 等线;">命令集</span></span></em><span style="text-decoration: underline;"><span style="font-family: 等线;">：</span></span></p>
+<div class="cnblogs_code">
+<pre>ip addr add 10.0.0.13/32<span style="color: #000000;"> dev lo
+
+cat </span>>>/etc/sysctl.conf<<<span style="color: #000000;">EOF
+net.ipv4.conf.all.arp_ignore </span>= 1<span style="color: #000000;">
+net.ipv4.conf.all.arp_announce </span>= 2<span style="color: #000000;">
+net.ipv4.conf.lo.arp_ignore </span>= 1<span style="color: #000000;">
+net.ipv4.conf.lo.arp_announce </span>= 2<span style="color: #000000;">
+EOF
+sysctl </span>-p</pre>
+</div>
+<p><strong><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: yellow;">至此</span><span style="background: yellow;">LVS</span></span></em></strong><strong><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: yellow;">集群配置完毕</span></span></em></strong><strong><span style="text-decoration: underline;"><span style="font-family: 等线; background: yellow;">！</span></span></strong></p>
+<h3>1.3.5 <span style="font-family: '微软雅黑',sans-serif;">进行访问测试</span></h3>
+<p style="margin-left: 7.1pt; text-indent: 13.9pt;"><em><span style="text-decoration: underline;"><span style="font-family: 等线;">浏览器访问：</span></span></em></p>
+<p style="text-align: center; text-indent: 7.1pt;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129151314144-587644970.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /></p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <em><span style="text-decoration: underline;"><span style="font-family: 等线;">命令行测试：</span></span></em></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="087a67677c48646a383c">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl 10.0.0.13</span>
+web03</pre>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <em><span style="text-decoration: underline;"><span style="font-family: 等线;">抓包查看结果：</span></span></em></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129151335769-167618594.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /></p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <em><span style="text-decoration: underline;">arp</span></em><em><span style="text-decoration: underline;"><span style="font-family: 等线;">解析查看：</span></span></em></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3745585843775b550703">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> arp -n</span>
+<span style="color: #000000;">Address                  HWtype  HWaddress           Flags Mask            Iface
+</span>10.0.0.254               ether   00:50:56<span style="color: #000000;">:e9:9f:2c   C                     eth0
+</span><span style="color: #00ff00;">10.0.0.18                ether   00:0c:29:ea:ca:55   C                     eth0
+</span><span style="color: #ff9900;">10.0.0.13                ether   00:0c:29:de:7c:97   C                     eth0
+</span>172.16.1.15              ether   00:0c:29<span style="color: #000000;">:de:7c:a1   C                     eth1
+</span><span style="color: #ff9900;">10.0.0.17                ether   00:0c:29:4a:ac:4a   C                     eth0</span></pre>
+</div>
+<h2>1.4 <span style="font-family: '微软雅黑',sans-serif;">负载均衡（</span>LVS<span style="font-family: '微软雅黑',sans-serif;">）相关名词</span></h2>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129151421753-37861922.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /></p>
+
+<p style="text-indent: 14.15pt;"><em><span style="text-decoration: underline;"><span style="font-family: 等线;">术语说明：</span></span></em></p>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">DS：Director Server。指的是前端负载均衡器节点。
+RS：Real Server。后端真实的工作服务器。
+VIP：向外部直接面向用户请求，作为用户请求的目标的IP地址。
+DIP：Director Server IP，主要用于和内部主机通讯的IP地址。
+RIP：Real Server IP，后端服务器的IP地址。
+CIP：Client IP，访问客户端的IP地址。</span></pre>
+</div>
+<h3>1.4.1 LVS<span style="font-family: '微软雅黑',sans-serif;">集群的工作模式</span>--DR<span style="font-family: '微软雅黑',sans-serif;">直接路由模式</span></h3>
+<p style="text-indent: 21.0pt;">DR<span style="font-family: 等线;">模式是通过改写请求报文的目标</span>MAC<span style="font-family: 等线;">地址，将请求发给真实服务器的，而真实服务器将响应后的处理结果直接返回给客户端用户。</span></p>
+<p style="text-indent: 21.0pt;">DR<span style="font-family: 等线;">技术可极大地提高集群系统的伸缩性。但要求调度器</span>LB<span style="font-family: 等线;">与真实服务器</span>RS<span style="font-family: 等线;">都有一块物理网卡连在同一物理网段上，即必须在同一局域网环境。</span></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129151443862-1890443677.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /></p>
+
+<p><em><span style="text-decoration: underline;"><span style="background: lime;">DR</span></span></em><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: lime;">直接路由模式说明：</span></span></em></p>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;">a)通过在调度器LB上修改数据包的目的MAC地址实现转发。注意，源IP地址仍然是CIP，目的IP地址仍然是VIP。
+b)请求的报文经过调度器，而RS响应处理后的报文无需经过调度器LB，因此，并发访问量大时使用效率很高，比Nginx代理模式强于此处。
+c)因DR模式是通过MAC地址的改写机制实现转发的，因此，所有RS节点和调度器LB只能在同一个局域网中。需要注意RS节点的VIP的绑定(lo:vip/32)和ARP抑制问题。
+d)强调下：RS节点的默认网关不需要是调度器LB的DIP，而应该直接是IDC机房分配的上级路由器的IP(这是RS带有外网IP地址的情况)，理论上讲，只要RS可以出网即可，不需要必须配置外网IP，但走自己的网关，那网关就成为瓶颈了。
+e)由于DR模式的调度器仅进行了目的MAC地址的改写，因此，调度器LB无法改变请求报文的目的端口。LVS DR模式的办公室在二层数据链路层（MAC），NAT模式则工作在三层网络层（IP）和四层传输层（端口）。
+f)当前，调度器LB支持几乎所有UNIX、Linux系统，但不支持windows系统。真实服务器RS节点可以是windows系统。
+g)总之，DR模式效率很高，但是配置也较麻烦。因此，访问量不是特别大的公司可以用haproxy/Nginx取代之。这符合运维的原则：简单、易用、高效。日1000-2000W PV或并发请求1万以下都可以考虑用haproxy/Nginx(LVS的NAT模式)
+h)直接对外的访问业务，例如web服务做RS节点，RS最好用公网IP地址。如果不直接对外的业务，例如：MySQL，存储系统RS节点，最好只用内部IP地址。</pre>
+</div>
+<p style="text-indent: 7.1pt;"><strong><span style="background: lime;">DR</span></strong><strong><span style="font-family: 等线; background: lime;">的实现原理和数据包的改变</span></strong></p>
+<p style="text-align: center; text-indent: 7.1pt;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129153425472-1160889800.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" />&nbsp;</p>
+
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;">(a) 当用户请求到达Director Server，此时请求的数据报文会先到内核空间的PREROUTING链。 此时报文的源IP为CIP，目标IP为VIP
+(b) PREROUTING检查发现数据包的目标IP是本机，将数据包送至INPUT链
+(c) IPVS比对数据包请求的服务是否为集群服务，若是，将请求报文中的源MAC地址修改为DIP的MAC地址，将目标MAC地址修改RIP的MAC地址，然后将数据包发至POSTROUTING链。 此时的源IP和目的IP均未修改，仅修改了源MAC地址为DIP的MAC地址，目标MAC地址为RIP的MAC地址 
+(d) 由于DS和RS在同一个网络中，所以是通过二层来传输。POSTROUTING链检查目标MAC地址为RIP的MAC地址，那么此时数据包将会发至Real Server。
+(e) RS发现请求报文的MAC地址是自己的MAC地址，就接收此报文。处理完成之后，将响应报文通过lo接口传送给eth0网卡然后向外发出。 此时的源IP地址为VIP，目标IP为CIP 
+(f) 响应报文最终送达至客户端</pre>
+</div>
+<h2>1.5 <span style="font-family: '微软雅黑',sans-serif;">在</span>web<span style="font-family: '微软雅黑',sans-serif;">端的操作有什么含义？</span></h2>
+<h3>1.5.1 RealServer<span style="font-family: '微软雅黑',sans-serif;">为什么要在</span>lo<span style="font-family: '微软雅黑',sans-serif;">接口上配置</span>VIP<span style="font-family: '微软雅黑',sans-serif;">？</span></h3>
+<p style="text-indent: 21.0pt;"><span style="font-family: 等线;">既然要让</span>RS<span style="font-family: 等线;">能够处理目标地址为</span>vip<span style="font-family: 等线;">的</span>IP<span style="font-family: 等线;">包，首先必须要让</span>RS<span style="font-family: 等线;">能接收到这个包。</span></p>
+<p><span style="font-family: 等线;">　　在</span>lo<span style="font-family: 等线;">上配置</span>vip<span style="font-family: 等线;">能够完成接收包并将结果返回</span>client<span style="font-family: 等线;">。</span></p>
+<h3>1.5.2 <span style="font-family: '微软雅黑',sans-serif;">在</span>eth0<span style="font-family: '微软雅黑',sans-serif;">网卡上配置</span>VIP<span style="font-family: '微软雅黑',sans-serif;">可以吗？</span></h3>
+<p style="text-indent: 21.0pt;"><span style="font-family: 等线;">不可以，将</span>VIP<span style="font-family: 等线;">设置在</span>eth0<span style="font-family: 等线;">网卡上</span>,<span style="font-family: 等线;">会影响</span>RS<span style="font-family: 等线;">的</span>arp<span style="font-family: 等线;">请求</span>,<span style="font-family: 等线;">造成整体</span>LVS<span style="font-family: 等线;">集群</span>arp<span style="font-family: 等线;">缓</span><span style="font-family: 等线;">存表紊乱，以至于整个负载均衡集群都不能正常工作。</span></p>
+<h3>1.5.3 <span style="font-family: '微软雅黑',sans-serif;">为什么要抑制</span>ARP<span style="font-family: '微软雅黑',sans-serif;">响应？</span></h3>
+<p style="margin-left: 39.0pt; text-indent: -18.0pt;"><strong><span style="font-family: 宋体; background: yellow;">①&nbsp;</span></strong><strong><span style="font-family: 宋体; background: yellow;">arp</span></strong><strong><span style="font-family: 宋体; background: yellow;">协议说明</span></strong></p>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p style="text-indent: 21pt; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">ARP<span style="font-family: '微软雅黑',sans-serif;">协议</span>,<span style="font-family: '微软雅黑',sans-serif;">全称</span>"Address Resolution Protocol",<span style="font-family: '微软雅黑',sans-serif;">中文名是地址解析协议，使用</span>ARP<span style="font-family: '微软雅黑',sans-serif;">协议可实现通过</span>IP<span style="font-family: '微软雅黑',sans-serif;">地址获得对应主机的物理地址</span>(MAC<span style="font-family: '微软雅黑',sans-serif;">地址</span>)<span style="font-family: '微软雅黑',sans-serif;">。</span></p>
+<p style="text-indent: 21pt; background-image: initial; background-position: initial; background-size: initial; background-repeat: initial; background-attachment: initial; background-origin: initial; background-clip: initial;">ARP<span style="font-family: '微软雅黑',sans-serif;">协议要求通信的主机双方必须在同一个物理网段（即局域网环境）！</span></p>
+</div>
+<p style="text-indent: 15.75pt;"><span style="font-family: 等线;">为了提高</span>IP<span style="font-family: 等线;">转换</span>MAC<span style="font-family: 等线;">的效率，系统会将解析结果保存下来，这个结果叫做</span>ARP<span style="font-family: 等线;">缓存。</span></p>
+<div class="cnblogs_code">
+<pre>Windows查看ARP缓存命令 arp -<span style="color: #000000;">a
+Linux查看ARP缓存命令 arp </span>-<span style="color: #000000;">n
+Linux解析IP对应的MAC地址 arping </span>-c 1 -I eth0 10.0.0.6</pre>
+</div>
+<p><em><span style="text-decoration: underline;"><span style="background: lime;">ARP</span></span></em><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: lime;">缓存表是把双刃剑</span></span></em></p>
+<p style="margin-left: 63.0pt; text-indent: -21.0pt;">a)&nbsp;<span style="font-family: '微软雅黑',sans-serif;">主机有了</span>arp<span style="font-family: '微软雅黑',sans-serif;">缓存表，可以加快</span>ARP<span style="font-family: '微软雅黑',sans-serif;">的解析速度，减少局域网内广播风暴。因为</span>arp<span style="font-family: '微软雅黑',sans-serif;">是发广播解析的，频繁的解析也是消耗带宽的，尤其是机器多的时候。</span></p>
+<p style="margin-left: 63.0pt; text-indent: -21.0pt;">b)&nbsp;<span style="font-family: '微软雅黑',sans-serif;">正是有了</span>arp<span style="font-family: '微软雅黑',sans-serif;">缓存表，给恶意黑客带来了攻击服务器主机的风险，这个就是</span>arp<span style="font-family: '微软雅黑',sans-serif;">欺骗攻击。</span></p>
+<p style="margin-left: 63.0pt; text-indent: -21.0pt;">c)&nbsp;<span style="font-family: '微软雅黑',sans-serif;">切换路由器，负载均衡器等设备时，可能会导致短时网络中断。因为所有的客户端</span>ARP<span style="font-family: '微软雅黑',sans-serif;">缓存表没有更新</span></p>
+<p style="margin-left: 21.0pt;"><strong><span style="font-family: 宋体; background: yellow;">②</span></strong><strong><span style="font-family: 等线; background: yellow;">服务器切换</span><span style="background: yellow;">ARP</span></strong><strong><span style="font-family: 等线; background: yellow;">问题</span></strong></p>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p><span style="font-family: '微软雅黑',sans-serif;">　　当集群中一台提供服务的</span>lb01<span style="font-family: '微软雅黑',sans-serif;">机器宕机后，然后</span>VIP<span style="font-family: '微软雅黑',sans-serif;">会转移到备机</span>lb02<span style="font-family: '微软雅黑',sans-serif;">上，但是客户端的</span>ARP<span style="font-family: '微软雅黑',sans-serif;">缓存表的地址解析还是宕机的</span>lb01<span style="font-family: '微软雅黑',sans-serif;">的</span>MAC<span style="font-family: '微软雅黑',sans-serif;">地址。从而导致，即使在</span>lb02<span style="font-family: '微软雅黑',sans-serif;">上添加</span>VIP<span style="font-family: '微软雅黑',sans-serif;">，也会发生客户端无法访问的情况。</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">　　解决办法是：当</span>lb01<span style="font-family: '微软雅黑',sans-serif;">宕机，</span>VIP<span style="font-family: '微软雅黑',sans-serif;">地址迁移到</span>lb02<span style="font-family: '微软雅黑',sans-serif;">时，需要通过</span>arping<span style="font-family: '微软雅黑',sans-serif;">命令通知所有网络内机器更新本地的</span>ARP<span style="font-family: '微软雅黑',sans-serif;">缓存表，从而使得客户机访问时重新广播获取</span>MAC<span style="font-family: '微软雅黑',sans-serif;">地址。</span></p>
+<p><span style="font-family: '微软雅黑',sans-serif;">　　这个是自己开发服务器高可用脚本及所有高可用软件必须考虑到的问题。</span></p>
+</div>
+<p style="text-indent: 11.0pt;"><em><span style="text-decoration: underline;">ARP</span></em><em><span style="text-decoration: underline;"><span style="font-family: 等线;">广播进行新的地址解析</span></span></em></p>
+<div class="cnblogs_code">
+<pre>arping -I eth0 -c 1 -<span style="color: #000000;">U VIP
+arping </span>-I eth0 -c 1 -U 10.0.0.13</pre>
+</div>
+<p style="text-indent: 11.0pt;"><em><span style="text-decoration: underline;"><span style="font-family: 等线;">测试命令</span></span></em></p>
+<div class="cnblogs_code">
+<pre>ip addr <span style="color: #0000ff;">del</span> 10.0.0.13/24<span style="color: #000000;"> dev eth0
+ip addr add </span>10.0.0.13/24<span style="color: #000000;"> dev eth0
+ip addr show eth0
+arping </span>-I eth0 -c 1 -U 10.0.0.13</pre>
+</div>
+<p style="text-indent: 15.75pt;">windows<span style="font-family: 等线;">查看</span>arp -a</p>
+<div class="cnblogs_code">
+<pre>接口: 10.0.0.1 --- 0x12<span style="color: #000000;">
+  Internet 地址         物理地址              类型
+  </span>10.0.0.13             00-0c-29-de-7c-97<span style="color: #000000;">     动态       
+  </span>10.0.0.15             00-0c-29-de-7c-97<span style="color: #000000;">     动态       
+  </span>10.0.0.16             00-0c-29-2e-47-20<span style="color: #000000;">     动态       
+  </span>10.0.0.17             00-0c-29-4a-ac-<span style="color: #000000;">4a     动态       
+  </span>10.0.0.18             00-0c-29-ea-ca-55     动态        </pre>
+</div>
+<p style="text-indent: 15.75pt;"><strong><span style="font-family: 宋体; background: yellow;">③</span><span style="background: yellow;">arp_announce</span></strong><strong><span style="font-family: 等线; background: yellow;">和</span><span style="background: yellow;">arp_ignore</span></strong><strong><span style="font-family: 等线; background: yellow;">详解</span></strong></p>
+<div class="cnblogs_code">
+<pre><span style="color: #008000;">#</span><span style="color: #008000;">  配置的内核参数</span>
+net.ipv4.conf.all.arp_ignore = 1<span style="color: #000000;">
+net.ipv4.conf.all.arp_announce </span>= 2<span style="color: #000000;">
+net.ipv4.conf.lo.arp_ignore </span>= 1<span style="color: #000000;">
+net.ipv4.conf.lo.arp_announce </span>= 2</pre>
+</div>
+<p><span style="text-decoration: underline;">lvs</span><span style="text-decoration: underline;"><span style="font-family: 等线;">在</span>DR</span><span style="text-decoration: underline;"><span style="font-family: 等线;">模式下需要关闭</span>arp</span><span style="text-decoration: underline;"><span style="font-family: 等线;">功能</span></span></p>
+<p style="text-indent: 21.0pt;"><strong><em><span style="text-decoration: underline;"><span style="background: aqua;">arp_announce</span></span></em></strong></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: 等线;">对网络接口上，本地</span>IP<span style="font-family: 等线;">地址的发出的，</span>ARP<span style="font-family: 等线;">回应，作出相应级别的限制</span>:</p>
+<p style="text-indent: 21.0pt;"><span style="font-family: 等线;">确定不同程度的限制</span>,<span style="font-family: 等线;">宣布对来自本地源</span>IP<span style="font-family: 等线;">地址发出</span>Arp<span style="font-family: 等线;">请求的接口</span></p>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 12.16%; border-top: 1pt solid #4472c4; border-bottom: 1pt solid #4472c4; border-left: 1pt solid #4472c4; border-right: none; background: #4472c4; padding: 0cm 5.4pt;" valign="top" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 宋体; times new roman"4times new roman";times new roman";color: white;">数值</span></strong></p>
+</td>
+<td style="width: 87.84%; border-top: 1pt solid #4472c4; border-right: 1pt solid #4472c4; border-bottom: 1pt solid #4472c4; border-left: none; background: #4472c4; padding: 0cm 5.4pt;" valign="top" width="87%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 宋体; times new roman"4times new roman";times new roman";color: white;">含义</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">0(</span></strong><strong><span style="font-size: 10.0pt; font-family: 宋体;">默认</span></strong><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">)</span></strong></p>
+</td>
+<td style="width: 87.84%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="87%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">在任意网络接口（</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">eth0,eth1</span><span style="font-size: 10.0pt; font-family: 宋体;">，</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">lo</span><span style="font-size: 10.0pt; font-family: 宋体;">）上的任何本地地址</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">1</span></strong></p>
+</td>
+<td style="width: 87.84%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="87%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">尽量避免不在该网络接口子网段的本地地址做出</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">arp</span><span style="font-size: 10.0pt; font-family: 宋体;">回应</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">. </span><span style="font-size: 10.0pt; font-family: 宋体;">当发起</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">ARP</span><span style="font-size: 10.0pt; font-family: 宋体;">请求的源</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">IP</span><span style="font-size: 10.0pt; font-family: 宋体;">地址</span> <span style="font-size: 10.0pt; font-family: 宋体;">是被设置应该经由路由达到此网络接口的时候很有用</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">.</span><span style="font-size: 10.0pt; font-family: 宋体;">此时会检查来访</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">IP</span><span style="font-size: 10.0pt; font-family: 宋体;">是否为所有接口</span> <span style="font-size: 10.0pt; font-family: 宋体;">上的子网段内</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">ip</span><span style="font-size: 10.0pt; font-family: 宋体;">之一</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">.</span><span style="font-size: 10.0pt; font-family: 宋体;">如果改来访</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">IP</span><span style="font-size: 10.0pt; font-family: 宋体;">不属于各个网络接口上的子网段内</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">,</span><span style="font-size: 10.0pt; font-family: 宋体;">那么将采用级别</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">2</span><span style="font-size: 10.0pt; font-family: 宋体;">的方式来进行处理</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">.</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 12.16%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="12%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">2</span></strong></p>
+</td>
+<td style="width: 87.84%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="87%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">对查询目标使用最适当的本地地址</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">.</span><span style="font-size: 10.0pt; font-family: 宋体;">在此模式下将忽略这个</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">IP</span><span style="font-size: 10.0pt; font-family: 宋体;">数据包的源地址并尝试</span> <span style="font-size: 10.0pt; font-family: 宋体;">选择与能与该地址通信的本地地址</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">.</span><span style="font-size: 10.0pt; font-family: 宋体;">首要是选择所有的网络接口的子网中外出访问子网中</span> <span style="font-size: 10.0pt; font-family: 宋体;">包含该目标</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">IP</span><span style="font-size: 10.0pt; font-family: 宋体;">地址的本地地址</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">. </span><span style="font-size: 10.0pt; font-family: 宋体;">如果没有合适的地址被发现</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">,</span><span style="font-size: 10.0pt; font-family: 宋体;">将选择当前的发送网络接口</span> <span style="font-size: 10.0pt; font-family: 宋体;">或其他的有可能接受到该</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">ARP</span><span style="font-size: 10.0pt; font-family: 宋体;">回应的网络接口来进行发送</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">.</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p style="text-indent: 21.0pt;"><strong><em><span style="text-decoration: underline;"><span style="background: aqua;">arp_ignore</span></span></em></strong><strong><span style="font-family: 等线; color: white;">定义</span></strong></p>
+<p style="text-indent: 21.0pt;"><strong><span style="font-family: 等线;">对目标地定义对目标地址为本地</span>IP</strong><strong><span style="font-family: 等线;">的</span>ARP</strong><strong><span style="font-family: 等线;">询问不同的应答模式</span>0</strong></p>
+<table style="width: 100%; border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 16.22%; border-top: 1pt solid #4472c4; border-bottom: 1pt solid #4472c4; border-left: 1pt solid #4472c4; border-right: none; background: #4472c4; padding: 0cm 5.4pt;" width="16%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 宋体; times new roman"4times new roman";times new roman";color: white;">数值</span></strong></p>
+</td>
+<td style="width: 83.78%; border-top: 1pt solid #4472c4; border-right: 1pt solid #4472c4; border-bottom: 1pt solid #4472c4; border-left: none; background: #4472c4; padding: 0cm 5.4pt;" width="83%">
+<p style="margin-bottom: .0001pt; text-align: center;" align="center"><strong><span style="font-size: 10.0pt; font-family: 宋体; times new roman"4times new roman";times new roman";color: white;">含义</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 16.22%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="16%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">0(</span></strong><strong><span style="font-size: 10.0pt; font-family: 宋体;">默认值</span></strong><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">)</span></strong></p>
+</td>
+<td style="width: 83.78%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="83%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">回应任何网络接口上对任何本地</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">IP</span><span style="font-size: 10.0pt; font-family: 宋体;">地址的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">arp</span><span style="font-size: 10.0pt; font-family: 宋体;">查询请求</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 16.22%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="16%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">1</span></strong></p>
+</td>
+<td style="width: 83.78%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="83%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">只回答目标</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">IP</span><span style="font-size: 10.0pt; font-family: 宋体;">地址是来访网络接口本地地址的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">ARP</span><span style="font-size: 10.0pt; font-family: 宋体;">查询请求</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 16.22%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="16%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">2</span></strong></p>
+</td>
+<td style="width: 83.78%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="83%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">只回答目标</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">IP</span><span style="font-size: 10.0pt; font-family: 宋体;">地址是来访网络接口本地地址的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">ARP</span><span style="font-size: 10.0pt; font-family: 宋体;">查询请求</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">,</span><span style="font-size: 10.0pt; font-family: 宋体;">且来访</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">IP</span><span style="font-size: 10.0pt; font-family: 宋体;">必须在该网络接口的子网段内</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 16.22%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="16%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">3</span></strong></p>
+</td>
+<td style="width: 83.78%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="83%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">不回应该网络界面的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">arp</span><span style="font-size: 10.0pt; font-family: 宋体;">请求，而只对设置的唯一和连接地址做出回应</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 16.22%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; background: #d9e2f3; padding: 0cm 5.4pt;" width="16%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">4-7</span></strong></p>
+</td>
+<td style="width: 83.78%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; background: #D9E2F3; padding: 0cm 5.4pt 0cm 5.4pt;" width="83%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">保留未使用</span></p>
+</td>
+</tr>
+<tr>
+<td style="width: 16.22%; border-right: 1pt solid #8eaadb; border-bottom: 1pt solid #8eaadb; border-left: 1pt solid #8eaadb; border-top: none; padding: 0cm 5.4pt;" width="16%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><strong><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">8</span></strong></p>
+</td>
+<td style="width: 83.78%; border-top: none; border-left: none; border-bottom: solid #8EAADB 1.0pt; border-right: solid #8EAADB 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="83%">
+<p style="margin-bottom: .0001pt; text-align: justify; text-justify: inter-ideograph;"><span style="font-size: 10.0pt; font-family: 宋体;">不回应所有（本地地址）的</span><span style="font-size: 10.0pt; font-family: 'Times New Roman',serif;">arp</span><span style="font-size: 10.0pt; font-family: 宋体;">查询</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p style="text-indent: 21.0pt;"><strong><span style="font-family: 等线; background: aqua;">抑制</span><span style="background: aqua;">RS</span></strong><strong><span style="font-family: 等线; background: aqua;">端</span><span style="background: aqua;">arp</span></strong><strong><span style="font-family: 等线; background: aqua;">前的广播情况</span></strong></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129154133128-1220483931.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" />&nbsp;</p>
+
+<p style="text-indent: 21.0pt;"><strong><span style="font-family: 等线; background: aqua;">抑制</span><span style="background: aqua;">RS</span></strong><strong><span style="font-family: 等线; background: aqua;">端</span><span style="background: aqua;">arp</span></strong><strong><span style="font-family: 等线; background: aqua;">后广播情况</span></strong></p>
+<p style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129154143331-1661937731.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /></p>
+
+<h2>1.6 LVS<span style="font-family: '微软雅黑',sans-serif;">集群的工作模式</span></h2>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:false;">DR（Direct Routing）直接路由模式
+NAT（Network Address Translation）
+TUN（Tunneling）隧道模式
+FULLNAT（Full Network Address Translation）</pre>
+</div>
+<h3>1.6.1 LVS<span style="font-family: '微软雅黑',sans-serif;">集群的工作模式</span>--NAT</h3>
+<h3 style="text-align: center;"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129154211503-5626597.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" />&nbsp;</h3>
+
+<p style="text-indent: 21.0pt;"><span style="font-family: 等线;">通过网络地址转换，调度器</span>LB<span style="font-family: 等线;">重写请求报文的目标地址，根据预设的调度算法，将请求分派给后端的真实服务器，真实服务器的响应报文处理之后，返回时必须要通过调度器，经过调度器时报文的源地址被重写，再返回给客户，完成整个负载调度过程。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: 等线;">收费站模式</span>---<span style="font-family: 等线;">来去都要经过</span>LB<span style="font-family: 等线;">负载均衡器。</span></p>
+<p><strong><span style="background: lime;">NAT</span></strong><strong><span style="font-family: 等线; background: lime;">方式的实现原理和数据包的改变</span></strong></p>
+<p style="text-align: center;" align="center">&nbsp;<img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129154235128-81782361.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /></p>
+
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:false;">(a). 当用户请求到达Director Server，此时请求的数据报文会先到内核空间的PREROUTING链。 此时报文的源IP为CIP，目标IP为VIP
+(b). PREROUTING检查发现数据包的目标IP是本机，将数据包送至INPUT链
+(c). IPVS比对数据包请求的服务是否为集群服务，若是，修改数据包的目标IP地址为后端服务器IP，然后将数据包发至POSTROUTING链。 此时报文的源IP为CIP，目标IP为RIP
+(d). POSTROUTING链通过选路，将数据包发送给Real Server
+(e). Real Server比对发现目标为自己的IP，开始构建响应报文发回给Director Server。 此时报文的源IP为RIP，目标IP为CIP
+(f). Director Server在响应客户端前，此时会将源IP地址修改为自己的VIP地址，然后响应给客户端。 此时报文的源IP为VIP，目标IP为CIP</pre>
+</div>
+<p><strong>LVS-NAT</strong><strong><span style="font-family: 等线;">模型的特性</span></strong></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">l&nbsp;</span>RS<span style="font-family: '微软雅黑',sans-serif;">应该使用私有地址，</span>RS<span style="font-family: '微软雅黑',sans-serif;">的网关必须指向</span>DIP</p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">l&nbsp;</span>DIP<span style="font-family: '微软雅黑',sans-serif;">和</span>RIP<span style="font-family: '微软雅黑',sans-serif;">必须在同一个网段内</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">l&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">请求和响应报文都需要经过</span>Director Server<span style="font-family: '微软雅黑',sans-serif;">，高负载场景中，</span>Director Server<span style="font-family: '微软雅黑',sans-serif;">易成为性能瓶颈</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">l&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">支持端口映射</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">l&nbsp;</span>RS<span style="font-family: '微软雅黑',sans-serif;">可以使用任意操作系统</span></p>
+<p style="margin-left: 42.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">l&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">缺陷：对</span>Director Server<span style="font-family: '微软雅黑',sans-serif;">压力会比较大，请求和响应都需经过</span>director server</p>
+<h3>1.6.2 LVS<span style="font-family: '微软雅黑',sans-serif;">集群的工作模式</span>--<span style="font-family: '微软雅黑',sans-serif;">隧道模式</span>TUN</h3>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129154311034-399852197.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /></p>
+
+<p style="text-indent: 21.0pt;"><span style="font-family: 等线;">采用</span>NAT<span style="font-family: 等线;">技术时，由于请求和响应的报文都必须经过调度器地址重写，当客户请求越来越多时，调度器的处理能力将成为瓶颈，为了解决这个问题，调度器把请求的报文通过</span>IP<span style="font-family: 等线;">隧道</span>(<span style="font-family: 等线;">相当于</span>ipip<span style="font-family: 等线;">或</span>ipsec )<span style="font-family: 等线;">转发至真实服务器，而真实服务器将响应处理后直接返回给客户端用户，这样调度器就只处理请求的入站报文。由于一般网络服务应答数据比请求报文大很多，采用</span> VS/TUN<span style="font-family: 等线;">技术后，集群系统的最大吞吐量可以提高</span>10<span style="font-family: 等线;">倍。</span></p>
+<p style="text-indent: 21.0pt;">VS/TUN<span style="font-family: 等线;">工作流程</span>,<span style="font-family: 等线;">它的连接调度和管理与</span>VS/NAT<span style="font-family: 等线;">中的一样，只是它的报文转发方法不同。调度器根据各个服务器的负载情况，连接数多少，动态地选择一台服务器，将原请求的报文封装在另一个</span>IP<span style="font-family: 等线;">报文中，再将封装后的</span>IP<span style="font-family: 等线;">报文转发给选出的真实服务器；真实服务器收到报文后，先将收到的报文解封获得原来目标地址为</span>VIP<span style="font-family: 等线;">地址的报文</span>, <span style="font-family: 等线;">服务器发现</span>VIP<span style="font-family: 等线;">地址被配置在本地的</span>IP<span style="font-family: 等线;">隧道设备上</span>(<span style="font-family: 等线;">此处要人为配置</span>)<span style="font-family: 等线;">，所以就处理这个请求，然后根据路由表将响应报文直接返回给客户。</span></p>
+<p style="text-indent: 21.0pt;"><strong><span style="background: lime;">TUN</span></strong><strong><span style="font-family: 等线; background: lime;">原理和数据包的改变</span></strong></p>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129154326034-199344942.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /></p>
+
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:false;">(a) 当用户请求到达Director Server，此时请求的数据报文会先到内核空间的PREROUTING链。 此时报文的源IP为CIP，目标IP为VIP 。
+(b) PREROUTING检查发现数据包的目标IP是本机，将数据包送至INPUT链
+(c) IPVS比对数据包请求的服务是否为集群服务，若是，在请求报文的首部再次封装一层IP报文，封装源IP为为DIP，目标IP为RIP。然后发至POSTROUTING链。 此时源IP为DIP，目标IP为RIP
+(d) POSTROUTING链根据最新封装的IP报文，将数据包发至RS（因为在外层封装多了一层IP首部，所以可以理解为此时通过隧道传输）。 此时源IP为DIP，目标IP为RIP
+(e) RS接收到报文后发现是自己的IP地址，就将报文接收下来，拆除掉最外层的IP后，会发现里面还有一层IP首部，而且目标是自己的lo接口VIP，那么此时RS开始处理此请求，处理完成之后，通过lo接口送给eth0网卡，然后向外传递。 此时的源IP地址为VIP，目标IP为CIP
+(f) 响应报文最终送达至客户端</pre>
+</div>
+<p>LVS-Tun<span style="font-family: 等线;">模型特性</span></p>
+<p style="margin-left: 45.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">l&nbsp;</span>RIP<span style="font-family: '微软雅黑',sans-serif;">、</span>VIP<span style="font-family: '微软雅黑',sans-serif;">、</span>DIP<span style="font-family: '微软雅黑',sans-serif;">全是公网地址</span></p>
+<p style="margin-left: 45.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">l&nbsp;</span>RS<span style="font-family: '微软雅黑',sans-serif;">的网关不会也不可能指向</span>DIP</p>
+<p style="margin-left: 45.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">l&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">所有的请求报文经由</span>Director Server<span style="font-family: '微软雅黑',sans-serif;">，但响应报文必须不能进过</span>Director Server</p>
+<p style="margin-left: 45.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">l&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">不支持端口映射</span></p>
+<p style="margin-left: 45.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">l&nbsp;</span>RS<span style="font-family: '微软雅黑',sans-serif;">的系统必须支持隧道</span></p>
+<h3>1.6.3 LVS<span style="font-family: '微软雅黑',sans-serif;">集群的工作模式</span>--FULLNAT</h3>
+<p style="text-align: center;" align="center"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129154358034-1107503185.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /></p>
+
+<p style="text-indent: 21.0pt;">LVS<span style="font-family: 等线;">的</span>DR<span style="font-family: 等线;">和</span>NAT<span style="font-family: 等线;">模式要求</span>RS<span style="font-family: 等线;">和</span>LVS<span style="font-family: 等线;">在同一个</span>vlan<span style="font-family: 等线;">中，导致部署成本过高；</span>TUNNEL<span style="font-family: 等线;">模式虽然可以跨</span>vlan<span style="font-family: 等线;">，但</span>RealServer<span style="font-family: 等线;">上需要部署</span>ipip<span style="font-family: 等线;">隧道模块等，网络拓扑上需要连通外网，较复杂，不易运维。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: 等线;">为了解决上述问题，开发出</span>FULLNAT<span style="font-family: 等线;">，该模式和</span>NAT<span style="font-family: 等线;">模式的区别是：数据包进入时，除了做</span>DNAT<span style="font-family: 等线;">，还做</span>SNAT<span style="font-family: 等线;">（用户</span>ip-><span style="font-family: 等线;">内网</span>ip<span style="font-family: 等线;">），从而实现</span>LVS-RealServer<span style="font-family: 等线;">间可以跨</span>vlan<span style="font-family: 等线;">通讯，</span>RealServer<span style="font-family: 等线;">只需要连接到内网。</span></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: 等线;">类比地铁站多个闸机。</span></p>
+<h2>1.7 IPVS<span style="font-family: '微软雅黑',sans-serif;">调度器实现了如下八种负载调度算法：</span></h2>
+<p style="margin-left: 21.0pt; text-indent: -21.0pt;"><strong>　　a)&nbsp;</strong><strong><span style="font-family: '微软雅黑',sans-serif;">轮询（</span>Round Robin</strong><strong><span style="font-family: '微软雅黑',sans-serif;">）</span>RR</strong></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: 等线;">调度器通过</span>"<span style="font-family: 等线;">轮叫</span>"<span style="font-family: 等线;">调度算法将外部请求按顺序轮流分配到集群中的真实服务器上，它均等地对待每一台服务器，而不管服务器上实际的连接数和系统负载。</span></p>
+<p>&nbsp;</p>
+<p style="margin-left: 21.0pt; text-indent: -21.0pt;"><strong>　　b)&nbsp;</strong><strong><span style="font-family: '微软雅黑',sans-serif;">加权轮叫（</span>Weighted Round Robin</strong><strong><span style="font-family: '微软雅黑',sans-serif;">）</span>WRR</strong></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: 等线;">调度器通过</span>"<span style="font-family: 等线;">加权轮叫</span>"<span style="font-family: 等线;">调度算法根据真实服务器的不同处理能力来调度访问请求。这样可以保证处理能力强的服务器处理更多的访问流量。调度器可以自动问询真实服务器的负载情况，并动态地调整其权值。</span></p>
+<p>&nbsp;</p>
+<p style="margin-left: 21.0pt; text-indent: -21.0pt;"><strong>　　c)&nbsp;</strong><strong><span style="font-family: '微软雅黑',sans-serif;">最少链接（</span>Least Connections</strong><strong><span style="font-family: '微软雅黑',sans-serif;">）</span> LC</strong></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: 等线;">调度器通过</span>"<span style="font-family: 等线;">最少连接</span>"<span style="font-family: 等线;">调度算法动态地将网络请求调度到已建立的链接数最少的服务器上。如果集群系统的真实服务器具有相近的系统性能，采用</span>"<span style="font-family: 等线;">最小连接</span>"<span style="font-family: 等线;">调度算法可以较好地均衡负载。</span></p>
+<p>&nbsp;</p>
+<p style="margin-left: 21.0pt; text-indent: -21.0pt;"><strong>　　d)&nbsp;</strong><strong><span style="font-family: '微软雅黑',sans-serif;">加权最少链接（</span>Weighted Least Connections</strong><strong><span style="font-family: '微软雅黑',sans-serif;">）</span> Wlc</strong></p>
+<p style="text-indent: 21.0pt;"><span style="font-family: 等线;">在集群系统中的服务器性能差异较大的情况下，调度器采用</span>"<span style="font-family: 等线;">加权最少链接</span>"<span style="font-family: 等线;">调度算法优化负载均衡性能，具有较高权值的服务器将承受较大比例的活动连接负载。调度器可以自动问询真实服务器的负载情况，并动态地调整其权值。</span></p>
+<p>&nbsp;</p>
+<p style="margin-left: 21.0pt; text-indent: -21.0pt;"><strong>　　e)&nbsp;</strong><strong><span style="font-family: '微软雅黑',sans-serif;">基于局部性的最少链接（</span>Locality-Based Least Connections</strong><strong><span style="font-family: '微软雅黑',sans-serif;">）</span> Lblc</strong></p>
+<p style="text-indent: 21.0pt;">"<span style="font-family: 等线;">基于局部性的最少链接</span>" <span style="font-family: 等线;">调度算法是针对目标</span>IP<span style="font-family: 等线;">地址的负载均衡，目前主要用于</span>Cache<span style="font-family: 等线;">集群系统。该算法根据请求的目标</span>IP<span style="font-family: 等线;">地址找出该目标</span>IP<span style="font-family: 等线;">地址最近使用的服务器，若该服务器</span> <span style="font-family: 等线;">是可用的且没有超载，将请求发送到该服务器；若服务器不存在，或者该服务器超载且有服务器处于一半的工作负载，则用</span>"<span style="font-family: 等线;">最少链接</span>"<span style="font-family: 等线;">的原则选出一个可用的服务</span> <span style="font-family: 等线;">器，将请求发送到该服务器。</span></p>
+<p>&nbsp;</p>
+<p style="margin-left: 21.0pt; text-indent: -21.0pt;"><strong>　　f)&nbsp;</strong><strong><span style="font-family: '微软雅黑',sans-serif;">带复制的基于局部性最少链接（</span>Locality-Based Least Connections with Replication</strong><strong><span style="font-family: '微软雅黑',sans-serif;">）</span> </strong></p>
+<p style="text-indent: 21.0pt;">"<span style="font-family: 等线;">带复制的基于局部性最少链接</span>"<span style="font-family: 等线;">调度算法也是针对目标</span>IP<span style="font-family: 等线;">地址的负载均衡，目前主要用于</span>Cache<span style="font-family: 等线;">集群系统。它与</span>LBLC<span style="font-family: 等线;">算法的不同之处是它要维护从一个</span> <span style="font-family: 等线;">目标</span>IP<span style="font-family: 等线;">地址到一组服务器的映射，而</span>LBLC<span style="font-family: 等线;">算法维护从一个目标</span>IP<span style="font-family: 等线;">地址到一台服务器的映射。该算法根据请求的目标</span>IP<span style="font-family: 等线;">地址找出该目标</span>IP<span style="font-family: 等线;">地址对应的服务</span> <span style="font-family: 等线;">器组，按</span>"<span style="font-family: 等线;">最小连接</span>"<span style="font-family: 等线;">原则从服务器组中选出一台服务器，若服务器没有超载，将请求发送到该服务器，若服务器超载；则按</span>"<span style="font-family: 等线;">最小连接</span>"<span style="font-family: 等线;">原则从这个集群中选出一</span> <span style="font-family: 等线;">台服务器，将该服务器加入到服务器组中，将请求发送到该服务器。同时，当该服务器组有一段时间没有被修改，将最忙的服务器从服务器组中删除，以降低复制的</span> <span style="font-family: 等线;">程度。</span></p>
+<p>&nbsp;</p>
+<p style="margin-left: 21.0pt; text-indent: -21.0pt;"><strong>　　g)&nbsp;</strong><strong><span style="font-family: '微软雅黑',sans-serif;">目标地址散列（</span>Destination Hashing</strong><strong><span style="font-family: '微软雅黑',sans-serif;">）</span> Dh</strong></p>
+<p style="text-indent: 21.0pt;">"<span style="font-family: 等线;">目标地址散列</span>"<span style="font-family: 等线;">调度算法根据请求的目标</span>IP<span style="font-family: 等线;">地址，作为散列键（</span>Hash Key<span style="font-family: 等线;">）从静态分配的散列表找出对应的服务器，若该服务器是可用的且未超载，将请求发送到该服务器，否则返回空。</span></p>
+<p>&nbsp;</p>
+<p style="margin-left: 21.0pt; text-indent: -21.0pt;"><strong>　　h)&nbsp;</strong><strong><span style="font-family: '微软雅黑',sans-serif;">源地址散列（</span>Source Hashing</strong><strong><span style="font-family: '微软雅黑',sans-serif;">）</span>SH</strong></p>
+<p>"<span style="font-family: 等线;">源地址散列</span>"<span style="font-family: 等线;">调度算法根据请求的源</span>IP<span style="font-family: 等线;">地址，作为散列键（</span>Hash Key<span style="font-family: 等线;">）从静态分配的散列表找出对应的服务器，若该服务器是可用的且未超载，将请求发送到该服务器，否则返回空。</span></p>
+<h2>1.8 LVS+Keepalived<span style="font-family: '微软雅黑',sans-serif;">方案实现</span></h2>
+<h3>1.8.1 keepalived<span style="font-family: '微软雅黑',sans-serif;">功能</span></h3>
+<p style="margin-left: 33.0pt;">1. <span style="font-family: 等线;">添加</span>VIP</p>
+<p style="margin-left: 33.0pt;">2. <span style="font-family: 等线;">添加</span>LVS<span style="font-family: 等线;">配置</span></p>
+<p style="margin-left: 33.0pt;">3. <span style="font-family: 等线;">高可用（</span>VIP<span style="font-family: 等线;">漂移）</span></p>
+<p style="margin-left: 33.0pt;">4. web<span style="font-family: 等线;">服务器健康检查</span></p>
+<h3>1.8.2 <span style="font-family: '微软雅黑',sans-serif;">在负载器安装</span>Keepalived<span style="font-family: '微软雅黑',sans-serif;">软件</span></h3>
+<div class="cnblogs_code">
+<pre>yum -y install keepalived</pre>
+</div>
+<p># <span style="font-family: 等线;">检查软件是否安装</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="75071a1a013519174546">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> rpm -qa keepalived</span>
+keepalived-1.3.5-1.el7.x86_64</pre>
+</div>
+<h3>1.8.3 <span style="font-family: '微软雅黑',sans-serif;">修改配置文件</span></h3>
+<p style="margin-left: 7.1pt;"><em><span style="text-decoration: underline;"><span style="background: yellow;">lb03</span></span></em><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: yellow;">上</span><span style="background: yellow;">keepalied</span></span></em><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: yellow;">配置文件</span></span></em></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('bd4d2e07-e9ad-48e3-950d-5b59ba57685c')"><img id="code_img_closed_bd4d2e07-e9ad-48e3-950d-5b59ba57685c" class="code_img_closed" src="ContractedBlock-14.gif" tppabs="http://clsn.io/wp-content/uploads/2018/03/ContractedBlock-14.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /><img id="code_img_opened_bd4d2e07-e9ad-48e3-950d-5b59ba57685c" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('bd4d2e07-e9ad-48e3-950d-5b59ba57685c',event)" data-original="http://clsn.io/wp-content/uploads/2018/03/ExpandedBlockStart-14.gif" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /></p>
+
+<div id="cnblogs_code_open_bd4d2e07-e9ad-48e3-950d-5b59ba57685c" class="cnblogs_code_hide">
+<pre><span style="color: #008080;"> 1</span> [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3e4c51514a7e525c0e0d">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat /etc/keepalived/keepalived.conf</span>
+<span style="color: #008080;"> 2</span> <span style="color: #000000;">global_defs {
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;">   router_id LVS_01
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">}
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span> <span style="color: #000000;">vrrp_instance VI_1 {
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">    state MASTER
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">    interface eth0
+</span><span style="color: #008080;"> 9</span>     virtual_router_id 51
+<span style="color: #008080;">10</span>     priority 150
+<span style="color: #008080;">11</span>     advert_int 1
+<span style="color: #008080;">12</span> <span style="color: #000000;">    authentication {
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">        auth_type PASS
+</span><span style="color: #008080;">14</span>         auth_pass 1111
+<span style="color: #008080;">15</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">    virtual_ipaddress {
+</span><span style="color: #008080;">17</span>      10.0.0.13/24
+<span style="color: #008080;">18</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">}
+</span><span style="color: #008080;">20</span> 
+<span style="color: #008080;">21</span> virtual_server 10.0.0.13 80<span style="color: #000000;"> {
+</span><span style="color: #008080;">22</span>     delay_loop 6              
+<span style="color: #008080;">23</span> <span style="color: #000000;">    lb_algo wrr                
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">    lb_kind DR                
+</span><span style="color: #008080;">25</span>     nat_mask 255.255.255.0
+<span style="color: #008080;">26</span>     persistence_timeout 50     
+<span style="color: #008080;">27</span> <span style="color: #000000;">    protocol TCP                
+</span><span style="color: #008080;">28</span> 
+<span style="color: #008080;">29</span>     real_server 10.0.0.17 80<span style="color: #000000;"> {
+</span><span style="color: #008080;">30</span>         weight 1              
+<span style="color: #008080;">31</span> <span style="color: #000000;">        TCP_CHECK {
+</span><span style="color: #008080;">32</span>         connect_timeout 8       
+<span style="color: #008080;">33</span>         nb_get_retry 3
+<span style="color: #008080;">34</span>         delay_before_retry 3
+<span style="color: #008080;">35</span>         connect_port 80
+<span style="color: #008080;">36</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">37</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">38</span> 
+<span style="color: #008080;">39</span>     real_server 10.0.0.18 80<span style="color: #000000;"> {
+</span><span style="color: #008080;">40</span>         weight 1              
+<span style="color: #008080;">41</span> <span style="color: #000000;">        TCP_CHECK {
+</span><span style="color: #008080;">42</span>         connect_timeout 8       
+<span style="color: #008080;">43</span>         nb_get_retry 3
+<span style="color: #008080;">44</span>         delay_before_retry 3
+<span style="color: #008080;">45</span>         connect_port 80
+<span style="color: #008080;">46</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">47</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">48</span> }</pre>
+</div>
+<p><span class="cnblogs_code_collapse"> lb03 /etc/keepalived/keepalived.conf</span></div>
+<p style="margin-left: 7.1pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <em><span style="text-decoration: underline;"><span style="background: yellow;">lb04</span></span></em><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: yellow;">的</span><span style="background: yellow;">Keepalied</span></span></em><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: yellow;">配置文件</span></span></em></p>
+<div class="cnblogs_code" onclick="cnblogs_code_show('fadb947f-dcd8-4aa5-bdbf-6981fd152194')"><img id="code_img_closed_fadb947f-dcd8-4aa5-bdbf-6981fd152194" class="code_img_closed" src="ContractedBlock-14.gif" tppabs="http://clsn.io/wp-content/uploads/2018/03/ContractedBlock-14.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /><img id="code_img_opened_fadb947f-dcd8-4aa5-bdbf-6981fd152194" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('fadb947f-dcd8-4aa5-bdbf-6981fd152194',event)" data-original="http://clsn.io/wp-content/uploads/2018/03/ExpandedBlockStart-14.gif" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /></p>
+
+<div id="cnblogs_code_open_fadb947f-dcd8-4aa5-bdbf-6981fd152194" class="cnblogs_code_hide">
+<pre><span style="color: #008080;"> 1</span> [<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a9dbc6c6dde9c5cb999d">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> cat /etc/keepalived/keepalived.conf</span>
+<span style="color: #008080;"> 2</span> <span style="color: #000000;">global_defs {
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;">   router_id LVS_02
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">}
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span> <span style="color: #000000;">vrrp_instance VI_1 {
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">    state BACKUP
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">    interface eth0
+</span><span style="color: #008080;"> 9</span>     virtual_router_id 51
+<span style="color: #008080;">10</span>     priority 100
+<span style="color: #008080;">11</span>     advert_int 1
+<span style="color: #008080;">12</span> <span style="color: #000000;">    authentication {
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">        auth_type PASS
+</span><span style="color: #008080;">14</span>         auth_pass 1111
+<span style="color: #008080;">15</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">    virtual_ipaddress {
+</span><span style="color: #008080;">17</span>      10.0.0.13/24
+<span style="color: #008080;">18</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">}
+</span><span style="color: #008080;">20</span> virtual_server 10.0.0.13 80<span style="color: #000000;"> {
+</span><span style="color: #008080;">21</span>     delay_loop 6          
+<span style="color: #008080;">22</span> <span style="color: #000000;">    lb_algo wrr                
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">    lb_kind DR                
+</span><span style="color: #008080;">24</span>     nat_mask 255.255.255.0
+<span style="color: #008080;">25</span>     persistence_timeout 50     
+<span style="color: #008080;">26</span> <span style="color: #000000;">    protocol TCP                
+</span><span style="color: #008080;">27</span> 
+<span style="color: #008080;">28</span>     real_server 10.0.0.17 80<span style="color: #000000;"> {
+</span><span style="color: #008080;">29</span>         weight 1              
+<span style="color: #008080;">30</span> <span style="color: #000000;">        TCP_CHECK {
+</span><span style="color: #008080;">31</span>         connect_timeout 8       
+<span style="color: #008080;">32</span>         nb_get_retry 3
+<span style="color: #008080;">33</span>         delay_before_retry 3
+<span style="color: #008080;">34</span>         connect_port 80
+<span style="color: #008080;">35</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">36</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">37</span> 
+<span style="color: #008080;">38</span>     real_server 10.0.0.18 80<span style="color: #000000;"> {
+</span><span style="color: #008080;">39</span>         weight 1              
+<span style="color: #008080;">40</span> <span style="color: #000000;">        TCP_CHECK {
+</span><span style="color: #008080;">41</span>         connect_timeout 8       
+<span style="color: #008080;">42</span>         nb_get_retry 3
+<span style="color: #008080;">43</span>         delay_before_retry 3
+<span style="color: #008080;">44</span>         connect_port 80
+<span style="color: #008080;">45</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">46</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">47</span> }</pre>
+</div>
+<p><span class="cnblogs_code_collapse">lb04 /etc/keepalived/keepalived.conf</span></div>
+<p><strong><em><span style="text-decoration: underline;">keepalived</span></em></strong> <strong>persistence_timeout</strong><strong><span style="font-family: 等线;">参数意义</span></strong> LVS Persistence <span style="font-family: 等线;">参数的作用</span></p>
+<p style="text-indent: 15.75pt;"><em><span style="text-decoration: underline;">http://blog.csdn.net/nimasike/article/details/53911363 </span></em></p>
+<h3>1.8.4 <span style="font-family: '微软雅黑',sans-serif;">启动</span>keepalived<span style="font-family: '微软雅黑',sans-serif;">服务</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7d0f1212093d111f4d4e">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> systemctl restart  keepalived.service </span><span style="color: #008000;">
+#</span><span style="color: #008000;"> 检查lvs状态</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="186a77776c58">[email&#160;protected]</a>lb03 ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ipvsadm -ln</span>
+IP Virtual Server version 1.2.1 (size=4096<span style="color: #000000;">)
+Prot LocalAddress:Port Scheduler Flags
+  </span>-><span style="color: #000000;"> RemoteAddress:Port           Forward Weight ActiveConn InActConn
+TCP  </span>10.0.0.13:80 wrr persistent 50
+  -> 10.0.0.17:80                 Route   1<span style="color: #000000;">      0          0         
+  </span>-> 10.0.0.18:80                 Route   1<span style="color: #000000;">      0          0  
+</span><span style="color: #008000;">#</span><span style="color: #008000;"> 检查虚拟ip</span>
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="eb9984849fab8789dbd8">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> ip a s eth0</span>
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000<span style="color: #000000;">
+    link</span>/ether 00:0c:29:de:7c:97<span style="color: #000000;"> brd ff:ff:ff:ff:ff:ff
+    inet </span>10.0.0.15/24 brd 10.0.0.255 scope <span style="color: #0000ff;">global</span><span style="color: #000000;"> eth0
+       valid_lft forever preferred_lft forever
+    inet </span>10.0.0.13/24 scope <span style="color: #0000ff;">global</span><span style="color: #000000;"> secondary eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::20c:29ff:fede:7c97</span>/64<span style="color: #000000;"> scope link 
+       valid_lft forever preferred_lft forever</span></pre>
+</div>
+<h3>1.8.5 <span style="font-family: '微软雅黑',sans-serif;">在</span>web<span style="font-family: '微软雅黑',sans-serif;">服务器上进行配置</span></h3>
+<div class="cnblogs_code">
+<pre>（在web03/<span style="color: #000000;">web04同时操作下面步骤）
+步骤1：在lo网卡绑定VIP地址（ip）
+步骤2：修改内核参数抑制ARP响应
+ip addr add </span>10.0.0.13/32<span style="color: #000000;"> dev lo
+
+cat </span>>>/etc/sysctl.conf<<<span style="color: #000000;">EOF
+net.ipv4.conf.all.arp_ignore </span>= 1<span style="color: #000000;">
+net.ipv4.conf.all.arp_announce </span>= 2<span style="color: #000000;">
+net.ipv4.conf.lo.arp_ignore </span>= 1<span style="color: #000000;">
+net.ipv4.conf.lo.arp_announce </span>= 2<span style="color: #000000;">
+EOF
+sysctl </span>-p</pre>
+</div>
+<p><strong><em><span style="font-family: 等线; color: red;">注意：</span><span style="color: red;">web</span></em></strong><strong><em><span style="font-family: 等线; color: red;">服务器上的配置为临时生效，可以将其写入</span><span style="color: red;">rc.local</span></em></strong><strong><em><span style="font-family: 等线; color: red;">文件，注意文件的执行权限。</span></em></strong></p>
+<p><span style="font-family: 等线;">使用</span>curl<span style="font-family: 等线;">命令进行测试</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4e3c21213a0e222c7e7a">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> curl 10.0.0.13</span>
+web03</pre>
+</div>
+<p><strong><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: yellow;">至此</span><span style="background: yellow;">keepalived+lvs</span></span></em></strong><strong><em><span style="text-decoration: underline;"><span style="font-family: 等线; background: yellow;">配置完毕</span></span></em></strong></p>
+<h2>1.9 <span style="font-family: '微软雅黑',sans-serif;">常见</span>LVS<span style="font-family: '微软雅黑',sans-serif;">负载均衡高可用解决方案</span></h2>
+<p style="margin-left: 33.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">&Oslash;&nbsp;</span><span style="font-family: '微软雅黑',sans-serif;">开发类似</span>keepalived<span style="font-family: '微软雅黑',sans-serif;">的脚本，早期的办法，现在不推荐使用。</span></p>
+<p style="margin-left: 33.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">&Oslash;&nbsp;</span>heartbeat+lvs+ldirectord<span style="font-family: '微软雅黑',sans-serif;">脚本配置方案，复杂不易控制，不推荐使用</span></p>
+<p style="margin-left: 33.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">&Oslash;&nbsp;</span>RedHat<span style="font-family: '微软雅黑',sans-serif;">工具</span>piranha<span style="font-family: '微软雅黑',sans-serif;">，一个</span>web<span style="font-family: '微软雅黑',sans-serif;">界面配置</span>LVS<span style="font-family: '微软雅黑',sans-serif;">。</span></p>
+<p style="margin-left: 33.0pt; text-indent: -21.0pt;"><span style="font-family: Wingdings;">&Oslash;&nbsp;</span><span style="background: yellow;">LVS-DR+keepalived</span><span style="font-family: '微软雅黑',sans-serif; courier new"4courier new"; background: yellow;">方案，老师推荐最优方案，简单、易用、高效</span><span style="font-family: '微软雅黑',sans-serif;">。</span></p>
+<h3>1.9.1 lvs<span style="font-family: '微软雅黑',sans-serif;">排错思路</span></h3>
+<p style="text-align: center;"><span style="font-family: '微软雅黑',sans-serif;"><img data-original="http://clsn.io/wp-content/uploads/2018/03/1190037-20171129154800597-1843410323.png" src="blank.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/blank.gif" alt="高并发场景 LVS 安装及高可用实现" alt="" /></span></p>
+
+<h3>1.9.2 <span style="font-family: '微软雅黑',sans-serif;">参考文档</span></h3>
+<div class="cnblogs_Highlighter">
+<pre class="brush:python;gutter:true;">LVS项目介绍            http://www.linuxvirtualserver.org/zh/lvs1.html 
+LVS集群的体系结构      http://www.linuxvirtualserver.org/zh/lvs2.html 
+LVS集群中的IP负载均衡技术  http://www.linuxvirtualserver.org/zh/lvs3.html
+LVS集群的负载调度       http://www.linuxvirtualserver.org/zh/lvs4.html 
+NAT模式安装详解   http://www.cnblogs.com/liwei0526vip/p/6370103.html
+开发眼光看lvs      http://blog.hesey.net/2013/02/introduce-to-load-balance-and-lvs-briefly.html
+lvs 介绍      http://www.it165.net/admin/html/201401/2248.html</pre>
+</div>
+<p>&nbsp;</p>
+<p style="text-align: right;"><strong>&nbsp;本文出自&ldquo;惨绿少年&rdquo;，欢迎转载，转载请注明出处！http://blog.znix.top</strong></p>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="613" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/" rel="category tag">Web应用</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/" rel="category tag">安全</a> <a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/" rel="category tag">玩转Linux</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2017年11月29日<i class="i-time">07:54:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 2995 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx613.html" tppabs="http://clsn.io/clsn/lx613.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx613.html">高并发场景 LVS 安装及高可用实现 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/14.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="lx630.html" tppabs="http://clsn.io/clsn/lx630.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>企业级Tomcat部署实践及安全调优</span></a><a href="lx565.html" tppabs="http://clsn.io/clsn/lx565.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>Git详解及 github与gitlab使用</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="lx630.html" tppabs="http://clsn.io/clsn/lx630.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx565.html" tppabs="http://clsn.io/clsn/lx565.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx613.html#respond" tppabs="http://clsn.io/clsn/lx613.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='613' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="lx949.html" tppabs="http://clsn.io/clsn/lx949.html" rel="bookmark">TCP/IP 协议簇 端口 三次握手 四次挥手 11种状态集</a></li> <li><a href="lx766.html" tppabs="http://clsn.io/clsn/lx766.html" rel="bookmark">用户管理下</a></li> <li><a href="lx243.html" tppabs="http://clsn.io/clsn/lx243.html" rel="bookmark">SVN服务实战应用指南</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx490.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx490.html'" tppabs="http://clsn.io/clsn/lx490.html" rel="bookmark">inotify+rsync实现实时同步</a></li> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx889.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx889.html'" tppabs="http://clsn.io/clsn/lx889.html" rel="bookmark">定制rpm包-Yum环境搭建</a></li> <li><a href="lx287.html" tppabs="http://clsn.io/clsn/lx287.html" rel="bookmark">MySQL 优化实施方案</a></li> <li><a href="lx247.html" tppabs="http://clsn.io/clsn/lx247.html" rel="bookmark">MongoDB的备份与恢复</a></li> <li><a href="lx988.html" tppabs="http://clsn.io/clsn/lx988.html" rel="bookmark">用户与磁盘</a></li> <li><a href="lx943.html" tppabs="http://clsn.io/clsn/lx943.html" rel="bookmark">路由知识 静态路由 rip eigrp ospf</a></li> <li><a href="lx946.html" tppabs="http://clsn.io/clsn/lx946.html" rel="bookmark">DNS DHCP 路由 FTP</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx613.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx613.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx613.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>

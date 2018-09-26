@@ -1,0 +1,474 @@
+<html><!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><title>AWK高端功能-数组 | 惨绿少年</title><meta name="description" content="&nbsp;-F &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;指定分隔符&nbsp;" /><meta name="keywords" content="" /><link rel="shortcut icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png"><link rel="apple-touch-icon" sizes="114x114" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><link rel="profile" href="11" tppabs="http://gmpg.org/xfn/11"><link rel="pingback" href="xmlrpc.php" tppabs="http://clsn.io/xmlrpc.php"><!--[if lt IE 9]><script src="/wp-content/themes/clsn-003/js/html5.js"></script><script src="/wp-content/themes/clsn-003/js/css3-mediaqueries.js"></script><![endif]--><link rel='stylesheet' id='begin-style-css' href="style.css-ver=5.2" tppabs="http://clsn.io/wp-content/themes/clsn-003/style.css?ver=5.2" type='text/css' media='all' /><link rel='stylesheet' id='fonts-css' href="fonts.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/fonts/fonts.css?ver=2017.07.26" type='text/css' media='all' /><link rel='stylesheet' id='highlight-css' href="highlight.css-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/css/highlight.css?ver=2017.07.26" type='text/css' media='all' /><script type='text/javascript' src="jquery.min.js-ver=1.10.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.min.js?ver=1.10.1"></script><link rel="canonical" href="lx959.html" tppabs="http://clsn.io/clsn/lx959.html" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="32x32" /><link rel="icon" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" sizes="192x192" /><link rel="apple-touch-icon-precomposed" href="Frog-2.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2.png" /><meta name="msapplication-TileImage" content="/wp-content/uploads/2018/09/Frog-2.png" /></head><body class="post-template-default single single-post postid-959 single-format-standard"><div id="page" class="hfeed site"> <header id="masthead" class="site-header"> <div id="header-main" class="header-main"> <nav id="top-header"> <div class="top-nav"> <div class="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f-container"><ul id="menu-%e8%81%94%e7%b3%bb%e6%96%b9%e5%bc%8f" class="top-menu"><li id="menu-item-1268" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1268"><a href="index.htm" tppabs="http://clsn.io/">博客地址</a></li><li id="menu-item-1269" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1269"><a href="javascript:if(confirm('https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946'" tppabs="https://shang.qq.com/wpa/qunwpa?idkey=20c5455d6aaf8df9722be043588a9adda7cd9a18b6563744e4143d736559d946">Linux老司机</a></li><li id="menu-item-1270" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1270"><a href="javascript:if(confirm('https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com'" tppabs="https://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&#038;email=clsn@nmtui.com">给我发邮件</a></li></ul></div> </div> </nav><!-- #top-header --> <div id="menu-box"> <div id="top-menu"> <span class="nav-search"></span> <div class="logo-site"> <p class="site-title"> <a href="index.htm" tppabs="http://clsn.io/"><img src="1-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/1-1.png" title="惨绿少年" alt="惨绿少年" rel="home" /><span class="site-name">惨绿少年</span></a> </p> </div><!-- .logo-site --> <div id="site-nav-wrap"> <div id="sidr-close"><a href="#sidr-close" class="toggle-sidr-close">×</a></div> <div id="sidr-menu"><div class="toggle-sidr-menu">MENU</a></div></div> <nav id="site-nav" class="main-nav"> <a href="#sidr-main" id="navigation-toggle" class="bars"><i class="be be-menu"></i></a> <div class="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4-container"><ul id="menu-%e6%83%a8%e7%bb%bf%e5%b0%91%e5%b9%b4" class="down-menu nav-menu"><li id="menu-item-1053" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-1053"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><ul class="sub-menu"> <li id="menu-item-1054" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1054"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/">Shell编程</a></li> <li id="menu-item-1055" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1055"><a href="index-3.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/web-app/">Web应用</a></li> <li id="menu-item-1056" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1056"><a href="index-4.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/monitor/">监控服务</a></li> <li id="menu-item-1057" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1057"><a href="index-5.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/automation/">自动化</a></li> <li id="menu-item-1058" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1058"><a href="index-6.htm" tppabs="http://clsn.io/clsn-ops/ops-linux/storage/">存储</a></li> <li id="menu-item-1059" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1059"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/acl/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/acl/'" tppabs="http://clsn.io/clsn-ops/ops-linux/acl/">安全</a></li></ul></li><li id="menu-item-1044" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1044"><a href="index-8.htm" tppabs="http://clsn.io/clsn-ops/cloud/">云计算</a><ul class="sub-menu"> <li id="menu-item-1046" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1046"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/virt/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/virt/'" tppabs="http://clsn.io/clsn-ops/cloud/virt/">虚拟化</a></li> <li id="menu-item-1045" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1045"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/cloud/openstack/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/cloud/openstack/'" tppabs="http://clsn.io/clsn-ops/cloud/openstack/">OpenStack</a></li></ul></li><li id="menu-item-1048" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-1048"><a href="index-11.htm" tppabs="http://clsn.io/clsn-ops/databases/">数据库</a><ul class="sub-menu"> <li id="menu-item-1049" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1049"><a href="javascript:if(confirm('http://clsn.io/clsn-ops/databases/mysql/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/databases/mysql/'" tppabs="http://clsn.io/clsn-ops/databases/mysql/">MySQL</a></li> <li id="menu-item-1050" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1050"><a href="index-13.htm" tppabs="http://clsn.io/clsn-ops/databases/nosql/">NoSQL</a></li></ul></li><li id="menu-item-1052" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1052"><a href="index-14.htm" tppabs="http://clsn.io/clsn-ops/network/">网络技术</a></li><li id="menu-item-1051" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-1051"><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/">玩转Linux</a></li><li id="menu-item-1047" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-1047"><a href="index-16.htm" tppabs="http://clsn.io/clsn-ops/dev-ops/">敏捷开发</a></li><li id="menu-item-1258" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1258"><a href="contribute-page.htm" tppabs="http://clsn.io/contribute-page">投稿</a></li></ul></div> </nav><!-- #site-nav --> </div><!-- #site-nav-wrap --> <div class="clear"></div> </div><!-- #top-menu --> </div><!-- #menu-box --> </div><!-- #menu-box --></header><!-- #masthead --><div id="search-main"> <div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div> <div class="clear"></div></div> <nav class="breadcrumb"> <a class="crumbs" href="index.htm" tppabs="http://clsn.io/"><i class="be be-home"></i>首页</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/">运维基本功</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/" rel="category tag">Shell编程</a><i class="be be-arrowright"></i><a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/" rel="category tag">玩转Linux</a><i class="be be-arrowright"></i><a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a><i class="be be-arrowright"></i>AWK高端功能-数组 </nav> <div id="content" class="site-content"> <div id="primary" class="content-area"> <main id="main" class="site-main" role="main"> <article id="post-959" class="post-959 post type-post status-publish format-standard hentry category-linux category-dev-shell category-play-linux category-ops-linux ury"> <header class="entry-header"> <h1 class="entry-title">AWK高端功能-数组</h1> </header><!-- .entry-header --> <div class="entry-content"> <div class="begin-single-meta"><span class="my-date"><i class="be be-schedule"></i> 2017年10月9日<i class="i-time">02:15:00</i></span><span class="comment"><a href="lx959.html#respond" tppabs="http://clsn.io/clsn/lx959.html#respond" rel="external nofollow"><i class="be be-speechbubble"></i> 发表评论</a></span><span class="print"><a href="javascript:printme()" target="_self" title="打印"><i class="be be-print"></i></a></span><span class="s-hide"><a href="#"><span class="off-side"></span></a></span></div> <div class="single-content"> <div class='favorite-box'><span class='favorite-e'><a class='wpzm-link' href="lx959.html" tppabs="http://clsn.io/clsn/lx959.html?wpzmaction=add&postid=959" rel='nofollow'> 收 <i class="be be-favorite"></i> 藏</a></span></div> <h1>第1章 awk<span style="font-family: 新宋体;">命令基础</span></h1>
+<h2>1.1 awk<span style="font-family: 新宋体;">命令执行过程</span></h2>
+<div class="cnblogs_code">
+<pre>1<span style="color: #000000;">、如果BEGIN 区块存在，awk执行它指定的动作。
+</span>2<span style="color: #000000;">、awk从输入文件中读取一行，称为一条输入记录。如果输入文件省略，将从标准输入读取
+</span>3、awk将读入的记录分割成字段，将第1个字段放入变量$1中，第2个字段放入$2<span style="color: #000000;">，以此类推。$0表示整条记录。字段分隔符使用shell环境变量FS或由参数指定。
+</span>4<span style="color: #000000;">、把当前输入记录(数据行)依次与每一个awk命令中awk条件比较，看是否匹配，如果相匹配，就执行对应的动作。如果不匹配，就跳过对应的动作，直到比较完所有的awk命令。
+</span>5<span style="color: #000000;">、当一条输入记录比较了所有的awk命令后，awk读取输入的下一行，继续重复步骤3和4，这个过程一直持续，直到awk读取到文件尾。
+</span>6、当awk读完所有的输入行后，如果存在END，就执行相应的动作。</pre>
+</div>
+<h2>1.2 awk<span style="font-family: 新宋体;">中模式与动作</span></h2>
+<p style="text-indent: 21.0pt;">&nbsp;<span class="cnblogs_code"><span style="color: #800000;">'</span><span style="color: #800000;">pattern{action}</span><span style="color: #800000;">'</span></span>&nbsp;</p>
+<h3>1.2.1 <span style="font-family: 新宋体;">在</span>awk<span style="font-family: 新宋体;">眼中的<span style="background: lime;">行</span>与<span style="background: yellow;">列</span></span></h3>
+<div class="cnblogs_code">
+<pre><span style="color: #000000;">field     字段，列
+record    记录，行</span></pre>
+</div>
+<h2>1.3 awk<span style="font-family: 新宋体;">默认有一把&ldquo;菜刀&rdquo;</span></h2>
+<p style="margin-left: 42.0pt; text-indent: 21.0pt;"><span style="font-family: 新宋体;">空格系列</span> <span style="font-family: 新宋体;">（单独的空格，连续的空格，</span>tab<span style="font-family: 新宋体;">键）</span></p>
+<p><span style="background: lime;">&nbsp;-F &nbsp;&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-family: 新宋体;">指定分隔符</span>&nbsp;</p>
+<p><span style="background: lime;">&nbsp;-vFS </span></p>
+<p><span style="background: lime;">&nbsp;FS &nbsp;</span>== field sep&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;<span style="font-family: 新宋体;">每一列的分隔符</span></p>
+<p><span style="background: lime;">&nbsp;OFS </span>==output field sep&nbsp; <span style="font-family: 新宋体;">输出每一列的时候使用的分隔符</span></p>
+<h2>1.4 awk<span style="font-family: 新宋体;">的内置变量</span></h2>
+<table style="border-collapse: collapse; border-width: initial; border-style: none; border-color: initial;" border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="width: 84.8pt; border-top: 1pt solid white; border-bottom: 1pt solid white; border-left: 1pt solid white; border-right: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="113">
+<p><strong><span style="font-family: 新宋体; times new roman"4times new roman";   color: white;">变量</span></strong></p>
+</td>
+<td style="width: 9.0cm; border-top: solid white 1.0pt; border-left: none; border-bottom: solid white 1.0pt; border-right: none; background: #9BBB59; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p><strong><span style="font-family: 新宋体; times new roman"4times new roman";   color: white;">含义</span></strong></p>
+</td>
+<td style="width: 182.85pt; border-top: 1pt solid white; border-right: 1pt solid white; border-bottom: 1pt solid white; border-left: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="244">
+<p><strong><span style="font-family: 新宋体; times new roman"4times new roman";   color: white;">英文全写</span></strong></p>
+</td>
+</tr>
+<tr>
+<td style="width: 84.8pt; border-right: 1pt solid white; border-bottom: 1pt solid white; border-left: 1pt solid white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="113">
+<p><strong><span style="background: lime;">FS&nbsp;&nbsp; </span></strong></p>
+</td>
+<td style="width: 9.0cm; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #D6E3BC; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p>&nbsp;<span style="font-family: 新宋体;">每一列的分隔符</span></p>
+</td>
+<td style="width: 182.85pt; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #D6E3BC; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="244">
+<p>field sep&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+</td>
+</tr>
+<tr>
+<td style="width: 84.8pt; border-right: 1pt solid white; border-bottom: 1pt solid white; border-left: 1pt solid white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="113">
+<p><strong><span style="background: lime;">NF&nbsp;&nbsp; </span></strong></p>
+</td>
+<td style="width: 9.0cm; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p>&nbsp;<span style="font-family: 新宋体;">每一行有多少列</span></p>
+</td>
+<td style="width: 182.85pt; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="244">
+<p>number&nbsp; of field</p>
+</td>
+</tr>
+<tr>
+<td style="width: 84.8pt; border-right: 1pt solid white; border-bottom: 1pt solid white; border-left: 1pt solid white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="113">
+<p><strong><span style="background: lime;">OFS&nbsp; </span></strong></p>
+</td>
+<td style="width: 9.0cm; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #D6E3BC; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p>&nbsp;<span style="font-family: 新宋体;">输出每一列的时候使用的分隔符</span></p>
+</td>
+<td style="width: 182.85pt; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #D6E3BC; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="244">
+<p>output field sep</p>
+</td>
+</tr>
+<tr>
+<td style="width: 84.8pt; border-right: 1pt solid white; border-bottom: 1pt solid white; border-left: 1pt solid white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="113">
+<p><strong><span style="background: lime;">NR&nbsp;&nbsp; </span></strong></p>
+</td>
+<td style="width: 9.0cm; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p>&nbsp;<span style="font-family: 新宋体;">记录号</span> <span style="font-family: 新宋体;">行号</span></p>
+</td>
+<td style="width: 182.85pt; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="244">
+<p>number of record</p>
+</td>
+</tr>
+<tr>
+<td style="width: 84.8pt; border-right: 1pt solid white; border-bottom: 1pt solid white; border-left: 1pt solid white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="113">
+<p><strong><span style="background: lime;">RS&nbsp;&nbsp; </span></strong></p>
+</td>
+<td style="width: 9.0cm; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #D6E3BC; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p>&nbsp;<span style="font-family: 新宋体;">每一行的分隔符（每一行的结束标记）</span></p>
+</td>
+<td style="width: 182.85pt; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #D6E3BC; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="244">&nbsp;</td>
+</tr>
+<tr>
+<td style="width: 84.8pt; border-right: 1pt solid white; border-bottom: 1pt solid white; border-left: 1pt solid white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="113">
+<p><strong><span style="background: lime;">$</span></strong><strong><span style="font-family: 新宋体; background: lime;">数字</span></strong></p>
+</td>
+<td style="width: 9.0cm; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p>&nbsp;<span style="font-family: 新宋体;">取某一列</span></p>
+</td>
+<td style="width: 182.85pt; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #EAF1DD; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="244">&nbsp;</td>
+</tr>
+<tr>
+<td style="width: 84.8pt; border-right: 1pt solid white; border-bottom: 1pt solid white; border-left: 1pt solid white; border-top: none; background: #9bbb59; padding: 0cm 5.4pt;" valign="top" width="113">
+<p><strong><span style="background: lime;">$0&nbsp;&nbsp; </span></strong></p>
+</td>
+<td style="width: 9.0cm; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #D6E3BC; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="340">
+<p>&nbsp;<span style="font-family: 新宋体;">取出这一行</span></p>
+</td>
+<td style="width: 182.85pt; border-top: none; border-left: none; border-bottom: solid white 1.0pt; border-right: solid white 1.0pt; background: #D6E3BC; padding: 0cm 5.4pt 0cm 5.4pt;" valign="top" width="244">&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<h3>1.4.1 $NF<span style="font-family: 新宋体;">的使用</span></h3>
+<p style="margin-left: 21.0pt;">$NF <span style="font-family: 新宋体;">表示最后一列，</span>(NF-1)<span style="font-family: 新宋体;">表示倒数第二列，以此类推。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ed9f828299ad97838495">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk -F: '{print NF}' passwd.txt</span>
+7
+7<span style="color: #000000;">
+&hellip;&hellip;
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="12607d7d6652687c7b6a">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk -F: '{print $NF}' passwd.txt</span>
+/bin/<span style="color: #000000;">bash
+</span>/sbin/<span style="color: #000000;">nologin
+</span>/sbin/<span style="color: #000000;">nologin
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="087a67677c4872666170">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk -F: '{print $(NF-1)}' passwd.txt</span>
+/<span style="color: #000000;">root
+</span>/<span style="color: #000000;">bin
+</span>/sbin</pre>
+</div>
+<h2>1.5 <span style="font-family: 新宋体;">【<span style="background: aqua;">练习题</span>】</span>awk<span style="font-family: 新宋体;">如何使用正则？</span></h2>
+<blockquote>
+<p>1)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;显示Xiaoyu的姓氏和ID号码</p>
+<p>2)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;显示所有ID号码最后一位数字是1或5的人的全名</p>
+<p>3)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;姓氏是Zhang的人，显示他的第二次捐款金额及她的名字</p>
+<p>4)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;显示Xiaoyu的捐款.每个值时都有以$开头.如$520$200$135</p>
+</blockquote>
+<h3>1.5.1 <span style="font-family: 新宋体;">环境准备</span></h3>
+<div class="cnblogs_code">
+<pre>mkdir -p /server/files/<span style="color: #000000;">
+cat </span>>>/server/files/reg.txt<<<span style="color: #000000;">EOF
+Zhang Dandan    </span>41117397   :250:100:175<span style="color: #000000;">
+Zhang Xiaoyu    </span>390320151  :155:90:201<span style="color: #000000;">
+Meng  Feixue    </span>80042789   :250:60:50<span style="color: #000000;">
+Wu    Waiwai    </span>70271111   :250:80:75<span style="color: #000000;">
+Liu   Bingbing  </span>41117483   :250:100:175<span style="color: #000000;">
+Wang  Xiaoai    </span>3515064655 :50:95:135<span style="color: #000000;">
+Zi    Gege      </span>1986787350 :250:168:200<span style="color: #000000;">
+Li    Youjiu    </span>918391635  :175:75:300<span style="color: #000000;">
+Lao   Nanhai    </span>918391635  :250:100:175<span style="color: #000000;">
+EOF</span></pre>
+</div>
+<h4>1.5.1.1&nbsp;<span style="font-family: 新宋体;">内容释义：</span></h4>
+<div style="border: solid windowtext 2.0pt; padding: 1.0pt 4.0pt 1.0pt 4.0pt; background: #F2F2F2;">
+<p><span style="font-family: 新宋体;">第一列是姓氏</span></p>
+<p><span style="font-family: 新宋体;">第二列是名字</span></p>
+<p><span style="font-family: 新宋体;">第一第二列合起来就是姓名</span></p>
+<p><span style="font-family: 新宋体;">第三列是对应的</span>ID<span style="font-family: 新宋体;">号码</span></p>
+<p><span style="font-family: 新宋体;">最后三列是三次捐款数量</span></p>
+</div>
+<h3>1.5.2 <span style="font-family: 新宋体;">显示出第二列中包含</span>X <span style="font-family: 新宋体;">的。</span></h3>
+<p style="margin-left: 21.0pt;"><span style="background: aqua;">$2</span><span style="background: lime;">~</span><span style="font-family: 新宋体;">表示第二列所有的内容。</span> <span style="background: lime;">~</span><span style="font-family: 新宋体; times new roman"4times new roman";background: lime;">表示所有</span></p>
+<p style="margin-left: 21.0pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 新宋体; times new roman"4times new roman"; background: lime;">在这里</span><span style="background: lime;">X</span><span style="font-family: 新宋体; times new roman"4times new roman"; background: lime;">比较特殊，是大写的，</span><span style="background: lime;">awk</span><span style="font-family: 新宋体; times new roman"4times new roman"; background: lime;">中区分大小写。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="aedcc1c1daeed4c0c7d6">[email&#160;protected]</a> files]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '$2~/X/' reg.txt</span>
+Zhang Xiaoyu    390320151  :155:90:201<span style="color: #000000;">
+Wang  Xiaoai    </span>3515064655 :50:95:135</pre>
+</div>
+<h3>1.5.3 <span style="font-family: 新宋体;">显示</span>Xiaoyu<span style="font-family: 新宋体;">的姓氏和</span>ID<span style="font-family: 新宋体;">号码</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cfbda0a0bb8fb5a1a6b7">[email&#160;protected]</a> files]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '$2~/Xiaoyu/{print $1,$3}' reg.txt</span>
+Zhang 390320151</pre>
+</div>
+<h3>1.5.4 <span style="font-family: 新宋体;">显示所有</span>ID<span style="font-family: 新宋体;">号码最后一位数字是</span>1<span style="font-family: 新宋体;">或</span>5<span style="font-family: 新宋体;">的人的全名</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1e6c71716a5e64707766">[email&#160;protected]</a> files]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '$3~/(1|5)$/{print $1,$2}' reg.txt</span>
+<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3c4e5353487c46525544">[email&#160;protected]</a> files]</span><span style="color: #008000;">#</span><span style="color: #008000;"> awk '$3~/[15]$/{print $1,$2}' reg.txt</span>
+<span style="color: #000000;">Zhang Xiaoyu
+Wu Waiwai
+Wang Xiaoai
+Li Youjiu
+Lao Nanhai</span></pre>
+</div>
+<h3>1.5.5 <span style="font-family: 新宋体;">姓氏是</span>Zhang<span style="font-family: 新宋体;">的人，显示他的第二次捐款金额及她的名字</span></h3>
+<p style="margin-left: 21.0pt;"><span style="font-family: 新宋体;">先找到，再进行输出。</span><span style="background: lime;">(NF-1)</span> <span style="font-family: 新宋体;">表示倒数第二列。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="abd9c4c4dfebd1c5c2d3">[email&#160;protected]</a> files]<span style="color: #008000;">#</span><span style="color: #008000;"> awk -F "[ :]+" '$1~/Zhang/{print $2,$(NF-1)}' reg.txt</span>
+Dandan 100<span style="color: #000000;">
+Xiaoyu </span>90</pre>
+</div>
+<h3>1.5.6 <span style="font-family: 新宋体;">显示</span>Xiaoyu<span style="font-family: 新宋体;">的捐款</span>.<span style="font-family: 新宋体;">每个值时都有以</span>$<span style="font-family: 新宋体;">开头</span>.<span style="font-family: 新宋体;">如</span>$520$200$135</h3>
+<p style="margin-left: 21.0pt;">tr <span style="font-family: 新宋体;">命令进行替换，格式比较简单</span><span style="background: lime;">tr &nbsp;"</span><span style="font-family: 新宋体; times new roman"4times new roman";background: lime;">要替换什么</span><span style="background: lime;">" "</span><span style="font-family: 新宋体; times new roman"4times new roman";background: lime;">替换成什么</span><span style="background: lime;">"</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4d3f2222390d37232435">[email&#160;protected]</a> files]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '$2~/Xiaoyu/{print $4}' reg.txt |tr ":" "$"</span>
+$155$90$201<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="acdec3c3d8ecd6c2c5d4">[email&#160;protected]</a> files]</span><span style="color: #008000;">#</span><span style="color: #008000;"> awk '$2~/Xiaoyu/{gsub(/:/,"$",$NF);print $NF}' reg.txt</span>
+$155$90$201</pre>
+</div>
+<h2>1.6 awk<span style="font-family: 新宋体;">中的</span>$0<span style="font-family: 新宋体;">是什么鬼？</span></h2>
+<p style="text-indent: 21.0pt;"><span style="background: lime;">$0</span><span style="font-family: 新宋体; times new roman"4times new roman"; background: lime;">表示文件中</span><span style="font-family: 新宋体; background: lime;">整条记录（</span><span style="font-family: 新宋体; background: yellow;">行</span><span style="font-family: 新宋体; background: lime;">）</span><span style="font-family: 新宋体; times new roman"4times new roman";background: lime;">的内容</span><span style="font-family: 新宋体;">，在这里加</span>$0 <span style="font-family: 新宋体;">与不加</span>$0 <span style="font-family: 新宋体;">相同。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="75071a1a01350f1b1c0d">[email&#160;protected]</a> files]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/Zhang/' reg.txt</span>
+Zhang Dandan    41117397   :250:100:175<span style="color: #000000;">
+Zhang Xiaoyu    </span>390320151  :155:90:201<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c6b4a9a9b286bca8afbe">[email&#160;protected]</a> files]</span><span style="color: #008000;">#</span><span style="color: #008000;"> awk '$0~/Zhang/' reg.txt</span>
+Zhang Dandan    41117397   :250:100:175<span style="color: #000000;">
+Zhang Xiaoyu    </span>390320151  :155:90:201</pre>
+</div>
+<h2>1.7 awk<span style="font-family: 新宋体;">中的<span style="background: aqua;">替换</span></span></h2>
+<p style="margin-left: 18.0pt;"><span style="font-family: 新宋体;">在</span>awk<span style="font-family: 新宋体;">中，可以用来替换的有三个函数：</span>sub <span style="background: yellow;">gsub gensub</span></p>
+<h3><a name="_gusb_函数"></a>1.7.1 <span style="font-family: 新宋体;">使用</span>gusb <span style="font-family: 新宋体;">函数进行替换</span></h3>
+<p style="margin-left: 21.0pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; gsub(r, s [, t])&nbsp;</p>
+<blockquote>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;r&nbsp; /找谁/</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s &nbsp;"替换成什么"</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[]&nbsp;替换那个部分的</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;表示为：&nbsp;gsub(/找谁/,"替换成什么",替换那个部分的)</p>
+</blockquote>
+<h3>1.7.2 <span style="font-family: 新宋体;">替换文本中的内容</span></h3>
+<p style="text-indent: 21.0pt;"><span style="font-family: 新宋体;">题目：显示</span>Xiaoyu<span style="font-family: 新宋体;">的捐款</span>.<span style="font-family: 新宋体;">每个值时都有以</span>$<span style="font-family: 新宋体;">开头</span>.<span style="font-family: 新宋体;">如</span>$520$200$135</p>
+<p style="text-indent: 21.0pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 新宋体;">中间使用分号分割</span> <span style="background: yellow;">;</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ed9f828299ad97838495">[email&#160;protected]</a> files]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '{gsub(/:/,"$",$NF);print $0}' reg.txt</span>
+Zhang Dandan 41117397 $250$100$175<span style="color: #000000;">
+Zhang Xiaoyu </span>390320151 $155$90$201<span style="color: #000000;">
+Meng Feixue </span>80042789 $250$60$50<span style="color: #000000;">
+Wu Waiwai </span>70271111 $250$80$75<span style="color: #000000;">
+Liu Bingbing </span>41117483 $250$100$175<span style="color: #000000;">
+Wang Xiaoai </span>3515064655 $50$95$135<span style="color: #000000;">
+Zi Gege </span>1986787350 $250$168$200<span style="color: #000000;">
+Li Youjiu </span>918391635 $175$75$300<span style="color: #000000;">
+Lao Nanhai </span>918391635 $250$100$175</pre>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 新宋体;">添加上限定条件后，取到的结果会更加的精确。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f4869b9b80b48e9a9d8c">[email&#160;protected]</a> files]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '$2~/Xiaoyu/{gsub(/:/,"$",$NF);print $NF}' reg.txt</span>
+$155$90$201</pre>
+</div>
+<h2>1.8 <span style="font-family: 新宋体;">【<span style="background: aqua;">练习题</span>】判断当前系统上所有用户的</span>shell<span style="font-family: 新宋体;">是否为可登录</span>shell<span style="font-family: 新宋体;">（即用户的</span>shell<span style="font-family: 新宋体;">不是</span>/sbin/nologin<span style="font-family: 新宋体;">）</span>,<span style="font-family: 新宋体;">如果是显示用户名字</span></h2>
+<p style="margin-left: 18.0pt; text-indent: 3.0pt;"><span style="font-family: 新宋体; times new roman"4times new roman";color: red;">不包含：<strong>！</strong></span><strong><span style="font-family: 新宋体;">，在</span>awk</strong><strong><span style="font-family: 新宋体;">中不包含可以使用</span></strong><strong><span style="font-family: 新宋体; times new roman"4times new roman";color: red;">！</span> </strong><strong><span style="font-family: 新宋体;">表示。</span></strong></p>
+<p style="margin-left: 18.0pt; text-indent: 3.0pt;"><span style="color: red;">$NF&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>&nbsp;<span style="font-family: 新宋体;">表示这个文件的最后一列</span></p>
+<p style="margin-left: 18.0pt; text-indent: 3.0pt;"><span style="color: red;">-F&nbsp;&nbsp; </span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;<span style="font-family: 新宋体;">将分隔符指定为：</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b7c5d8d8c3f7cdd9decf">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk -F: '$NF!~/nologin$/{print $1}' /etc/passwd</span>
+<span style="color: #000000;">root
+sync
+shutdown
+halt
+clsn
+oldgirl
+test
+stu01
+stu02
+stu03
+znix</span></pre>
+</div>
+<h3>1.8.1 <span style="font-family: 新宋体;">【<span style="background: aqua;">对齐</span>】输出的结果更美观整齐</span>--column<span style="font-family: 新宋体;">命令</span></h3>
+<p style="margin-left: 21.0pt;"><span style="background: lime;">-t</span>&nbsp; -t<span style="font-family: 新宋体;">参数让他对齐。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0674696972467c686f7e">[email&#160;protected]</a> files]<span style="color: #008000;">#</span><span style="color: #008000;"> awk 'BEGIN{print "姓","名"}{print $1,$2}' reg.txt |column -t</span>
+<span style="color: #000000;">姓     名
+Zhang  Dandan
+Zhang  Xiaoyu
+Meng   Feixue
+Wu     Waiwai
+Liu    Bingbing
+Wang   Xiaoai
+Zi     Gege
+Li     Youjiu
+Lao    Nanhai</span></pre>
+</div>
+<h1>第2章 awk<span style="font-family: 新宋体;">中</span>BEGIN <span style="font-family: 新宋体;">和</span> END</h1>
+<h2>2.1 <span style="font-family: 新宋体;">怎么把正则表达式作为条件</span></h2>
+<p><span style="background: lime;">BEGIN</span><span style="font-family: 新宋体;">：开始</span></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 新宋体;">里面的内容会在</span>awk<span style="font-family: 新宋体;">读取文件之前运行</span></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 新宋体;">在</span>BEGIN<span style="font-family: 新宋体;">里面定义</span>awk<span style="font-family: 新宋体;">的内置变量</span></p>
+<p><span style="background: lime;">END </span></p>
+<p><span style="background: lime;">END{}</span> <span style="font-family: 新宋体;">里面放入内容，在读取完文件内容后执行</span></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 新宋体;">先计算，在</span>END<span style="font-family: 新宋体;">里面输出结果</span>&nbsp;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 新宋体;">先计算再输出</span></p>
+<h3>2.1.1 <span style="font-family: 新宋体;">【<span style="background: aqua;">一个栗子</span>】执行完输出后，再输出一个&ldquo;结束&rdquo;</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a8dac7c7dce8d2c6c1d0">[email&#160;protected]</a> files]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '{print $0}END{print "结束"}' reg.txt</span>
+Zhang Dandan    41117397   :250:100:175<span style="color: #000000;">
+Zhang Xiaoyu    </span>390320151  :155:90:201<span style="color: #000000;">
+Meng  Feixue    </span>80042789   :250:60:50<span style="color: #000000;">
+Wu    Waiwai    </span>70271111   :250:80:75<span style="color: #000000;">
+Liu   Bingbing  </span>41117483   :250:100:175<span style="color: #000000;">
+Wang  Xiaoai    </span>3515064655 :50:95:135<span style="color: #000000;">
+Zi    Gege      </span>1986787350 :250:168:200<span style="color: #000000;">
+Li    Youjiu    </span>918391635  :175:75:300<span style="color: #000000;">
+Lao   Nanhai    </span>918391635  :250:100:175<span style="color: #000000;">
+结束</span></pre>
+</div>
+<h2>2.2 <span style="font-family: 新宋体;">【<span style="background: aqua;">企业案例</span>】统计</span>/etc/services<span style="font-family: 新宋体;">文件里面的空行数量</span></h2>
+<h3>2.2.1 <span style="font-family: 新宋体;">使用</span>awk<span style="font-family: 新宋体;">的</span>END<span style="font-family: 新宋体;">模式</span></h3>
+<p style="margin-left: 21.0pt;"><span style="font-family: 新宋体;">前面的</span>i++<span style="font-family: 新宋体;">先进行计算，再输出结果。</span></p>
+<p style="margin-left: 21.0pt;"><span style="background: yellow;">i=i+1</span> <span style="font-family: 新宋体;">与</span><span style="background: yellow;">i++</span>&nbsp;<span style="font-family: 新宋体;">相同。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="13617c7c6753697d7a6b">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/^$/{i=i+1}END{print i}' /etc/services</span>
+16<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="790b16160d3903171001">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/^$/{i++}END{print i}' /etc/services</span>
+16</pre>
+</div>
+<h3>2.2.2 <span style="font-family: 新宋体;">查看</span>i++<span style="font-family: 新宋体;">的执行过程</span></h3>
+<p style="margin-left: 21.0pt;">i++<span style="font-family: 新宋体;">与</span>i=i+1<span style="font-family: 新宋体;">相同。</span></p>
+<p style="margin-left: 21.0pt;">i=i+$0&nbsp; <span style="font-family: 新宋体;">累计相加</span>&nbsp;<span style="font-family: 新宋体;">计算总和</span></p>
+<p style="margin-left: 21.0pt;">i=i+1&nbsp; i++&nbsp;&nbsp; <span style="font-family: 新宋体;">计数</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c7b5a8a8b387bda9aebf">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/^$/{i++;print i}' /etc/services</span>
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16</pre>
+</div>
+<h3>2.2.3 <span style="font-family: 新宋体;">其他方法：</span></h3>
+<p style="margin-left: 21.0pt;"><span style="background: lime;">uniq -c</span> &nbsp;<span style="background: lime;">uniq </span><span style="font-family: 新宋体;">命令把相邻两行一样的合并，</span><span style="background: lime;">-c</span><span style="font-family: 新宋体;">为统计出现的次数</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="02706d6d7642786c6b7a">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/^$/' /etc/services|uniq -c</span>
+   16<span style="color: #000000;">
+[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c6b4a9a9b286bca8afbe">[email&#160;protected]</a> </span>~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/^$/' /etc/services|wc -l</span>
+16</pre>
+</div>
+<h2>2.3 <span style="font-family: 新宋体;">【<span style="background: aqua;">案例</span>】</span>seq 100 >num.txt <span style="font-family: 新宋体;">，计算这个文件每一行相加的结果</span></h2>
+<p>i=i+$0&nbsp; <span style="font-family: 新宋体;">累计相加</span>&nbsp;<span style="font-family: 新宋体;">计算总和</span></p>
+<p>i=i+1&nbsp; i++&nbsp;&nbsp; <span style="font-family: 新宋体;">计数</span></p>
+<p style="line-height: 19.2pt;"><span style="font-size: 10.5pt; font-family: 宋体;">没有赋初始值的时候</span><span style="font-size: 10.5pt; font-family: Verdana, sans-serif;"><br /> i++ </span><span style="font-size: 10.5pt; font-family: 宋体;">先返回</span><span style="font-size: 10.5pt; font-family: Verdana, sans-serif;">0,</span><span style="font-size: 10.5pt; font-family: 宋体;">再加</span><span style="font-size: 10.5pt; font-family: Verdana, sans-serif;">1,</span><span style="font-size: 10.5pt; font-family: 宋体;">第二次调用的时候先返回</span><span style="font-size: 10.5pt; font-family: Verdana, sans-serif;">1,</span><span style="font-size: 10.5pt; font-family: 宋体;">再加</span><span style="font-size: 10.5pt; font-family: Verdana, sans-serif;">1,</span><span style="font-size: 10.5pt; font-family: 宋体;">以此类推</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6e1c01011a2e14000716">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '{i=i+$0}END{print i}' num.txt</span>
+5050</pre>
+</div>
+<h1>第3章 awk<span style="font-family: 新宋体;">数组</span></h1>
+<h2>3.1 <span style="font-family: 新宋体;">数组是用来做什么的？</span></h2>
+<p style="text-indent: 18.0pt;"><span style="font-family: 新宋体;">分类计算，用于统计。</span></p>
+<h3>3.1.1 <span style="font-family: 新宋体;">他能够干些什么？</span></h3>
+<p style="margin-left: 21.0pt;"><span style="font-family: 新宋体;">统计日志文件中</span> <span style="font-family: 新宋体;">图片</span>.jpg <span style="font-family: 新宋体;">出现了多少次</span></p>
+<p style="margin-left: 21.0pt;"><span style="font-family: 新宋体;">统计日志文件中</span> <span style="font-family: 新宋体;">图片</span>.png <span style="font-family: 新宋体;">出现了多少次</span></p>
+<p style="margin-left: 21.0pt;"><span style="font-family: 新宋体;">统计更累的信息</span></p>
+<h2>3.2 <span style="font-family: 新宋体;">数组详解</span>---"<span style="font-family: 新宋体;">酒店</span>"</h2>
+<p><span style="font-family: 新宋体;">假设我们有一个酒店</span></p>
+<div class="cnblogs_code">
+<pre>酒店<===><span style="color: #000000;">hotel
+酒店里面有几个房间110,</span>119,120,114<span style="color: #000000;">,401这几个房间。
+酒店的110房间</span><===> hotel[110<span style="color: #000000;">]
+酒店的119房间</span><===> hotel[119<span style="color: #000000;">]
+酒店的120房间</span><===> hotel[121]</pre>
+</div>
+<p style="text-indent: 21.0pt;"><span style="font-family: 新宋体;">酒店房间里面入住客人</span></p>
+<h3>3.2.1 <span style="font-family: 新宋体;">如何查看房间里住的是哪位客人？</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="186a77776c5862767160">[email&#160;protected]</a> files]<span style="color: #008000;">#</span><span style="color: #008000;"> awk 'BEGIN{hotel[110]="lidao" ;hotel[119]="tanjiaoshou";hotel[121]="taojin";print hotel[110],hotel[121],hotel[119]}'</span>
+lidao taojin tanjiaoshou</pre>
+</div>
+<h3>3.2.2 <span style="font-family: 新宋体;">使用</span>for<span style="font-family: 新宋体;">语句，对酒店进行循环</span>/<span style="font-family: 新宋体;">查房</span></h3>
+<div class="cnblogs_code">
+<pre>awk <span style="color: #800000;">'</span><span style="color: #800000;">BEGIN{hotel[110]="lidao" ;hotel[119]="tanjiaoshou";hotel[121]="taojin";</span>
+<span style="color: #0000ff;">for</span>(pol <span style="color: #0000ff;">in</span><span style="color: #000000;"> hotel) 
+</span><span style="color: #0000ff;">print</span><span style="color: #000000;"> pol,hotel[pol]
+}</span><span style="color: #800000;">'</span></pre>
+</div>
+<p style="text-indent: 21.0pt;"><span style="font-family: 新宋体; times new roman"4times new roman"; background: darkcyan;">格式</span><span style="font-family: 新宋体;">：</span></p>
+<p style="margin-left: 21.0pt; text-indent: 21.0pt;">for(<span style="font-family: 新宋体;">变量</span> in <span style="font-family: 新宋体;">数组</span>)&nbsp; <span style="font-family: 新宋体;">使用变量对酒店进行循环</span>/<span style="font-family: 新宋体;">查房</span></p>
+<p><span style="color: #00b050;">print pol,hotel[pol] </span><span style="font-family: 新宋体; times new roman"4times new roman";color: #00B050;">：</span></p>
+<p style="margin-left: 21.0pt; text-indent: 21.0pt;"><span style="color: #244061;">pol &nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;<span style="font-family: 新宋体;">得到</span>-<span style="font-family: 新宋体;">房间的号码</span></p>
+<p style="margin-left: 21.0pt; text-indent: 21.0pt;"><span style="color: #244061;">hotel[pol]</span>&nbsp;<span style="font-family: 新宋体;">哪个酒店的哪个房间</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2f5d40405b6f55414657">[email&#160;protected]</a> files]<span style="color: #008000;">#</span><span style="color: #008000;"> awk 'BEGIN{hotel[110]="lidao" ;hotel[119]="tanjiaoshou";hotel[121]="taojin"</span>
+> <span style="color: #0000ff;">for</span>(pol <span style="color: #0000ff;">in</span><span style="color: #000000;"> hotel)
+</span>> <span style="color: #0000ff;">print</span><span style="color: #000000;"> pol,hotel[pol]
+</span>> }<span style="color: #800000;">'
+</span>110<span style="color: #000000;"> lidao
+</span>121<span style="color: #000000;"> taojin
+</span>119 tanjiaoshou</pre>
+</div>
+<h2>3.3 <span style="font-family: 新宋体;">【<span style="background: aqua;">企业面试题</span>】统计域名访问次数（去重统计）。处理以下文件内容</span>,<span style="font-family: 新宋体;">将域名取出并根据域名进行计数排序处理</span><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":(" class="wp-smiley" style="height: 1em; max-height: 1em;" /><span style="font-family: 新宋体;">百度和</span>sohu<span style="font-family: 新宋体;">面试题</span>)</h2>
+<div class="cnblogs_code">
+<pre>http://www.nmtui.com/<span style="color: #000000;">index.html
+http:</span>//www.nmtui.com/1<span style="color: #000000;">.html
+http:</span>//post.nmtui.com/<span style="color: #000000;">index.html
+http:</span>//mp3.nmtui.com/<span style="color: #000000;">index.html
+http:</span>//www.nmtui.com/3<span style="color: #000000;">.html
+http:</span>//post.nmtui.com/2.html</pre>
+</div>
+<h3>3.3.1 <span style="font-family: 新宋体;">方法一：</span>sort uniq</h3>
+<p style="text-indent: 21.0pt;"><span style="background: lime;">uniq</span> <span style="font-family: 新宋体;">命令</span> <span style="font-family: 新宋体;">把相邻两行一样的合并</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3d4f5252497d47535445">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk -F '[/]+' '{print $2}' www.txt |uniq -c</span>
+      2<span style="color: #000000;"> www.nmtui.com
+      </span>1<span style="color: #000000;"> post.nmtui.com
+      </span>1<span style="color: #000000;"> mp3.nmtui.com
+      </span>1 www.nmtui.com</pre>
+</div>
+<p style="text-indent: 21.0pt;"><span style="background: lime;">sort</span> <span style="font-family: 新宋体;">排序，默认是按照字母的顺序</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fa8895958eba80949382">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk -F '[/]+' '{print $2}' www.txt |sort</span>
+<span style="color: #000000;">mp3.nmtui.com
+post.nmtui.com
+www.nmtui.com
+www.nmtui.com
+www.nmtui.com</span></pre>
+</div>
+<h3>3.3.2 <span style="font-family: 新宋体;">方法</span>2 awk<span style="font-family: 新宋体;">数组</span></h3>
+<h4>3.3.2.1&nbsp;<span style="font-family: 新宋体;">第一步</span> <span style="font-family: 新宋体;">取出域名</span></h4>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="40322f2f34003a2e2938">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk -F '[/]+' '{print $2}' www.txt</span>
+<span style="color: #000000;">www.nmtui.com
+www.nmtui.com
+post.nmtui.com
+mp3.nmtui.com
+www.nmtui.com</span></pre>
+</div>
+<h4>3.3.2.2&nbsp;<span style="font-family: 新宋体;">第二步</span> <span style="font-family: 新宋体;">显示</span></h4>
+<p style="margin-left: 21.0pt;"><span style="background: aqua;">;</span>&nbsp;<span style="font-family: 新宋体; times new roman"4times new roman"; background: aqua;">两条命令之间用分号分割。</span></p>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6d1f0202192d17030415">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk -F '/+' '{hotel[$2]++;print hotel["www.nmtui.com"]}' www.txt</span>
+1
+2
+2
+2
+3</pre>
+</div>
+<h4>3.3.2.3&nbsp;<span style="font-family: 新宋体;">第三步</span> <span style="font-family: 新宋体;">显示结果</span></h4>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8ffde0e0fbcff5e1e6f7">[email&#160;protected]</a> ~]<span style="color: #008000;">#</span><span style="color: #008000;"> awk -F '/+' '{hotel[$2]++}END{for(pol in hotel)print pol,hotel[pol]}' www.txt</span>
+mp3.nmtui.com 1<span style="color: #000000;">
+post.nmtui.com </span>1<span style="color: #000000;">
+www.nmtui.com </span>3</pre>
+</div>
+<h1>第4章 <span style="font-family: 新宋体; times new roman"4times new roman";background: aqua;">课后题目</span><span style="font-family: 新宋体;">：</span></h1>
+<p style="text-indent: 18.0pt;"><span style="font-family: 新宋体;">两个文件</span>&nbsp; secure.zip &nbsp;access.zip</p>
+<h2>4.1 <span style="font-family: 新宋体;">统计</span>secure<span style="font-family: 新宋体;">文件中谁在破解你的密码（统计出破解你密码的</span>ip<span style="font-family: 新宋体;">地址出现的次数）</span></h2>
+<h3>4.1.1 <span style="font-family: 新宋体;">方法一</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="11637e7e65516b7f7869">[email&#160;protected]</a> test]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/Failed/{fa[$(NF-3)]++}END{for(pol in fa)print pol,fa[pol]}' secure-20161219|column -t</span>
+218.65.30.126    17163
+218.65.30.61     17163
+125.16.71.175    4
+169.46.38.74     9
+183.136.238.78   30
+218.2.0.16       10
+122.228.238.66   1<span style="color: #000000;">
+&hellip;&hellip;</span></pre>
+</div>
+<h3>4.1.2 <span style="font-family: 新宋体;">方法二</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5a2835352e1a20343322">[email&#160;protected]</a> test]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/Failed/{print $(NF-3)}' secure-20161219 |sort|uniq -c|sort -n  </span></pre>
+</div>
+<h3>4.1.3 <span style="font-family: 新宋体;">结果统计</span></h3>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a2d0cdcdd6e2d8cccbda">[email&#160;protected]</a> test]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '/Failed/{fa[$(NF-3)]++}END{for(pol in fa)print pol,fa[pol]}' secure-20161219|column -t|wc -l</span>
+88</pre>
+</div>
+<h2>4.2 <span style="font-family: 新宋体;">统计</span>access.log<span style="font-family: 新宋体;">文件中对</span>ip<span style="font-family: 新宋体;">地址去重并统计重复数</span></h2>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="196b76766d5963777061">[email&#160;protected]</a> test]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '{hotel[$1]++}END{for(pol in hotel)print pol,hotel[pol]}' access.log |head -3</span>
+101.226.125.115 284
+180.154.137.177 516
+101.226.125.116 127</pre>
+</div>
+<h2>4.3 <span style="font-family: 新宋体;">统计</span>access.log<span style="font-family: 新宋体;">文件中网站一共使用了多少流量</span></h2>
+<div class="cnblogs_code">
+<pre>[<a href="email-protection.htm" tppabs="http://clsn.io/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="087a67677c4872666170">[email&#160;protected]</a> test]<span style="color: #008000;">#</span><span style="color: #008000;"> awk '{i=i+$10}END{print i}' access.log</span>
+2478496663</pre>
+</div>
+  </div> <div class="s-weixin-one"> <div class="weimg-one"> <img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weinxin" /> <div class="weixin-h"><strong>惨绿少年Linux</strong></div> <div class="weixin-h-w">这是我的微信公众号扫一扫</div> <div class="clear"></div> </div></div> <div class="clear"></div><div id="social"> <div class="social-main"> <span class="like"> <a href="javascript:;" data-action="ding" data-id="959" title="点赞" class="dingzan"><i class="be be-thumbs-up-o"></i>赞 <i class="count"> 0</i> </a> </span> <div class="shang-p"> <div class="shang-empty"><span></span></div> <span class="tipso_style" id="tip-p" data-tipso=' <span id="shang"> <span class="shang-main"> <h4><i class="be be-favorite" aria-hidden="true"></i> 您可以选择一种方式赞助本站</h4> <span class="clear"></span> </span> </span>'> <span class="shang-s"><a title="赞助本站">赏</a></span> </span> </div> <div class="share-sd"> <span class="share-s"><a href="javascript:void(0)" id="share-s" title="分享"><i class="be be-share"></i>分享</a></span> <div id="share"> <ul class="bdsharebuttonbox"> <li><a title="更多" class="bds_more be be-addbox" data-cmd="more" onclick="return false;" href="#"></a></li> <li><a title="分享到QQ空间" class="be be-qzone" data-cmd="qzone" onclick="return false;" href="#"></a></li> <li><a title="分享到新浪微博" class="be be-stsina" data-cmd="tsina" onclick="return false;" href="#"></a></li> <li><a title="分享到腾讯微博" class="be be-tqq" data-cmd="tqq" onclick="return false;" href="#"></a></li> <li><a title="分享到人人网" class="be be-renren" data-cmd="renren" onclick="return false;" href="#"></a></li> <li><a title="分享到微信" class="be be-weixin" data-cmd="weixin" onclick="return false;" href="#"></a></li> </ul></div> </div> <div class="clear"></div> </div></div> <footer class="single-footer"> <ul id="fontsize"><li>A+</li></ul><div class="single-cat-tag"><div class="single-cat">所属分类：<a href="javascript:if(confirm('http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/'" tppabs="http://clsn.io/clsn-ops/linux%e8%bf%90%e7%bb%b4/" rel="category tag">Linux运维</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/dev-shell/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/dev-shell/'" tppabs="http://clsn.io/clsn-ops/ops-linux/dev-shell/" rel="category tag">Shell编程</a> <a href="index-15.htm" tppabs="http://clsn.io/clsn-ops/play-linux/" rel="category tag">玩转Linux</a> <a href="javascript:if(confirm('http://clsn.io/clsn-ops/ops-linux/  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn-ops/ops-linux/'" tppabs="http://clsn.io/clsn-ops/ops-linux/" rel="category tag">运维基本功</a></div></div> </footer><!-- .entry-footer --> <div class="clear"></div> </div><!-- .entry-content --> </article><!-- #post --><div class="single-tag"></div> <div class="authorbio wow fadeInUp" data-wow-delay="0.3s"> <img alt='' src="92aaa21455d7edf078accf7a7b75ee76-s=64&r=g&default=-wp-content-themes-clsn-003-img-avatar-96-latin_c.png" tppabs="https://cn.gravatar.com/avatar/92aaa21455d7edf078accf7a7b75ee76?s=64&r=g&default=%2Fwp-content%2Fthemes%2Fclsn-003%2Fimg%2Favatar%2F96%2Flatin_c.png" class='avatar avatar-64 photo wpfla ' width='64' height='64' /> <ul class="spostinfo"> <li> <li><strong>版权声明：</strong>本站原创文章，于2017年10月9日<i class="i-time">02:15:00</i>，由 <b><a href="index-36.htm" tppabs="http://clsn.io/clsn/lxauthor/clsn/" title="由惨绿少年发布" rel="author">惨绿少年</a></b> 发表，共 3694 字。</li> <li class="reprinted"><strong>转载请注明：</strong><a href="lx959.html" tppabs="http://clsn.io/clsn/lx959.html" rel="bookmark" title="本文固定链接 http://clsn.io/clsn/lx959.html">AWK高端功能-数组 | 惨绿少年</a></li> </ul> <div class="clear"></div></div> <div id="related-img" class="wow fadeInUp" data-wow-delay="0.3s"> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180205204316029-486521233.png&w=280&h=210&a=&zc=1" alt="AWK常用技巧" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180612203730808-1316825229.png&w=280&h=210&a=&zc=1" alt="Web缓存知识体系" /></a></span> </figure> <div class="related-title"><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/timthumb.php?src=/wp-content/uploads/2018/09/1190037-20180604214121023-576776588.png&w=280&h=210&a=&zc=1" alt="监控命令之tsar" /></a></span> </figure> <div class="related-title"><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></div> </div> </div> <div class="r4"> <div class="related-site"> <figure class="related-site-img"> <span class="load"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html"><img src="loading.png" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/loading.png" data-original="/wp-content/themes/clsn-003/img/random/7.jpg" alt="日志切割之Logrotate" /></a></span> </figure> <div class="related-title"><a href="javascript:if(confirm('http://clsn.io/clsn/lx1092.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1092.html'" tppabs="http://clsn.io/clsn/lx1092.html">日志切割之Logrotate</a></div> </div> </div> <div class="clear"></div></div> <div id="single-widget"> <div class="wow fadeInUp" data-wow-delay="0.3s"> <aside id="feed-2" class="widget feed wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="s-icon"></span>关注我们</h3><div id="feed_widget"> <div class="feed-rss"> <ul> <li class="weixin"> <span class="tipso_style" id="tip-w-j" data-tipso='<span class="weixin-qr"><img src="clsn_linux.bmp" tppabs="http://clsn.io/wp-content/uploads/2018/09/clsn_linux.bmp" alt="weixin"/></span>'><a title="微信"><i class="be be-weixin"></i></a></span> </li> <li class="feed"><a title="订阅" href="index-23.htm" tppabs="http://clsn.io/feed/" target="_blank" rel="external nofollow"><i class="be be-rss"></i></a></li> <li class="tsina"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-stsina"></i></a></li> <li class="tqq"><a title="" href="javascript:if(confirm('https://weibo.com/236567300  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ��һ��ַʹ����δ֧�ֵ�Э�� (���磬gopher)��  \n\n��Ҫ�ӷ������ϴ�����'))window.location='https://weibo.com/236567300'" tppabs="https://weibo.com/236567300" target="_blank" rel="external nofollow"><i class="be be-tqq"></i></a></li> </ul> </div></div><div class="clear"></div></aside><aside id="related_post-2" class="widget related_post wow fadeInUp" data-wow-delay="0.3s"><div id="related_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx1086.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx1086.html'" tppabs="http://clsn.io/clsn/lx1086.html">AWK常用技巧</a></li> <li><a href="lx1088.html" tppabs="http://clsn.io/clsn/lx1088.html">Web缓存知识体系</a></li> <li><a href="lx1090.html" tppabs="http://clsn.io/clsn/lx1090.html">监控命令之tsar</a></li> </ul></div><div class="clear"></div></aside> </div> <div class="clear"></div></div> <nav class="nav-single wow fadeInUp" data-wow-delay="0.3s"> <a href="javascript:if(confirm('http://clsn.io/clsn/lx960.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx960.html'" tppabs="http://clsn.io/clsn/lx960.html" rel="prev"><span class="meta-nav"><span class="post-nav"><i class="be be-arrowleft"></i> 上一篇</span><br/>shell编程下 特殊变量、test / [ ]判断、循环、脚本排错</span></a><a href="lx958.html" tppabs="http://clsn.io/clsn/lx958.html" rel="next"><span class="meta-nav"><span class="post-nav">下一篇 <i class="be be-arrowright"></i></span><br/>awk高级进阶</span></a> <div class="clear"></div> </nav> <nav class="navigation post-navigation" role="navigation"> <h2 class="screen-reader-text">文章导航</h2> <div class="nav-links"><div class="nav-previous"><a href="javascript:if(confirm('http://clsn.io/clsn/lx960.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx960.html'" tppabs="http://clsn.io/clsn/lx960.html" rel="prev"><span class="meta-nav-r" aria-hidden="true"><i class="be be-arrowleft"></i></span></a></div><div class="nav-next"><a href="lx958.html" tppabs="http://clsn.io/clsn/lx958.html" rel="next"><span class="meta-nav-l" aria-hidden="true"><i class="be be-arrowright"></i></span></a></div></div> </nav> <!-- 引用 --><div class="scroll-comments"></div><div id="comments" class="comments-area"> <div id="respond" class="comment-respond wow fadeInUp" data-wow-delay="0.3s"> <h3 id="reply-title" class="comment-reply-title"><span>发表评论</span><small><a rel="nofollow" id="cancel-comment-reply-link" href="lx959.html#respond" tppabs="http://clsn.io/clsn/lx959.html#respond" style="display:none;">取消回复</a></small></h3> <form action="http://clsn.io/wp-comments-post.php" method="post" id="commentform"> <p class="emoji-box"><script data-cfasync="false" src="email-decode.min.js" tppabs="http://clsn.io/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/javascript">/* <![CDATA[ */ function grin(tag) { var myField; tag = ' ' + tag + ' '; if (document.getElementById('comment') && document.getElementById('comment').type == 'textarea') { myField = document.getElementById('comment'); } else { return false; } if (document.selection) { myField.focus(); sel = document.selection.createRange(); sel.text = tag; myField.focus(); } else if (myField.selectionStart || myField.selectionStart == '0') { var startPos = myField.selectionStart; var endPos = myField.selectionEnd; var cursorPos = endPos; myField.value = myField.value.substring(0, startPos) + tag + myField.value.substring(endPos, myField.value.length); cursorPos += tag.length; myField.focus(); myField.selectionStart = cursorPos; myField.selectionEnd = cursorPos; } else { myField.value += tag; myField.focus(); } }/* ]]> */</script><a href="javascript:grin(':?:')"><img src="icon_question.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_question.gif" alt=":?:" title="疑问" /></a><a href="javascript:grin(':razz:')"><img src="icon_razz.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_razz.gif" alt=":razz:" title="调皮" /></a><a href="javascript:grin(':sad:')"><img src="icon_sad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_sad.gif" alt=":sad:" title="难过" /></a><a href="javascript:grin(':evil:')"><img src="icon_evil.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_evil.gif" alt=":evil:" title="抠鼻" /></a><a href="javascript:grin(':!:')"><img src="icon_exclaim.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_exclaim.gif" alt=":!:" title="吓" /></a><a href="javascript:grin(':smile:')"><img src="icon_smile.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_smile.gif" alt=":smile:" title="微笑" /></a><a href="javascript:grin(':oops:')"><img src="icon_redface.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_redface.gif" alt=":oops:" title="憨笑" /></a><a href="javascript:grin(':grin:')"><img src="icon_biggrin.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_biggrin.gif" alt=":grin:" title="坏笑" /></a><a href="javascript:grin(':eek:')"><img src="icon_surprised.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_surprised.gif" alt=":eek:" title="惊讶" /></a><a href="javascript:grin(':shock:')"><img src="icon_eek.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_eek.gif" alt=":shock:" title="发呆" /></a><a href="javascript:grin(':???:')"><img src="icon_confused.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_confused.gif" alt=":???:" title="撇嘴" /></a><a href="javascript:grin(':cool:')"><img src="icon_cool.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cool.gif" alt=":cool:" title="大兵" /></a><a href="javascript:grin(':lol:')"><img src="icon_lol.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_lol.gif" alt=":lol:" title="偷笑" /></a><a href="javascript:grin(':mad:')"><img src="icon_mad.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mad.gif" alt=":mad:" title="咒骂" /></a><a href="javascript:grin(':twisted:')"><img src="icon_twisted.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_twisted.gif" alt=":twisted:" title="发怒" /></a><a href="javascript:grin(':roll:')"><img src="icon_rolleyes.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_rolleyes.gif" alt=":roll:" title="白眼" /></a><a href="javascript:grin(':wink:')"><img src="icon_wink.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_wink.gif" alt=":wink:" title="鼓掌" /></a><a href="javascript:grin(':idea:')"><img src="icon_idea.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_idea.gif" alt=":idea:" title="酷" /></a><a href="javascript:grin(':arrow:')"><img src="icon_arrow.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_arrow.gif" alt=":arrow:" title="擦汗" /></a><a href="javascript:grin(':neutral:')"><img src="icon_neutral.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_neutral.gif" alt=":neutral:" title="亲亲" /></a><a href="javascript:grin(':cry:')"><img src="icon_cry.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_cry.gif" alt=":cry:" title="大哭" /></a><a href="javascript:grin(':mrgreen:')"><img src="icon_mrgreen.gif" tppabs="http://clsn.io/wp-content/themes/clsn-003/img/smilies/icon_mrgreen.gif" alt=":mrgreen:" title="呲牙" /></a><br /></p> <p class="comment-form-comment"><textarea id="comment" name="comment" rows="4" tabindex="1"></textarea></p> <p class="comment-tool"> <a class="tool-img" href='javascript:embedImage();' title="插入图片"><i class="icon-img"></i><i class="be be-picture"></i></a> <a class="emoji" href="" title="插入表情"><i class="be be-insertemoticon"></i></a> </p> <div id="comment-author-info"> <p class="comment-form-author"> <label for="author">昵称<span class="required">*</span></label> <input type="text" name="author" id="author" class="commenttext" value="" tabindex="2" /> </p> <p class="comment-form-email"> <label for="email">邮箱<span class="required">*</span></label> <input type="text" name="email" id="email" class="commenttext" value="" tabindex="3" /> </p> <p class="comment-form-url"> <label for="url">网址</label> <input type="text" name="url" id="url" class="commenttext" value="" tabindex="4" /> </p> </div> <div class="qaptcha"></div> <div class="clear"></div> <p class="form-submit"> <input id="submit" name="submit" type="submit" tabindex="5" value="提交评论"/> <input type='hidden' name='comment_post_ID' value='959' id='comment_post_ID' /><input type='hidden' name='comment_parent' id='comment_parent' value='0' /> </p> <span class="mail-notify"> <input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" class="notify" value="comment_mail_notify" /> <label for="comment_mail_notify"><span>有回复时邮件通知我</span></label> </span> </form> </div> </div><!-- #comments --> </main><!-- .site-main --> </div><!-- .content-area --><div id="sidebar" class="widget-area all-sidebar"> <aside id="search-3" class="widget widget_search wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>全站搜索</h3><div class="searchbar"> <form method="get" id="searchform" action="http://clsn.io/"> <span class="search-input"> <input type="text" value="" name="s" id="s" placeholder="输入搜索内容" required /> <button type="submit" id="searchsubmit"><i class="be be-search"></i></button> </span> </form></div><div class="clear"></div></aside><aside id="random_post-2" class="widget random_post wow fadeInUp" data-wow-delay="0.3s"><h3 class="widget-title"><span class="title-i"><span class="title-i-t"></span><span class="title-i-b"></span><span class="title-i-b"></span><span class="title-i-t"></span></span>热点文章</h3><div id="random_post_widget"> <ul> <li><a href="javascript:if(confirm('http://clsn.io/clsn/lx520.html  \n\n�ļ���δ�� Teleport Pro ȡ�أ���Ϊ ���޷�ȡ�ã�������ȡ�غ������������Ŀֹͣ��̫�졣  \n\n��Ҫ�ӷ������ϴ�����'))window.location='http://clsn.io/clsn/lx520.html'" tppabs="http://clsn.io/clsn/lx520.html" rel="bookmark">Shell编程基础篇-上</a></li> <li><a href="lx613.html" tppabs="http://clsn.io/clsn/lx613.html" rel="bookmark">高并发场景 LVS 安装及高可用实现</a></li> <li><a href="lx247.html" tppabs="http://clsn.io/clsn/lx247.html" rel="bookmark">MongoDB的备份与恢复</a></li> <li><a href="lx900.html" tppabs="http://clsn.io/clsn/lx900.html" rel="bookmark">SSH服务详解</a></li> <li><a href="lx959.html" tppabs="http://clsn.io/clsn/lx959.html" rel="bookmark">AWK高端功能-数组</a></li> <li><a href="lx985.html" tppabs="http://clsn.io/clsn/lx985.html" rel="bookmark">扩展正则表达式及应用</a></li> <li><a href="lx45.html" tppabs="http://clsn.io/clsn/lx45.html" rel="bookmark">内建DNS服务器&#8211;BIND</a></li> <li><a href="lx906.html" tppabs="http://clsn.io/clsn/lx906.html" rel="bookmark">sersync实现数据实时同步</a></li> <li><a href="lx982.html" tppabs="http://clsn.io/clsn/lx982.html" rel="bookmark">默认权限umask、文件系统权限、特殊权限</a></li> <li><a href="lx863.html" tppabs="http://clsn.io/clsn/lx863.html" rel="bookmark">zabbix 2.2.20 安装详解(Centos6.9)</a></li> </ul></div><div class="clear"></div></aside> </div><div class="clear"></div> </div><!-- .site-content --> <div class="clear"></div> <footer id="colophon" class="site-footer" role="contentinfo"> <div class="site-info"> Copyright © 2018 <a href="index.htm" tppabs="http://clsn.io/">惨绿少年</a>  版权所有 <span class="add-info"> </span> </div><!-- .site-info --> </footer><!-- .site-footer --><div id="login"> <div id="login-tab" class="login-tab-product"> <h2 class="login-tab-hd"> <span class="login-tab-hd-con"><a href="javascript:">登录</a></span> <span class="login-tab-hd-con"><a href="javascript:">注册</a></span> <span class="login-tab-hd-con"><a href="javascript:">找回密码</a></span> </h2> <div class="login-tab-bd login-dom-display"> <div class="login-tab-bd-con login-current"> <div id="tab1_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="log" value="" size="20" id="user_login" tabindex="11" /> </div> <div class="password"> <label for="user_pass">密码</label> <input type="password" name="pwd" value="" size="20" id="user_pass" tabindex="12" /> </div> <div class="login-form"></div> <div class="login_fields"> <div class="rememberme"> <label for="rememberme"> <input type="checkbox" name="rememberme" value="forever" checked="checked" id="rememberme" tabindex="13" />记住我的登录信息 </label> </div> <input type="submit" name="user-submit" value="登录" tabindex="14" class="user-submit" /> <input type="hidden" name="redirect_to" value="/clsn/lx959.html" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab2_login" class="tab_content_login"> <form method="post" action="http://clsn.io/wp-login.php?action=register" class="wp-user-form"> <div class="username"> <label for="user_login">用户名</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="101" /> </div> <div class="password"> <label for="user_email">电子邮件地址</label> <input type="text" name="user_email" value="" size="25" id="user_email" tabindex="102" /> </div> <div class="login_fields"> <input type="submit" name="user-submit" value="注册" class="user-submit" tabindex="103" /> <input type="hidden" name="redirect_to" value="/clsn/lx959.html?register=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> <div class="login-tab-bd-con"> <div id="tab3_login" class="tab_content_login"> <p class="message">输入用户名或电子邮箱地址，您会收到一封新密码链接的电子邮件。</p> <form method="post" action="http://clsn.io/wp-login.php?action=lostpassword" class="wp-user-form"> <div class="username"> <label for="user_login" class="hide">用户名或电子邮件地址</label> <input type="text" name="user_login" value="" size="20" id="user_login" tabindex="1001" /> </div> <div class="login_fields"> <div class="login-form"></div> <input type="submit" name="user-submit" value="获取新密码" class="user-submit" tabindex="1002" /> <input type="hidden" name="redirect_to" value="/clsn/lx959.html?reset=true" /> <input type="hidden" name="user-cookie" value="1" /> </div> </form> </div> </div> </div> </div> </div><ul id="scroll"> <li class="log log-no"><a class="log-button" title="文章目录"><i class="be be-menu"></i></a><div class="log-prompt"><div class="log-arrow">文章目录</div></div></li> <li><a class="scroll-home" href="index.htm" tppabs="http://clsn.io/" title="首页" rel="home"><i class="be be-home"></i></a></li> <li><a class="scroll-h" title="返回顶部"><i class="be be-arrowup"></i></a></li> <li><a class="scroll-c" title="评论"><i class="be be-speechbubble"></i></a></li> <li><a class="scroll-b" title="转到底部"><i class="be be-arrowdown"></i></a></li> <li class="qr-site"><a href="javascript:void(0)" class="qr" title="本页二维码"><i class="be be-qr-code"></i><span class="qr-img"><span id="output"><img class="alignnone" src="Frog-2-1.png" tppabs="http://clsn.io/wp-content/uploads/2018/09/Frog-2-1.png" alt="icon"/></span><span class="arrow arrow-z"><i class="be be-playarrow"></i></span><span class="arrow arrow-y"><i class="be be-playarrow"></i></span></span></a></li> <script type="text/javascript">$(document).ready(function(){if(!+[1,]){present="table";} else {present="canvas";}$('#output').qrcode({render:present,text:window.location.href,width:"150",height:"150"});});</script> </ul> <script src="wb.js" tppabs="http://tjs.sjs.sinajs.cn/open/api/js/wb.js" type="text/javascript" charset="utf-8"></script> <html xmlns:wb="http://open.weibo.com/wb"></div><!-- .site --><script type="text/javascript">/* 鼠标点击特效 */var a_idx = 0;jQuery(document).ready(function($) { $("body").click(function(e) {//var a = new Array("富强", "民主", "文明", "和谐", "自由", "平等", "公正" ,"法治", "爱国", "敬业", "诚信", "友善");var a = new Array("clsn", "惨绿少年", "CLSN", "clsn.io", "linux", "", "公正");var $i = $("<span/>").text(a[a_idx]); a_idx = (a_idx + 1) % a.length;var x = e.pageX, y = e.pageY; $i.css({"z-index": 999999999999999999999999999999999999999999999999999999999999999999999,"top": y - 20,"left": x,"position": "absolute","font-weight": "bold","color": "#ff6651" }); $("body").append($i); $i.animate({"top": y - 180,"opacity": 0 }, 1500,function() { $i.remove(); }); });});</script><script type="text/javascript" src="jquery-ui.min.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ui.min.js"></script><script type="text/javascript" src="qaptcha.jquery.js" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/qaptcha.jquery.js"></script><script type="text/javascript">var QaptchaJqueryPage="/wp-content/themes/clsn-003/inc/qaptcha.jquery.php"</script><script type="text/javascript">$(document).ready(function(){$('.qaptcha').QapTcha();});</script><script type='text/javascript'>/* <![CDATA[ */var imp_data = {"ajaxurl":"http:\/\/clsn.io\/wp-admin\/admin-ajax.php","_wpnonce":"848a4b7a78"};/* ]]> */</script><script type='text/javascript' src="import.js-ver=4.9.8" tppabs="http://clsn.io/wp-content/plugins/cnblogs2wp/js/import.js?ver=4.9.8"></script><script type='text/javascript' src="slides.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/slides.js?ver=2017.07.26"></script><script type='text/javascript' src="jquery.qrcode.min.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.qrcode.min.js?ver=2017.07.26"></script><script type='text/javascript' src="sticky.js-ver=1.6.0" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/sticky.js?ver=1.6.0"></script><script type='text/javascript' src="jquery-ias.js-ver=2.2.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery-ias.js?ver=2.2.1"></script><script type='text/javascript' src="jquery.lazyload.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/jquery.lazyload.js?ver=2017.07.26"></script><script type='text/javascript' src="tipso.js-ver=1.0.1" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/tipso.js?ver=1.0.1"></script><script type='text/javascript'>/* <![CDATA[ */var wpl_ajax_url = "\/wp-content\/themes\/clsn-003\/inc\/admin-ajax.php";/* ]]> */</script><script type='text/javascript' src="script.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/script.js?ver=2017.07.26"></script><script type='text/javascript' src="flexisel.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/flexisel.js?ver=2017.07.26"></script><script type='text/javascript' src="fancybox.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/fancybox.js?ver=2017.07.26"></script><script type='text/javascript' src="comments-ajax-qt.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/comments-ajax-qt.js?ver=2017.07.26"></script><script type='text/javascript' src="superfish.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/superfish.js?ver=2017.07.26"></script><script type='text/javascript' src="bd-share.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/bd-share.js?ver=2017.07.26"></script><script type='text/javascript' src="wpzm.js-ver=2017.07.26" tppabs="http://clsn.io/wp-content/themes/clsn-003/js/wpzm.js?ver=2017.07.26"></script><script type="text/javascript">var ias=$.ias({container:"#comments",item:".comment-list",pagination:".scroll-links",next:".scroll-links .nav-previous a",});ias.extension(new IASTriggerExtension({text:'<i class="be be-circledown"></i>更多',offset: 0,}));ias.extension(new IASSpinnerExtension());ias.extension(new IASNoneLeftExtension({text:'已是最后',}));ias.on('rendered',function(items){$("img").lazyload({effect: "fadeIn",failure_limit: 10});});</script></body></html>
